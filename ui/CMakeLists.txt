@@ -5,6 +5,7 @@ SET(SOURCES screens/ui_ScreenMain.c
     ui.c
     components/ui_comp_hook.c
     ui_helpers.c
+    ui_events.cpp
     images/ui_img_iconsettings44px_png.c
     images/ui_img_iconchangedriver44px_png.c
     fonts/ui_font_BIO_BOLDITALIC_10.c

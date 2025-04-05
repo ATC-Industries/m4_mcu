@@ -461,6 +461,7 @@ lv_obj_clear_flag( ui_SettingsContainerExitButtonOverlay, LV_OBJ_FLAG_SCROLLABLE
 
 lv_obj_add_event_cb(ui_SettingsTabpageExit, ui_event_SettingsTabpageExit, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsContainerExitButtonOverlay, ui_event_SettingsContainerExitButtonOverlay, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_ScreenSettings, ui_event_ScreenSettings, LV_EVENT_ALL, NULL);
 uic_ScreenSettings = ui_ScreenSettings;
 uic_SettingsTabviewSettingsView = ui_SettingsTabviewSettingsView;
 uic_SettingsPanelUnitsSelection = ui_SettingsPanelUnitsSelection;

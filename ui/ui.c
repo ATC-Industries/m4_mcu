@@ -200,6 +200,7 @@ lv_obj_t *uic_MainPanelRelayIndicatorIcon4;
 
 // SCREEN: ui_ScreenSettings
 void ui_ScreenSettings_screen_init(void);
+void ui_event_ScreenSettings( lv_event_t * e);
 lv_obj_t *ui_ScreenSettings;
 lv_obj_t *ui_SettingsTabviewSettingsView;
 lv_obj_t *ui_SettingsTabpageGeneral;
@@ -319,6 +320,14 @@ void ui_event_MainButtonSettings( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       _ui_screen_change( &ui_ScreenSettings, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenSettings_screen_init);
+}
+}
+
+void ui_event_ScreenSettings( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_SCREEN_LOAD_START) {
+      updateAboutPageInfo( e );
 }
 }
 

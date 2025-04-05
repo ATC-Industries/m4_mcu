@@ -209,6 +209,7 @@ extern lv_obj_t *uic_MainPanelRelayIndicatorIcon4;
 
 // SCREEN: ui_ScreenSettings
 void ui_ScreenSettings_screen_init(void);
+void ui_event_ScreenSettings( lv_event_t * e);
 extern lv_obj_t *ui_ScreenSettings;
 extern lv_obj_t *ui_SettingsTabviewSettingsView;
 extern lv_obj_t *ui_SettingsTabpageGeneral;
