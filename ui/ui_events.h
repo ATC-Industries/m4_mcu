@@ -11,6 +11,9 @@ extern "C" {
 #endif
 
 void updateAboutPageInfo(lv_event_t * e);
+void unitsToggle(lv_event_t * e);
+void benchmarkToggle(lv_event_t * e);
+void changeBrightness(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/

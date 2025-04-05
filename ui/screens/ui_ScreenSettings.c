@@ -14,27 +14,39 @@ ui_SettingsTabviewSettingsView = lv_tabview_create(ui_ScreenSettings, LV_DIR_LEF
 lv_obj_set_width( ui_SettingsTabviewSettingsView, lv_pct(100));
 lv_obj_set_height( ui_SettingsTabviewSettingsView, lv_pct(100));
 lv_obj_set_align( ui_SettingsTabviewSettingsView, LV_ALIGN_CENTER );
-lv_obj_clear_flag( ui_SettingsTabviewSettingsView, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_clear_flag( ui_SettingsTabviewSettingsView, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageGeneral = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "General");
+lv_obj_set_flex_flow(ui_SettingsTabpageGeneral,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsTabpageGeneral, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsTabpageGeneral, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
-ui_SettingsPanelUnitsSelection = lv_obj_create(ui_SettingsTabpageGeneral);
-lv_obj_set_width( ui_SettingsPanelUnitsSelection, 232);
-lv_obj_set_height( ui_SettingsPanelUnitsSelection, 50);
-lv_obj_set_x( ui_SettingsPanelUnitsSelection, -200 );
-lv_obj_set_y( ui_SettingsPanelUnitsSelection, -190 );
-lv_obj_set_align( ui_SettingsPanelUnitsSelection, LV_ALIGN_CENTER );
-lv_obj_set_flex_flow(ui_SettingsPanelUnitsSelection,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_SettingsPanelUnitsSelection, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_obj_clear_flag( ui_SettingsPanelUnitsSelection, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_SettingsPanelGeneralSettings = lv_obj_create(ui_SettingsTabpageGeneral);
+lv_obj_set_width( ui_SettingsPanelGeneralSettings, lv_pct(100));
+lv_obj_set_height( ui_SettingsPanelGeneralSettings, lv_pct(100));
+lv_obj_set_x( ui_SettingsPanelGeneralSettings, -200 );
+lv_obj_set_y( ui_SettingsPanelGeneralSettings, -190 );
+lv_obj_set_align( ui_SettingsPanelGeneralSettings, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsPanelGeneralSettings,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsPanelGeneralSettings, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsPanelGeneralSettings, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
-ui_SettingsLabelUnitsMetric = lv_label_create(ui_SettingsPanelUnitsSelection);
+ui_SettingsContainerUnitsSetting = lv_obj_create(ui_SettingsPanelGeneralSettings);
+lv_obj_remove_style_all(ui_SettingsContainerUnitsSetting);
+lv_obj_set_width( ui_SettingsContainerUnitsSetting, 180);
+lv_obj_set_height( ui_SettingsContainerUnitsSetting, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsContainerUnitsSetting, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerUnitsSetting,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerUnitsSetting, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsContainerUnitsSetting, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsLabelUnitsMetric = lv_label_create(ui_SettingsContainerUnitsSetting);
 lv_obj_set_width( ui_SettingsLabelUnitsMetric, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_SettingsLabelUnitsMetric, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelUnitsMetric, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelUnitsMetric,"Metric");
 
-ui_SettingsSwitchUnits = lv_switch_create(ui_SettingsPanelUnitsSelection);
+ui_SettingsSwitchUnits = lv_switch_create(ui_SettingsContainerUnitsSetting);
 lv_obj_set_width( ui_SettingsSwitchUnits, 50);
 lv_obj_set_height( ui_SettingsSwitchUnits, 25);
 lv_obj_set_align( ui_SettingsSwitchUnits, LV_ALIGN_CENTER );
@@ -45,15 +57,66 @@ lv_obj_set_style_bg_opa(ui_SettingsSwitchUnits, 255, LV_PART_MAIN| LV_STATE_CHEC
 lv_obj_set_style_bg_color(ui_SettingsSwitchUnits, lv_color_hex(0xE6E2E6), LV_PART_INDICATOR | LV_STATE_CHECKED );
 lv_obj_set_style_bg_opa(ui_SettingsSwitchUnits, 255, LV_PART_INDICATOR| LV_STATE_CHECKED);
 
-ui_SettingsLabelUnitsImperial = lv_label_create(ui_SettingsPanelUnitsSelection);
+ui_SettingsLabelUnitsImperial = lv_label_create(ui_SettingsContainerUnitsSetting);
 lv_obj_set_width( ui_SettingsLabelUnitsImperial, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_SettingsLabelUnitsImperial, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelUnitsImperial, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelUnitsImperial,"Imperial");
 
+ui_SettingsContainerBenchmarkSetting = lv_obj_create(ui_SettingsPanelGeneralSettings);
+lv_obj_remove_style_all(ui_SettingsContainerBenchmarkSetting);
+lv_obj_set_width( ui_SettingsContainerBenchmarkSetting, 248);
+lv_obj_set_height( ui_SettingsContainerBenchmarkSetting, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsContainerBenchmarkSetting, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerBenchmarkSetting,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerBenchmarkSetting, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsContainerBenchmarkSetting, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsSwitchBenchmark = lv_switch_create(ui_SettingsContainerBenchmarkSetting);
+lv_obj_set_width( ui_SettingsSwitchBenchmark, 50);
+lv_obj_set_height( ui_SettingsSwitchBenchmark, 25);
+lv_obj_set_align( ui_SettingsSwitchBenchmark, LV_ALIGN_CENTER );
+
+ui_SettingsLabelBenchmarkTitle = lv_label_create(ui_SettingsContainerBenchmarkSetting);
+lv_obj_set_width( ui_SettingsLabelBenchmarkTitle, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelBenchmarkTitle, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelBenchmarkTitle, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelBenchmarkTitle,"Display Benchmark Data");
+
+ui_SettingsContainerBrightnessSetting = lv_obj_create(ui_SettingsPanelGeneralSettings);
+lv_obj_remove_style_all(ui_SettingsContainerBrightnessSetting);
+lv_obj_set_width( ui_SettingsContainerBrightnessSetting, 547);
+lv_obj_set_height( ui_SettingsContainerBrightnessSetting, 25);
+lv_obj_set_align( ui_SettingsContainerBrightnessSetting, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerBrightnessSetting,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerBrightnessSetting, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerBrightnessSetting, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsLabelBrightnessTitle = lv_label_create(ui_SettingsContainerBrightnessSetting);
+lv_obj_set_width( ui_SettingsLabelBrightnessTitle, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelBrightnessTitle, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelBrightnessTitle, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelBrightnessTitle,"Brightness");
+
+ui_SettingsSliderSlider1 = lv_slider_create(ui_SettingsContainerBrightnessSetting);
+lv_slider_set_range(ui_SettingsSliderSlider1, 1,255);
+lv_slider_set_value( ui_SettingsSliderSlider1, 128, LV_ANIM_OFF);
+if (lv_slider_get_mode(ui_SettingsSliderSlider1)==LV_SLIDER_MODE_RANGE ) lv_slider_set_left_value( ui_SettingsSliderSlider1, 255, LV_ANIM_OFF);
+lv_obj_set_width( ui_SettingsSliderSlider1, 369);
+lv_obj_set_height( ui_SettingsSliderSlider1, 10);
+lv_obj_set_align( ui_SettingsSliderSlider1, LV_ALIGN_CENTER );
+
+ui_SettingsLabelBrightness = lv_label_create(ui_SettingsContainerBrightnessSetting);
+lv_obj_set_width( ui_SettingsLabelBrightness, lv_pct(10));
+lv_obj_set_height( ui_SettingsLabelBrightness, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelBrightness, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelBrightness,"50%");
+
 ui_SettingsTabpageSpeed_and_Distance = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Speed + Distance");
+lv_obj_clear_flag( ui_SettingsTabpageSpeed_and_Distance, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageTach = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Tach");
+lv_obj_clear_flag( ui_SettingsTabpageTach, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageRelays_and_Limits = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Relays + Limits");
 lv_obj_set_flex_flow(ui_SettingsTabpageRelays_and_Limits,LV_FLEX_FLOW_COLUMN);
@@ -365,10 +428,13 @@ lv_obj_set_align( ui_SettingsPanelPanel1, LV_ALIGN_CENTER );
 lv_obj_clear_flag( ui_SettingsPanelPanel1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
 ui_SettingsTabpageJudge = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Judge");
+lv_obj_clear_flag( ui_SettingsTabpageJudge, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageSafety_and_Displays = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Safety + Displays");
+lv_obj_clear_flag( ui_SettingsTabpageSafety_and_Displays, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageAbout = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "About");
+lv_obj_clear_flag( ui_SettingsTabpageAbout, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsPanelAboutInfo = lv_obj_create(ui_SettingsTabpageAbout);
 lv_obj_set_width( ui_SettingsPanelAboutInfo, lv_pct(100));
@@ -451,6 +517,30 @@ lv_obj_set_align( ui_SettingsLabelCopyrightData, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelCopyrightData,"(c) Agri-Tronix Corporation");
 
 ui_SettingsTabpageExit = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Exit");
+lv_obj_clear_flag( ui_SettingsTabpageExit, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+
+ui_SettingsLabelBountyMessage = lv_label_create(ui_SettingsTabpageExit);
+lv_obj_set_width( ui_SettingsLabelBountyMessage, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelBountyMessage, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_SettingsLabelBountyMessage, -7 );
+lv_obj_set_y( ui_SettingsLabelBountyMessage, -69 );
+lv_obj_set_align( ui_SettingsLabelBountyMessage, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelBountyMessage,"Oh, Hi!\nHow did you get here?  This page shouldn't even exist.\n\nBut hey I guess since you found you're way here, you found a bug!!\n\nGreat for you, not so great for me, the guy writing all this code.  but...\nI'll tell you what, if you are the first person to give me reproducable steps\non how you found yourself here, I'll send you a $10 Amazon gift card!\n\nCool Beans! See ya later!\n\n-Adam");
+
+ui_SettingsButtonReturnHome = lv_btn_create(ui_SettingsTabpageExit);
+lv_obj_set_height( ui_SettingsButtonReturnHome, 50);
+lv_obj_set_width( ui_SettingsButtonReturnHome, LV_SIZE_CONTENT);  /// 100
+lv_obj_set_x( ui_SettingsButtonReturnHome, -4 );
+lv_obj_set_y( ui_SettingsButtonReturnHome, 85 );
+lv_obj_set_align( ui_SettingsButtonReturnHome, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsButtonReturnHome, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonReturnHome, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsLabelButtonReturnHome = lv_label_create(ui_SettingsButtonReturnHome);
+lv_obj_set_width( ui_SettingsLabelButtonReturnHome, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelButtonReturnHome, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelButtonReturnHome, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelButtonReturnHome,"Return To home");
 
 ui_SettingsContainerExitButtonOverlay = lv_obj_create(ui_ScreenSettings);
 lv_obj_remove_style_all(ui_SettingsContainerExitButtonOverlay);
@@ -459,15 +549,26 @@ lv_obj_set_height( ui_SettingsContainerExitButtonOverlay, 50);
 lv_obj_set_align( ui_SettingsContainerExitButtonOverlay, LV_ALIGN_BOTTOM_LEFT );
 lv_obj_clear_flag( ui_SettingsContainerExitButtonOverlay, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
+lv_obj_add_event_cb(ui_SettingsSwitchUnits, ui_event_SettingsSwitchUnits, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchBenchmark, ui_event_SettingsSwitchBenchmark, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSliderSlider1, ui_event_SettingsSliderSlider1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonReturnHome, ui_event_SettingsButtonReturnHome, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTabpageExit, ui_event_SettingsTabpageExit, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsContainerExitButtonOverlay, ui_event_SettingsContainerExitButtonOverlay, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_ScreenSettings, ui_event_ScreenSettings, LV_EVENT_ALL, NULL);
 uic_ScreenSettings = ui_ScreenSettings;
 uic_SettingsTabviewSettingsView = ui_SettingsTabviewSettingsView;
-uic_SettingsPanelUnitsSelection = ui_SettingsPanelUnitsSelection;
+uic_SettingsPanelGeneralSettings = ui_SettingsPanelGeneralSettings;
+uic_SettingsContainerUnitsSetting = ui_SettingsContainerUnitsSetting;
 uic_SettingsLabelUnitsMetric = ui_SettingsLabelUnitsMetric;
 uic_SettingsSwitchUnits = ui_SettingsSwitchUnits;
 uic_SettingsLabelUnitsImperial = ui_SettingsLabelUnitsImperial;
+uic_SettingsContainerBenchmarkSetting = ui_SettingsContainerBenchmarkSetting;
+uic_SettingsSwitchBenchmark = ui_SettingsSwitchBenchmark;
+uic_SettingsLabelBenchmarkTitle = ui_SettingsLabelBenchmarkTitle;
+uic_SettingsContainerBrightnessSetting = ui_SettingsContainerBrightnessSetting;
+uic_SettingsLabelBrightnessTitle = ui_SettingsLabelBrightnessTitle;
+uic_SettingsLabelBrightness = ui_SettingsLabelBrightness;
 uic_SettingsPanelConnectionRLM = ui_SettingsPanelConnectionRLM;
 uic_SettingsPanelRelayLimitSettings = ui_SettingsPanelRelayLimitSettings;
 uic_SettingsContainerRelaySettings = ui_SettingsContainerRelaySettings;
@@ -488,6 +589,9 @@ uic_SettingsLabelInfoTitle = ui_SettingsLabelInfoTitle;
 uic_SettingsLabelInfoData = ui_SettingsLabelInfoData;
 uic_SettingsLabelSupportData = ui_SettingsLabelSupportData;
 uic_SettingsLabelCopyrightData = ui_SettingsLabelCopyrightData;
+uic_SettingsLabelBountyMessage = ui_SettingsLabelBountyMessage;
+uic_SettingsButtonReturnHome = ui_SettingsButtonReturnHome;
+uic_SettingsLabelButtonReturnHome = ui_SettingsLabelButtonReturnHome;
 uic_SettingsContainerExitButtonOverlay = ui_SettingsContainerExitButtonOverlay;
 
 }

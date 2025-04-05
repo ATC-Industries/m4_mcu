@@ -3,12 +3,39 @@
 // LVGL version: 8.3.11
 // Project name: M4_MCU_2025
 
+#include "dev_utils/benchmark.h"
+#include "display/backlight.h"
 #include "ui.h"
 
-const char* VERSION_STRING = VERSION;
-const char* BUILD_DATETIME = __DATE__ " " __TIME__;
+const char *VERSION_STRING = VERSION;
+const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
-void updateAboutPageInfo(lv_event_t* e) {
+void updateAboutPageInfo(lv_event_t *e) {
   lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
   lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
+}
+
+void unitsToggle(lv_event_t *e) {
+  // Your code here
+}
+
+void benchmarkToggle(lv_event_t *e) {
+  lv_obj_t *cb = lv_event_get_target(e);
+  bool enabled = lv_obj_get_state(cb) & LV_STATE_CHECKED;
+  benchmark_set_enabled(enabled);
+}
+
+void changeBrightness(lv_event_t *e) {
+  lv_obj_t *slider = lv_event_get_target(e);
+  uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
+
+  // Update the backlight
+  setBacklight(brightness);
+
+  // Update label
+  lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
+
+  // // Set initial slider value based on current brightness
+  // if (ui_brightness_slider != NULL) {
+  //   lv_slider_set_value(ui_brightness_slider, display_get_brightness(), LV_ANIM_OFF);
 }

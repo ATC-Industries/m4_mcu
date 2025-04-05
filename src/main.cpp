@@ -12,7 +12,9 @@
 
 // LVGL buffers
 static lv_disp_draw_buf_t draw_buf;
-static lv_color_t buf1[800 * 10];  // Buffer for 10 lines
+// static lv_color_t buf1[800 * 10];  // Buffer for 10 lines
+static lv_color_t buf1[800 * 40];  // Buffer for 40 lines
+
 static lv_disp_drv_t disp_drv;
 static lv_indev_drv_t indev_drv;
 
@@ -107,7 +109,8 @@ void init_lvgl() {
   lv_init();
 
   // Initialize display buffer
-  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
+  // lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
+  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 40);
 
   // Initialize display driver
   lv_disp_drv_init(&disp_drv);
@@ -133,8 +136,6 @@ void setup() {
   delay(1000);
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
-  const char *VERSION_STRING = VERSION;
-  const char *BUILD_DATE = __DATE__;  // e.g., "Apr  5 2025"
   Serial.print("Version: ");
   Serial.println(VERSION);
   Serial.print("Build Date: ");

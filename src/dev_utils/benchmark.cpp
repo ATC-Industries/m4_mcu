@@ -15,7 +15,8 @@ void create_benchmark_display() {
   if (benchmark_cont != NULL) return;  // Already created
 
   // Create a container for benchmark display
-  benchmark_cont = lv_obj_create(lv_scr_act());
+  // benchmark_cont = lv_obj_create(lv_scr_act());
+  benchmark_cont = lv_obj_create(lv_layer_top());
   lv_obj_set_size(benchmark_cont, 180, 80);
   lv_obj_align(benchmark_cont, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
 

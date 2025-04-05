@@ -204,10 +204,21 @@ void ui_event_ScreenSettings( lv_event_t * e);
 lv_obj_t *ui_ScreenSettings;
 lv_obj_t *ui_SettingsTabviewSettingsView;
 lv_obj_t *ui_SettingsTabpageGeneral;
-lv_obj_t *ui_SettingsPanelUnitsSelection;
+lv_obj_t *ui_SettingsPanelGeneralSettings;
+lv_obj_t *ui_SettingsContainerUnitsSetting;
 lv_obj_t *ui_SettingsLabelUnitsMetric;
+void ui_event_SettingsSwitchUnits( lv_event_t * e);
 lv_obj_t *ui_SettingsSwitchUnits;
 lv_obj_t *ui_SettingsLabelUnitsImperial;
+lv_obj_t *ui_SettingsContainerBenchmarkSetting;
+void ui_event_SettingsSwitchBenchmark( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchBenchmark;
+lv_obj_t *ui_SettingsLabelBenchmarkTitle;
+lv_obj_t *ui_SettingsContainerBrightnessSetting;
+lv_obj_t *ui_SettingsLabelBrightnessTitle;
+void ui_event_SettingsSliderSlider1( lv_event_t * e);
+lv_obj_t *ui_SettingsSliderSlider1;
+lv_obj_t *ui_SettingsLabelBrightness;
 lv_obj_t *ui_SettingsTabpageSpeed_and_Distance;
 lv_obj_t *ui_SettingsTabpageTach;
 lv_obj_t *ui_SettingsTabpageRelays_and_Limits;
@@ -268,15 +279,26 @@ lv_obj_t *ui_SettingsLabelSupportData;
 lv_obj_t *ui_SettingsLabelCopyrightData;
 void ui_event_SettingsTabpageExit( lv_event_t * e);
 lv_obj_t *ui_SettingsTabpageExit;
+lv_obj_t *ui_SettingsLabelBountyMessage;
+void ui_event_SettingsButtonReturnHome( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonReturnHome;
+lv_obj_t *ui_SettingsLabelButtonReturnHome;
 void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e);
 lv_obj_t *ui_SettingsContainerExitButtonOverlay;
 // CUSTOM VARIABLES
 lv_obj_t *uic_ScreenSettings;
 lv_obj_t *uic_SettingsTabviewSettingsView;
-lv_obj_t *uic_SettingsPanelUnitsSelection;
+lv_obj_t *uic_SettingsPanelGeneralSettings;
+lv_obj_t *uic_SettingsContainerUnitsSetting;
 lv_obj_t *uic_SettingsLabelUnitsMetric;
 lv_obj_t *uic_SettingsSwitchUnits;
 lv_obj_t *uic_SettingsLabelUnitsImperial;
+lv_obj_t *uic_SettingsContainerBenchmarkSetting;
+lv_obj_t *uic_SettingsSwitchBenchmark;
+lv_obj_t *uic_SettingsLabelBenchmarkTitle;
+lv_obj_t *uic_SettingsContainerBrightnessSetting;
+lv_obj_t *uic_SettingsLabelBrightnessTitle;
+lv_obj_t *uic_SettingsLabelBrightness;
 lv_obj_t *uic_SettingsPanelConnectionRLM;
 lv_obj_t *uic_SettingsPanelRelayLimitSettings;
 lv_obj_t *uic_SettingsContainerRelaySettings;
@@ -297,6 +319,9 @@ lv_obj_t *uic_SettingsLabelInfoTitle;
 lv_obj_t *uic_SettingsLabelInfoData;
 lv_obj_t *uic_SettingsLabelSupportData;
 lv_obj_t *uic_SettingsLabelCopyrightData;
+lv_obj_t *uic_SettingsLabelBountyMessage;
+lv_obj_t *uic_SettingsButtonReturnHome;
+lv_obj_t *uic_SettingsLabelButtonReturnHome;
 lv_obj_t *uic_SettingsContainerExitButtonOverlay;
 
 // EVENTS
@@ -331,11 +356,43 @@ if ( event_code == LV_EVENT_SCREEN_LOAD_START) {
 }
 }
 
+void ui_event_SettingsSwitchUnits( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      unitsToggle( e );
+}
+}
+
+void ui_event_SettingsSwitchBenchmark( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      benchmarkToggle( e );
+}
+}
+
+void ui_event_SettingsSliderSlider1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      changeBrightness( e );
+}
+}
+
 void ui_event_SettingsTabpageExit( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_PRESSED) {
       _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_ScreenMain_screen_init);
+}
+}
+
+void ui_event_SettingsButtonReturnHome( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
 }
 }
 
