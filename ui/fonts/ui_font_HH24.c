@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 100 px
  * Bpp: 4
- * Opts: --bpp 4 --size 100 --font /Users/adamclarkson/Documents/ATC/M4/MARCH2025/M4_SLS/assets/HH_MONO_NUM.ttf -o /Users/adamclarkson/Documents/ATC/M4/MARCH2025/M4_SLS/assets/ui_font_HH24.c --format lvgl -r 0x20-0x39 --symbols 0x20-0x39 --no-compress --no-prefilter
+ * Opts: --bpp 4 --size 100 --font /Users/adamclarkson/dev/m4_ecosystem/m4_mcu/SQUARELINE/assets/HH_MONO_NUM.ttf -o /Users/adamclarkson/dev/m4_ecosystem/m4_mcu/SQUARELINE/assets/ui_font_HH24.c --format lvgl -r 0x20-0x39 --symbols 0x20-0x39 --no-compress --no-prefilter
  ******************************************************************************/
 
 #include "../ui.h"
@@ -5356,55 +5356,7 @@ static const lv_font_fmt_txt_cmap_t cmaps[] =
     }
 };
 
-/*-----------------
- *    KERNING
- *----------------*/
 
-
-/*Pair left and right glyphs for kerning*/
-static const uint8_t kern_pair_glyph_ids[] =
-{
-    13, 18,
-    13, 24,
-    14, 27,
-    15, 18,
-    15, 24,
-    16, 7,
-    16, 17,
-    16, 20,
-    16, 23,
-    16, 25,
-    16, 26,
-    16, 27,
-    17, 16,
-    20, 16,
-    21, 24,
-    23, 16,
-    24, 13,
-    24, 15,
-    24, 21,
-    25, 16,
-    26, 16,
-    27, 14
-};
-
-/* Kerning between the respective left and right glyphs
- * 4.4 format which needs to scaled with `kern_scale`*/
-static const int8_t kern_pair_values[] =
-{
-    -34, -16, -34, -34, -16, -20, -20, -20,
-    -20, -20, -20, -28, -27, -27, -45, -27,
-    -96, -96, -118, -27, -27, -32
-};
-
-/*Collect the kern pair's data in one place*/
-static const lv_font_fmt_txt_kern_pair_t kern_pairs =
-{
-    .glyph_ids = kern_pair_glyph_ids,
-    .values = kern_pair_values,
-    .pair_cnt = 22,
-    .glyph_ids_size = 0
-};
 
 /*--------------------
  *  ALL CUSTOM DATA
@@ -5423,8 +5375,8 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
     .glyph_bitmap = glyph_bitmap,
     .glyph_dsc = glyph_dsc,
     .cmaps = cmaps,
-    .kern_dsc = &kern_pairs,
-    .kern_scale = 24,
+    .kern_dsc = NULL,
+    .kern_scale = 0,
     .cmap_num = 2,
     .bpp = 4,
     .kern_classes = 0,

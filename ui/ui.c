@@ -10,6 +10,7 @@
 
 // SCREEN: ui_ScreenMain
 void ui_ScreenMain_screen_init(void);
+void ui_event_ScreenMain( lv_event_t * e);
 lv_obj_t *ui_ScreenMain;
 lv_obj_t *ui_MainContainerDistanceProgression;
 lv_obj_t *ui_MainContainerRaceFlag;
@@ -91,13 +92,30 @@ lv_obj_t *ui_MainContainerLimitIndicators2;
 lv_obj_t *ui_MainLabelLimitIndicator2;
 lv_obj_t *ui_MainPanelLimitIndicatorIcon2;
 lv_obj_t *ui_MainContainerPullStateControls;
-lv_obj_t *ui_MainButtonStage;
+lv_obj_t *ui_MainContainerStateREADY;
+void ui_event_MainButtonREADYStage( lv_event_t * e);
+lv_obj_t *ui_MainButtonREADYStage;
 lv_obj_t *ui_MainLabelButtonStage;
-lv_obj_t *ui_MainButtonStaged;
+lv_obj_t *ui_MainContainerStateSTAGED;
+void ui_event_MainButtonSTAGEDCancel( lv_event_t * e);
+lv_obj_t *ui_MainButtonSTAGEDCancel;
 lv_obj_t *ui_MainLabelButtonStaged;
 lv_obj_t *ui_MainLabelButtonStagedCancel;
-lv_obj_t *ui_MainButtonStop;
+lv_obj_t *ui_MainContainerStatePULLING;
+void ui_event_MainButtonPULLINGStop( lv_event_t * e);
+lv_obj_t *ui_MainButtonPULLINGStop;
 lv_obj_t *ui_MainLabelButtonStop;
+lv_obj_t *ui_MainContainerStatePULLEND;
+void ui_event_MainButtonPULLENDDiscard( lv_event_t * e);
+lv_obj_t *ui_MainButtonPULLENDDiscard;
+lv_obj_t *ui_MainLabelButtonStage1;
+void ui_event_MainButtonPULLENDSave( lv_event_t * e);
+lv_obj_t *ui_MainButtonPULLENDSave;
+lv_obj_t *ui_MainLabelButtonStaged2;
+void ui_event_MainContainerStateEMERGENCYSTOP( lv_event_t * e);
+lv_obj_t *ui_MainContainerStateEMERGENCYSTOP;
+lv_obj_t *ui_MainButtonPULLINGStop1;
+lv_obj_t *ui_MainLabelButtonStop1;
 lv_obj_t *ui_MainContainerRelays;
 lv_obj_t *ui_MainContainerRelaysTitleLabel;
 lv_obj_t *ui_MainLabelRelaysTitle;
@@ -114,89 +132,51 @@ lv_obj_t *ui_MainPanelRelayIndicatorIcon3;
 lv_obj_t *ui_MainContainerRelayIndicators4;
 lv_obj_t *ui_MainLabelRelayIndicator4;
 lv_obj_t *ui_MainPanelRelayIndicatorIcon4;
+lv_obj_t *ui_MainContainerDistanceTitleLabel;
+lv_obj_t *ui_MainLabelDistanceTitle;
 // CUSTOM VARIABLES
 lv_obj_t *uic_ScreenMain;
-lv_obj_t *uic_DistanceProgression;
-lv_obj_t *uic_MainContainerRaceFlag;
 lv_obj_t *uic_MainPanelwhite;
-lv_obj_t *uic_MainContainerDistanceProgressBar;
 lv_obj_t *uic_MainBarDistanceProgress;
 lv_obj_t *uic_MainBarDistanceAlarm1;
 lv_obj_t *uic_MainBarDistanceAlarm2;
-lv_obj_t *uic_MainContainerMainContainer;
-lv_obj_t *uic_MainContainerTop;
-lv_obj_t *uic_MainContainerHeader;
-lv_obj_t *uic_MainContainerClass;
-lv_obj_t *uic_MainContainerClassTitleLabel;
-lv_obj_t *uic_MainLabelClassTitle;
 lv_obj_t *uic_MainLabelClassWeight;
-lv_obj_t *uic_MainContainerClassNameLabel;
 lv_obj_t *uic_MainLabelClassName;
-lv_obj_t *uic_MainContainerSettingsButton;
 lv_obj_t *uic_MainButtonSettings;
-lv_obj_t *uic_MainContainerDriver;
-lv_obj_t *uic_MainContainerDriverTitleLabel;
-lv_obj_t *uic_MainLabelDriverTitle;
 lv_obj_t *uic_MainLabelDriverNumber;
-lv_obj_t *uic_MainContainerDriverNameLabel;
 lv_obj_t *uic_MainLabelDriverName;
-lv_obj_t *uic_MainContainerDriverChangeButton;
 lv_obj_t *uic_MainButtonDriverChange;
-lv_obj_t *uic_MainContainerDistance;
 lv_obj_t *uic_MainLabelDistanceValue;
 lv_obj_t *uic_MainLabelDistanceUnit;
-lv_obj_t *uic_MainContainerMid;
 lv_obj_t *uic_MainContainerTach;
-lv_obj_t *uic_MainContainerTachTitleLabel;
 lv_obj_t *uic_MainLabelTachTitle;
-lv_obj_t *uic_MainContainerTachData;
-lv_obj_t *uic_MainContainerTachAlarmIndicator;
 lv_obj_t *uic_MainPanelTachAlarmIndicatorIcon;
 lv_obj_t *uic_MainLabelTachValue;
 lv_obj_t *uic_MainLabelTachUnit;
-lv_obj_t *uic_MainContainerSpeed;
-lv_obj_t *uic_MainContainerSpeedTitleLabel;
 lv_obj_t *uic_MainLabelSpeedTitle;
-lv_obj_t *uic_MainContainerSpeedData;
-lv_obj_t *uic_MainContainerSpeedAlarmIndicator;
 lv_obj_t *uic_MainPanelSpeedAlarmIndicatorIcon;
 lv_obj_t *uic_MainLabelSpeedValue;
 lv_obj_t *uic_MainLabelSpeedUnit;
-lv_obj_t *uic_MainContainerBottom;
 lv_obj_t *uic_MainContainerLimit;
-lv_obj_t *uic_MainContainerLimitTitleLabel;
-lv_obj_t *uic_MainLabelLimitTitle;
-lv_obj_t *uic_MainContainerLimitData;
-lv_obj_t *uic_MainContainerLimitIndicators1;
-lv_obj_t *uic_MainLabelLimitIndicator1;
 lv_obj_t *uic_MainPanelLimitIndicatorIcon1;
-lv_obj_t *uic_MainContainerLimitIndicators2;
-lv_obj_t *uic_MainLabelLimitIndicator2;
 lv_obj_t *uic_MainPanelLimitIndicatorIcon2;
-lv_obj_t *uic_MainContainerPullStateControls;
-lv_obj_t *uic_MainButtonStage;
-lv_obj_t *uic_MainLabelButtonStage;
-lv_obj_t *uic_MainButtonStaged;
-lv_obj_t *uic_MainLabelButtonStaged;
-lv_obj_t *uic_MainLabelButtonStagedCancel;
-lv_obj_t *uic_MainButtonStop;
-lv_obj_t *uic_MainLabelButtonStop;
+lv_obj_t *uic_MainContainerStateREADY;
+lv_obj_t *uic_MainButtonREADYStage;
+lv_obj_t *uic_MainContainerStateSTAGED;
+lv_obj_t *uic_MainButtonSTAGEDCancel;
+lv_obj_t *uic_MainContainerStatePULLING;
+lv_obj_t *uic_MainButtonPULLINGStop;
+lv_obj_t *uic_MainContainerStatePULLEND;
+lv_obj_t *uic_MainButtonPULLENDDiscard;
+lv_obj_t *uic_MainButtonPULLENDSave;
+lv_obj_t *uic_MainContainerStateEMERGENCYSTOP;
 lv_obj_t *uic_MainContainerRelays;
-lv_obj_t *uic_MainContainerRelaysTitleLabel;
-lv_obj_t *uic_MainLabelRelaysTitle;
-lv_obj_t *uic_MainContainerRelaysData;
-lv_obj_t *uic_MainContainerRelayIndicators1;
-lv_obj_t *uic_MainLabelRelayIndicator1;
 lv_obj_t *uic_MainPanelRelayIndicatorIcon1;
-lv_obj_t *uic_MainContainerRelayIndicators2;
-lv_obj_t *uic_MainLabelRelayIndicator2;
 lv_obj_t *uic_MainPanelRelayIndicatorIcon2;
-lv_obj_t *uic_MainContainerRelayIndicators3;
-lv_obj_t *uic_MainLabelRelayIndicator3;
 lv_obj_t *uic_MainPanelRelayIndicatorIcon3;
-lv_obj_t *uic_MainContainerRelayIndicators4;
-lv_obj_t *uic_MainLabelRelayIndicator4;
 lv_obj_t *uic_MainPanelRelayIndicatorIcon4;
+lv_obj_t *uic_MainContainerDistanceTitleLabel;
+lv_obj_t *uic_MainLabelDistanceTitle;
 
 // SCREEN: ui_ScreenSettings
 void ui_ScreenSettings_screen_init(void);
@@ -205,21 +185,114 @@ lv_obj_t *ui_ScreenSettings;
 lv_obj_t *ui_SettingsTabviewSettingsView;
 lv_obj_t *ui_SettingsTabpageGeneral;
 lv_obj_t *ui_SettingsPanelGeneralSettings;
-lv_obj_t *ui_SettingsContainerUnitsSetting;
-lv_obj_t *ui_SettingsLabelUnitsMetric;
-void ui_event_SettingsSwitchUnits( lv_event_t * e);
-lv_obj_t *ui_SettingsSwitchUnits;
-lv_obj_t *ui_SettingsLabelUnitsImperial;
-lv_obj_t *ui_SettingsContainerBenchmarkSetting;
-void ui_event_SettingsSwitchBenchmark( lv_event_t * e);
-lv_obj_t *ui_SettingsSwitchBenchmark;
-lv_obj_t *ui_SettingsLabelBenchmarkTitle;
+lv_obj_t *ui_SettingsContainertracklength;
+lv_obj_t *ui_SettingsLabelLabel10;
+lv_obj_t *ui_SettingsContainerSettingGeneral1;
+void ui_event_SettingsSwitchUnitsToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchUnitsToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle1;
+lv_obj_t *ui_SettingsContainerSettingGeneral2;
+void ui_event_SettingsSwitchBenchmarkToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchBenchmarkToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle2;
 lv_obj_t *ui_SettingsContainerBrightnessSetting;
 lv_obj_t *ui_SettingsLabelBrightnessTitle;
-void ui_event_SettingsSliderSlider1( lv_event_t * e);
-lv_obj_t *ui_SettingsSliderSlider1;
+void ui_event_SettingsSliderBrightnessSlider( lv_event_t * e);
+lv_obj_t *ui_SettingsSliderBrightnessSlider;
 lv_obj_t *ui_SettingsLabelBrightness;
+lv_obj_t *ui_SettingsContainerSettingGeneral3;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle3;
+void ui_event_SettingsTextareaTrackLengthText( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaTrackLengthText;
+lv_obj_t *ui_SettingsContainerSettingGeneral4;
+void ui_event_SettingsSwitchTachToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchTachToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle4;
+void ui_event_SettingsButtonHelpTach( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpTach;
+lv_obj_t *ui_SettingsLabelLabel11;
+lv_obj_t *ui_SettingsContainerSettingGeneral5;
+void ui_event_SettingsSwitchLimitToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchLimitToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle5;
+void ui_event_SettingsButtonHelpLimit( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpLimit;
+lv_obj_t *ui_SettingsLabelLabel12;
+lv_obj_t *ui_SettingsContainerSettingGeneral6;
+void ui_event_SettingsSwitchRelaysToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchRelaysToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle6;
+void ui_event_SettingsButtonHelpRelay( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpRelay;
+lv_obj_t *ui_SettingsLabelLabel13;
+lv_obj_t *ui_SettingsContainerSettingGeneral7;
+void ui_event_SettingsSwitchHelpIconVisibiltyToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchHelpIconVisibiltyToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle7;
 lv_obj_t *ui_SettingsTabpageSpeed_and_Distance;
+lv_obj_t *ui_SettingsPanelCalibrationNumberPanel;
+lv_obj_t *ui_SettingsLabelSpeedandDistanceTitle;
+lv_obj_t *ui_SettingsContainerCalibrationNumber;
+lv_obj_t *ui_SettingsLabelCalibrationNumberTitle;
+void ui_event_SettingsTextareaCalibrationNumberTextArea( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
+void ui_event_SettingsButtonButton4( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonButton4;
+lv_obj_t *ui_SettingsLabelLabel15;
+void ui_event_SettingsButtonHelpCalibrationNumberText( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText;
+lv_obj_t *ui_SettingsLabelLabel14;
+lv_obj_t *ui_SettingsPanelGearToothCalculatorPanel;
+lv_obj_t *ui_SettingsContainerCalc;
+lv_obj_t *ui_SettingsLabelCalibrationNumberTitle1;
+lv_obj_t *ui_SettingsLabelLabel17;
+void ui_event_SettingsTextareaCalibrationCalculatorNumTeethTextArea( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
+lv_obj_t *ui_SettingsLabelLabel19;
+void ui_event_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
+lv_obj_t *ui_SettingsLabelLabel18;
+void ui_event_SettingsTextareaCalibrationCalculatorGearRatioTextArea( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
+lv_obj_t *ui_SettingsLabelGearToothCalculatorPulses;
+void ui_event_SettingsButtonCalculateButton( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonCalculateButton;
+lv_obj_t *ui_SettingsLabelLabel29;
+void ui_event_SettingsButtonSaveCalibrationCalculatorButton( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonSaveCalibrationCalculatorButton;
+lv_obj_t *ui_SettingsLabelLabel4;
+void ui_event_SettingsButtonHelpCalibrationNumberText1( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText1;
+lv_obj_t *ui_SettingsLabelLabel16;
+lv_obj_t *ui_SettingsPanelAutoCalibration;
+lv_obj_t *ui_SettingsContainerCalc1;
+lv_obj_t *ui_SettingsLabelCalibrationNumberTitle2;
+void ui_event_SettingsButtonStartAutoDriveButton( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonStartAutoDriveButton;
+lv_obj_t *ui_SettingsLabelLabel20;
+lv_obj_t *ui_SettingsLabelLabel22;
+lv_obj_t *ui_SettingsLabelAutoDriveCurrentPulses;
+void ui_event_SettingsButtonStartAutoDriveButton1( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonStartAutoDriveButton1;
+lv_obj_t *ui_SettingsLabelLabel23;
+void ui_event_SettingsButtonSaveCalibrationAutoDriveButton( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonSaveCalibrationAutoDriveButton;
+lv_obj_t *ui_SettingsLabelLabel24;
+void ui_event_SettingsButtonHelpCalibrationNumberText2( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText2;
+lv_obj_t *ui_SettingsLabelLabel25;
+lv_obj_t *ui_SettingsPanelCalibrationPresetsPanel;
+lv_obj_t *ui_SettingsContainerCalibrationNumber1;
+lv_obj_t *ui_SettingsLabelCalibrationNumberTitle3;
+void ui_event_SettingsButtonButton2( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonButton2;
+lv_obj_t *ui_SettingsLabelLabel26;
+void ui_event_SettingsButtonButton3( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonButton3;
+lv_obj_t *ui_SettingsLabelLabel28;
+void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText3;
+lv_obj_t *ui_SettingsLabelLabel27;
 lv_obj_t *ui_SettingsTabpageTach;
 lv_obj_t *ui_SettingsTabpageRelays_and_Limits;
 lv_obj_t *ui_SettingsPanelConnectionRLM;
@@ -285,20 +358,28 @@ lv_obj_t *ui_SettingsButtonReturnHome;
 lv_obj_t *ui_SettingsLabelButtonReturnHome;
 void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e);
 lv_obj_t *ui_SettingsContainerExitButtonOverlay;
+void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e);
+lv_obj_t *ui_SettingsKeyboardSettingsNumberKeyboard;
 // CUSTOM VARIABLES
 lv_obj_t *uic_ScreenSettings;
 lv_obj_t *uic_SettingsTabviewSettingsView;
 lv_obj_t *uic_SettingsPanelGeneralSettings;
-lv_obj_t *uic_SettingsContainerUnitsSetting;
-lv_obj_t *uic_SettingsLabelUnitsMetric;
-lv_obj_t *uic_SettingsSwitchUnits;
-lv_obj_t *uic_SettingsLabelUnitsImperial;
-lv_obj_t *uic_SettingsContainerBenchmarkSetting;
-lv_obj_t *uic_SettingsSwitchBenchmark;
-lv_obj_t *uic_SettingsLabelBenchmarkTitle;
+lv_obj_t *uic_SettingsSwitchUnitsToggle;
+lv_obj_t *uic_SettingsSwitchBenchmarkToggle;
 lv_obj_t *uic_SettingsContainerBrightnessSetting;
 lv_obj_t *uic_SettingsLabelBrightnessTitle;
+lv_obj_t *uic_SettingsSliderBrightnessSlider;
 lv_obj_t *uic_SettingsLabelBrightness;
+lv_obj_t *uic_SettingsTextareaTrackLengthText;
+lv_obj_t *uic_SettingsSwitchTachToggle;
+lv_obj_t *uic_SettingsSwitchLimitToggle;
+lv_obj_t *uic_SettingsSwitchRelaysToggle;
+lv_obj_t *uic_SettingsTextareaCalibrationNumberTextArea;
+lv_obj_t *uic_SettingsButtonHelpCalibrationNumberText;
+lv_obj_t *uic_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
+lv_obj_t *uic_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
+lv_obj_t *uic_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
+lv_obj_t *uic_SettingsButtonCalculateButton;
 lv_obj_t *uic_SettingsPanelConnectionRLM;
 lv_obj_t *uic_SettingsPanelRelayLimitSettings;
 lv_obj_t *uic_SettingsContainerRelaySettings;
@@ -323,6 +404,7 @@ lv_obj_t *uic_SettingsLabelBountyMessage;
 lv_obj_t *uic_SettingsButtonReturnHome;
 lv_obj_t *uic_SettingsLabelButtonReturnHome;
 lv_obj_t *uic_SettingsContainerExitButtonOverlay;
+lv_obj_t *uic_SettingsKeyboardSettingsNumberKeyboard;
 
 // EVENTS
 lv_obj_t *ui_Startevents___initial_actions0;
@@ -340,6 +422,14 @@ lv_obj_t *ui_Startevents___initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_ScreenMain( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_SCREEN_LOADED) {
+      loadMainScreen( e );
+}
+}
+
 void ui_event_MainButtonSettings( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
@@ -348,35 +438,300 @@ if ( event_code == LV_EVENT_CLICKED) {
 }
 }
 
+void ui_event_MainButtonREADYStage( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      READYStageBtnPressed( e );
+}
+}
+
+void ui_event_MainButtonSTAGEDCancel( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      STAGEDCancelBtnPressed( e );
+}
+}
+
+void ui_event_MainButtonPULLINGStop( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      PULLINGStopBtnPressed( e );
+}
+}
+
+void ui_event_MainButtonPULLENDDiscard( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      PULLENDDiscardBtnPressed( e );
+}
+}
+
+void ui_event_MainButtonPULLENDSave( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      PULLENDSaveBtnPressed( e );
+}
+}
+
+void ui_event_MainContainerStateEMERGENCYSTOP( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EMERGENCYSTOPResetBtnPressed( e );
+}
+}
+
 void ui_event_ScreenSettings( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_SCREEN_LOAD_START) {
-      updateAboutPageInfo( e );
+if ( event_code == LV_EVENT_SCREEN_LOADED) {
+      SettingsScreenLoaded( e );
 }
 }
 
-void ui_event_SettingsSwitchUnits( lv_event_t * e) {
+void ui_event_SettingsSwitchUnitsToggle( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      unitsToggle( e );
+      SettingsSwitchUnitsChange( e );
 }
 }
 
-void ui_event_SettingsSwitchBenchmark( lv_event_t * e) {
+void ui_event_SettingsSwitchBenchmarkToggle( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      benchmarkToggle( e );
+      SettingsSwitchBenchmarkChange( e );
 }
 }
 
-void ui_event_SettingsSliderSlider1( lv_event_t * e) {
+void ui_event_SettingsSliderBrightnessSlider( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      changeBrightness( e );
+      SettingsSliderBrightnessChange( e );
+}
+}
+
+void ui_event_SettingsTextareaTrackLengthText( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_FOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsTrackLengthText( e );
+}
+}
+
+void ui_event_SettingsSwitchTachToggle( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchTachChange( e );
+      _ui_flag_modify( ui_MainContainerTach, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+}
+
+void ui_event_SettingsButtonHelpTach( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EnableTachHelpButtonPressed( e );
+}
+}
+
+void ui_event_SettingsSwitchLimitToggle( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchLimitChange( e );
+      _ui_flag_modify( ui_MainContainerLimit, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+}
+
+void ui_event_SettingsButtonHelpLimit( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EnableLimitsHelpButtonPressed( e );
+}
+}
+
+void ui_event_SettingsSwitchRelaysToggle( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+}
+
+void ui_event_SettingsButtonHelpRelay( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EnableRelayHelpButtonPressed( e );
+}
+}
+
+void ui_event_SettingsSwitchHelpIconVisibiltyToggle( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchHelpIconVisibility( e );
+}
+}
+
+void ui_event_SettingsTextareaCalibrationNumberTextArea( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_FOCUSED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationNumberTextArea);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsButtonButton4( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      SaveCalibrationNumberButton( e );
+}
+}
+
+void ui_event_SettingsButtonHelpCalibrationNumberText( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPCalNumber( e );
+}
+}
+
+void ui_event_SettingsTextareaCalibrationCalculatorNumTeethTextArea( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_FOCUSED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_FOCUSED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsTextareaCalibrationCalculatorGearRatioTextArea( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_FOCUSED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsButtonCalculateButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      CalculateCalibrationCalculatorNumberButton( e );
+}
+}
+
+void ui_event_SettingsButtonSaveCalibrationCalculatorButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      SaveCalibrationCalculatorNumberButton( e );
+}
+}
+
+void ui_event_SettingsButtonHelpCalibrationNumberText1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPGearToothCalc( e );
+}
+}
+
+void ui_event_SettingsButtonStartAutoDriveButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      StartAutoDriveButtonPressed( e );
+}
+}
+
+void ui_event_SettingsButtonStartAutoDriveButton1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      FinishAutoDriveButtonPressed( e );
+}
+}
+
+void ui_event_SettingsButtonSaveCalibrationAutoDriveButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      SaveCalibrationAutoDriveNumberButton( e );
+}
+}
+
+void ui_event_SettingsButtonHelpCalibrationNumberText2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPAutoCal( e );
+}
+}
+
+void ui_event_SettingsButtonButton2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      SaveRadarCalibration( e );
+}
+}
+
+void ui_event_SettingsButtonButton3( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      SaveGPSCalibration( e );
+}
+}
+
+void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPPresetCalNumber( e );
 }
 }
 
@@ -401,6 +756,19 @@ void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
+}
+if ( event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_BOTTOM  ) {
+lv_indev_wait_release(lv_indev_get_act());
+      _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
+}
+}
+
+void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_READY) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+      _ui_state_modify( ui_SettingsTextareaTrackLengthText, LV_STATE_FOCUSED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 

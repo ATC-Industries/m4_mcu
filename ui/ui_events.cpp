@@ -3,6 +3,9 @@
 // LVGL version: 8.3.11
 // Project name: M4_MCU_2025
 
+#include "Config.h"
+#include "PullStateManager.h"
+#include "StateManager.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
 #include "ui.h"
@@ -10,22 +13,109 @@
 const char *VERSION_STRING = VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
-void updateAboutPageInfo(lv_event_t *e) {
-  lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
-  lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
+/**
+ * @brief Sets the visibility of a given LVGL object.
+ *
+ * This function allows you to control the visibility of an LVGL object
+ * by setting it to either visible or hidden.
+ *
+ * @param obj Pointer to the LVGL object to modify.
+ * @param visible Boolean value indicating the desired visibility state:
+ *                - `true` to make the object visible.
+ *                - `false` to hide the object.
+ */
+inline void setObjectVisible(lv_obj_t *obj, bool visible) {
+  if (visible) {
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  }
 }
 
-void unitsToggle(lv_event_t *e) {
+/**
+ * @brief Applies user preferences to the main screen elements.
+ *
+ * This function adjusts the visibility of various main screen components
+ * and sets the screen backlight brightness based on the user's saved preferences.
+ *
+ * The following preferences are applied:
+ * - Visibility of the tachometer container (`uic_MainContainerTach`) based on `tachEnabled`.
+ * - Visibility of the relays container (`uic_MainContainerRelays`) based on `relaysEnabled`.
+ * - Visibility of the limit switch container (`uic_MainContainerLimit`) based on `limitSwitchesEnabled`.
+ * - Screen backlight brightness based on `screenBrightness`.
+ *
+ * Preferences are retrieved from the `StateManager` class.
+ */
+void applyMainScreenPreferences() {
+  // Set the visibility of the main screen elements based on preferences
+  setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
+  setObjectVisible(uic_MainContainerRelays, StateManager::prefs().relaysEnabled);
+  setObjectVisible(uic_MainContainerLimit, StateManager::prefs().limitSwitchesEnabled);
+  benchmark_set_enabled(StateManager::prefs().benchmarkMode);
+
+  setBacklight(StateManager::prefs().screenBrightness);
+}
+
+void loadMainScreen(lv_event_t *e) {
+  applyMainScreenPreferences();
+  float distance = StateManager::getDistance();
+  float speed = StateManager::getSpeed();
+  float trackLength = StateManager::getTrackLength();
+  bool isMetric = (StateManager::prefs().unitSystem == UnitSystem::METRIC);
+
+  // Distance Bar
+  lv_bar_set_range(uic_MainBarDistanceProgress, 0, (int)trackLength);
+  lv_bar_set_value(uic_MainBarDistanceProgress, (int)distance, LV_ANIM_OFF);
+
+  // Distance Label + Unit
+  if (isnan(distance) || distance <= 0) {
+    lv_label_set_text(uic_MainLabelDistanceValue, "---.--");
+  } else {
+    lv_label_set_text_fmt(uic_MainLabelDistanceValue, "%.2f", distance);
+  }
+  lv_label_set_text(uic_MainLabelDistanceUnit, isMetric ? "m" : "ft");
+
+  // Speed Label + Unit
+  if (isnan(speed) || speed <= 0) {
+    lv_label_set_text(uic_MainLabelSpeedValue, "--.-");
+  } else {
+    lv_label_set_text_fmt(uic_MainLabelSpeedValue, "%.1f", speed);
+  }
+  lv_label_set_text(uic_MainLabelSpeedUnit, isMetric ? "km/h" : "mph");
+
+  // Tach Label + Unit
+  float rpm = StateManager::state().rpm;
+  if (isnan(rpm) || rpm <= 0) {
+    lv_label_set_text(uic_MainLabelTachValue, "---");
+  } else {
+    lv_label_set_text_fmt(uic_MainLabelTachValue, "%.0f", rpm);
+  }
+  lv_label_set_text(uic_MainLabelTachUnit, "RPM");
+
+  // Class Info
+  lv_label_set_text_fmt(uic_MainLabelClassName, "%s", StateManager::prefs().pullingClassName.c_str());
+
+  // Driver Info
+  lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", StateManager::prefs().driverNumber);
+  lv_label_set_text(uic_MainLabelDriverName, StateManager::prefs().driverName.c_str());
+}
+
+void SettingsSwitchUnitsChange(lv_event_t *e) {
   // Your code here
 }
 
-void benchmarkToggle(lv_event_t *e) {
+void SettingsSwitchBenchmarkChange(lv_event_t *e) {
   lv_obj_t *cb = lv_event_get_target(e);
   bool enabled = lv_obj_get_state(cb) & LV_STATE_CHECKED;
   benchmark_set_enabled(enabled);
+
+  StateManager::prefs().benchmarkMode = lv_obj_has_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+  StateManager::savePreferences();
 }
 
-void changeBrightness(lv_event_t *e) {
+void SettingsSliderBrightnessChange(lv_event_t *e) {
+  StateManager::prefs().screenBrightness = lv_slider_get_value(uic_SettingsSliderBrightnessSlider);
+
   lv_obj_t *slider = lv_event_get_target(e);
   uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
 
@@ -35,7 +125,350 @@ void changeBrightness(lv_event_t *e) {
   // Update label
   lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
 
+  StateManager::savePreferences();
+
   // // Set initial slider value based on current brightness
   // if (ui_brightness_slider != NULL) {
   //   lv_slider_set_value(ui_brightness_slider, display_get_brightness(), LV_ANIM_OFF);
+}
+
+void SettingsTrackLengthText(lv_event_t *e) {
+  const char *text = lv_textarea_get_text(uic_SettingsTextareaTrackLengthText);
+  float val = atof(text);
+  if (val > 0.0f) {
+    StateManager::prefs().trackLengthFeet = val;
+    StateManager::savePreferences();
+  }
+}
+
+void SettingsSwitchTachChange(lv_event_t *e) {
+  StateManager::prefs().tachEnabled = lv_obj_has_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
+  StateManager::savePreferences();
+}
+
+void SettingsSwitchLimitChange(lv_event_t *e) {
+  StateManager::prefs().limitSwitchesEnabled = lv_obj_has_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
+  StateManager::savePreferences();
+}
+
+void SettingsSwitchRelaysChange(lv_event_t *e) {
+  StateManager::prefs().relaysEnabled = lv_obj_has_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
+  StateManager::savePreferences();
+}
+
+// static int settingsExitTabIndex = -1;  // Global or static so it's accessible in the callback
+
+// // Event callback
+// static void exit_tab_handler(lv_event_t *e) {
+//   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
+//   lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
+
+//   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
+
+//   if (selected_idx == settingsExitTabIndex) {
+//     printf("Exit tab clicked!\n");
+
+//     // Optional: reset selection to first tab
+//     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);
+
+//     // Go back to main screen
+//     lv_scr_load(ui_ScreenMain);
+
+//     // Stop tab switching
+//     lv_event_stop_processing(e);
+//   }
+// }
+static void exit_tab_handler(lv_event_t *e) {
+  lv_obj_t *btnmatrix = lv_event_get_current_target(e);
+  lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
+
+  int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
+
+  if (selected_idx == 7) {  // Exit tab is the 8th tab (index 7)
+    printf("Exit tab clicked\n");
+
+    lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);  // Reset tab to first
+    lv_scr_load(ui_ScreenMain);                   // Go back to main screen
+    lv_event_stop_processing(e);                  // Prevent tab switch
+  }
+}
+
+void SettingsScreenLoaded(lv_event_t *e) {
+  // General Settings
+  lv_event_code_t code = lv_event_get_code(e);
+  if (code == LV_EVENT_SCREEN_LOADED) {
+    // Toggle switches
+    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
+                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+
+    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
+                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+
+    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED)
+                                      : lv_obj_clear_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
+
+    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED)
+                                               : lv_obj_clear_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
+
+    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED)
+                                        : lv_obj_clear_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
+
+    // Brightness
+    lv_slider_set_value(uic_SettingsSliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
+
+    // Track length
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
+    lv_textarea_set_text(uic_SettingsTextareaTrackLengthText, buf);
+  }
+
+  // About Page
+  lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
+  lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
+
+  // Exit Page
+  lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
+  lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
+
+  // // Save the index of the Exit tab (last one added)
+  // settingsExitTabIndex =
+  //     lv_tabview_get_tab_act(ui_SettingsTabviewSettingsView);  // This works because you just added it
+
+  // // Hook up the event callback
+  // lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
+  // lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
+}
+
+void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
+
+void STAGEDCancelBtnPressed(lv_event_t *e) { PullStateManager::handleCancelPressed(); }
+
+void PULLINGStopBtnPressed(lv_event_t *e) { PullStateManager::handleStopPressed(); }
+
+void PULLENDDiscardBtnPressed(lv_event_t *e) { PullStateManager::handleDiscardPressed(); }
+
+void PULLENDSaveBtnPressed(lv_event_t *e) { PullStateManager::handleSavePressed(); }
+
+void EMERGENCYSTOPResetBtnPressed(lv_event_t *e) { PullStateManager::handleResetPressed(); }
+
+void CloseMsgBoxEventHandler(lv_event_t *e) {
+  lv_obj_t *mbox = lv_event_get_current_target(e);
+
+  // Optional: log or check which button was pressed
+  const char *btn_txt = lv_msgbox_get_active_btn_text(mbox);
+  LV_LOG_USER("MsgBox button pressed: %s", btn_txt);
+
+  // Close the message box
+  if (strcmp(btn_txt, "OK") == 0) {
+    lv_msgbox_close(mbox);
+  }
+  if (strcmp(btn_txt, "Close") == 0) {
+    lv_msgbox_close(mbox);
+  }
+}
+
+void EnableTachHelpButtonPressed(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "Enabling this option allows access to the Tach settings screen.\n"
+      "The tachometer will appear on the main run screen, and the system will attempt "
+      "to connect to the tractor's Tach Smart Sensor to monitor engine RPM.\n\n"
+      "If you're not tracking RPM during pulls, you can safely disable this feature "
+      "to remove it from the main screen.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE TACHOMETER", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void EnableLimitsHelpButtonPressed(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "Enabling this option allows you to monitor and respond to two external limit switches.\n"
+      "The limit switch status will be displayed on the main run screen.\n\n"
+      "Limit switches can be tied to alarms or pull state conditions, "
+      "making it possible to trigger events when a mechanical switch is engaged or released.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE LIMIT SWITCHES", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void EnableRelayHelpButtonPressed(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "Enabling this option allows you to set up and configure relays.\n"
+      "You'll be able to view the current relay status on the main run screen and define "
+      "custom behavior for each relay.\n\n"
+      "Relays can be triggered based on alarm thresholds or changes in pull state, "
+      "allowing flexible control over external devices such as lights, indicators, "
+      "horns, or mechanical actions to modify the behavior of the sled.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE RELAYS", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void SettingsSwitchHelpIconVisibility(lv_event_t *e) {
+  // Your code here
+}
+
+void SaveCalibrationNumberButton(lv_event_t *e) {
+  // Your code here
+}
+
+void CalibrationTextAreaHelpButtonPressed(lv_event_t *e) {
+  // Your code here
+}
+
+void SaveCalibrationCalculatorNumberButton(lv_event_t *e) {
+  // Your code here
+}
+
+void StartAutoDriveButtonPressed(lv_event_t *e) {
+  // Your code here
+}
+
+void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) {
+  // Your code here
+}
+
+void SaveRadarCalibration(lv_event_t *e) {
+  // Your code here
+}
+
+void HELPCalNumber(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "The calibration number represents how many sensor pulses occur during a 300-foot pull.\n"
+      "This number is used to convert pulses into accurate speed and distance measurements.\n\n"
+      "You can manually enter this number, or use one of the tools below to calculate it "
+      "automatically based on your gear and wheel setup, by driving off 300 feet, "
+      "or by selecting a standard radar or GPS calibration value.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "CALIBRATION NUMBER", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPGearToothCalc(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "This calculator estimates your calibration number based on your hardware setup.\n\n"
+      "- Enter the number of teeth on your sprocket (not the number of gears).\n"
+      "- Enter the diameter of the drive wheel in inches.\n"
+      "- Enter the gear ratio between the wheel and the sensor (use 1.00 for direct drive).\n\n"
+      "The system will calculate how many pulses would occur in a 300-foot pull.\n"
+      "You can still fine-tune this value afterward using the manual input or drive-off calibration.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "GEAR TOOTH CALCULATOR", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPAutoCal(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "This option lets you calibrate your speed input by driving exactly 300 feet.\n"
+      "Press 'Start Driving' to begin counting pulses, then drive straight down the track.\n"
+      "Press 'Finished Driving' when you've reached the 300-foot mark.\n\n"
+      "The system will count the total number of pulses during that distance "
+      "and automatically save that number as your calibration value.\n\n"
+      "If you are using metric units, drive exactly 91.44 meters instead.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "AUTO CALIBRATION", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPPresetCalNumber(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "If you're using a radar or GPS-based speed sensor, you can use this button to apply "
+      "a standard factory calibration number.\n\n"
+      "This skips the need to manually calculate or drive off 300 feet.\n"
+      "However, if you want to fine-tune the calibration for your specific setup, "
+      "you can still use the drive-off method or manually enter your own value.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "CALIBRATION PRESETS", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void FinishAutoDriveButtonPressed(lv_event_t * e)
+{
+	// Your code here
+}
+
+void SaveGPSCalibration(lv_event_t * e)
+{
+	// Your code here
+}
+
+void CalculateCalibrationCalculatorNumberButton(lv_event_t * e)
+{
+	// Your code here
 }

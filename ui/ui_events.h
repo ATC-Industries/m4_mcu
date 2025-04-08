@@ -10,10 +10,37 @@
 extern "C" {
 #endif
 
-void updateAboutPageInfo(lv_event_t * e);
-void unitsToggle(lv_event_t * e);
-void benchmarkToggle(lv_event_t * e);
-void changeBrightness(lv_event_t * e);
+void loadMainScreen(lv_event_t * e);
+void READYStageBtnPressed(lv_event_t * e);
+void STAGEDCancelBtnPressed(lv_event_t * e);
+void PULLINGStopBtnPressed(lv_event_t * e);
+void PULLENDDiscardBtnPressed(lv_event_t * e);
+void PULLENDSaveBtnPressed(lv_event_t * e);
+void EMERGENCYSTOPResetBtnPressed(lv_event_t * e);
+void SettingsScreenLoaded(lv_event_t * e);
+void SettingsSwitchUnitsChange(lv_event_t * e);
+void SettingsSwitchBenchmarkChange(lv_event_t * e);
+void SettingsSliderBrightnessChange(lv_event_t * e);
+void SettingsTrackLengthText(lv_event_t * e);
+void SettingsSwitchTachChange(lv_event_t * e);
+void EnableTachHelpButtonPressed(lv_event_t * e);
+void SettingsSwitchLimitChange(lv_event_t * e);
+void EnableLimitsHelpButtonPressed(lv_event_t * e);
+void SettingsSwitchRelaysChange(lv_event_t * e);
+void EnableRelayHelpButtonPressed(lv_event_t * e);
+void SettingsSwitchHelpIconVisibility(lv_event_t * e);
+void SaveCalibrationNumberButton(lv_event_t * e);
+void HELPCalNumber(lv_event_t * e);
+void CalculateCalibrationCalculatorNumberButton(lv_event_t * e);
+void SaveCalibrationCalculatorNumberButton(lv_event_t * e);
+void HELPGearToothCalc(lv_event_t * e);
+void StartAutoDriveButtonPressed(lv_event_t * e);
+void FinishAutoDriveButtonPressed(lv_event_t * e);
+void SaveCalibrationAutoDriveNumberButton(lv_event_t * e);
+void HELPAutoCal(lv_event_t * e);
+void SaveRadarCalibration(lv_event_t * e);
+void SaveGPSCalibration(lv_event_t * e);
+void HELPPresetCalNumber(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/
