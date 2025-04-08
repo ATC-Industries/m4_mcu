@@ -5,6 +5,7 @@
 #include "PreferencesManager.h"
 #include "PullStateManager.h"
 #include "ScreenUpdater.h"
+#include "SpeedModule.h"
 #include "StateManager.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
@@ -154,6 +155,7 @@ void setup() {
   init_lvgl();
   ui_init();
   PullStateManager::init();
+  SpeedModule::begin();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   Serial.println("Setup complete");

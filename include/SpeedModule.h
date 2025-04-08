@@ -5,6 +5,9 @@
 #include "PullStateManager.h"  // For pull state enum
 
 namespace SpeedModule {
+
+void begin();  // Call this once during setup()
+
 // ---- Calibration ----
 bool isValidCalibrationNumber(int pulses);
 void saveManualCalibration(int pulses);

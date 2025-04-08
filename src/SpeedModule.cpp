@@ -19,6 +19,13 @@ static int pulseCount = 0;
 static bool driveOffMode = false;
 static PullState currentPullState = PullState::READY;
 
+static void IRAM_ATTR onSpeedSensorPulseISR() { SpeedModule::onPulseDetected(); }
+
+void SpeedModule::begin() {
+  pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
+  attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
+}
+
 // ---- Validation ----
 bool SpeedModule::isValidCalibrationNumber(int pulses) {
   return pulses >= CALIBRATION_MIN && pulses <= CALIBRATION_MAX;
