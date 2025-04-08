@@ -5,6 +5,7 @@
 
 #include "Config.h"
 #include "PullStateManager.h"
+#include "SpeedModule.h"
 #include "StateManager.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
@@ -340,30 +341,6 @@ void SettingsSwitchHelpIconVisibility(lv_event_t *e) {
   // Your code here
 }
 
-void SaveCalibrationNumberButton(lv_event_t *e) {
-  // Your code here
-}
-
-void CalibrationTextAreaHelpButtonPressed(lv_event_t *e) {
-  // Your code here
-}
-
-void SaveCalibrationCalculatorNumberButton(lv_event_t *e) {
-  // Your code here
-}
-
-void StartAutoDriveButtonPressed(lv_event_t *e) {
-  // Your code here
-}
-
-void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) {
-  // Your code here
-}
-
-void SaveRadarCalibration(lv_event_t *e) {
-  // Your code here
-}
-
 void HELPCalNumber(lv_event_t *e) {
   // Define the button options
   static const char *btn_txts[] = {"OK", NULL};
@@ -458,17 +435,27 @@ void HELPPresetCalNumber(lv_event_t *e) {
   lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
-void FinishAutoDriveButtonPressed(lv_event_t * e)
-{
-	// Your code here
+void SaveCalibrationNumberButton(lv_event_t *e) {
+  int val = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationNumberTextArea));
+  SpeedModule::saveManualCalibration(val);
 }
 
-void SaveGPSCalibration(lv_event_t * e)
-{
-	// Your code here
-}
+void SaveCalibrationCalculatorNumberButton(lv_event_t *e) { SpeedModule::saveCalculatorCalibration(); }
 
-void CalculateCalibrationCalculatorNumberButton(lv_event_t * e)
-{
-	// Your code here
+void StartAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::startDriveOffCalibration(); }
+
+void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+
+void SaveRadarCalibration(lv_event_t *e) { SpeedModule::applyRadarCalibration(); }
+
+void FinishAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+
+void SaveGPSCalibration(lv_event_t *e) { SpeedModule::applyGPSCalibration(); }
+
+void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
+  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+  int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
+  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", result);
 }
