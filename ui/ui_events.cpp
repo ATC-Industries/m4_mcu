@@ -116,18 +116,26 @@ void SettingsSwitchBenchmarkChange(lv_event_t *e) {
 }
 
 void SettingsSliderBrightnessChange(lv_event_t *e) {
-  StateManager::prefs().screenBrightness = lv_slider_get_value(uic_SettingsSliderBrightnessSlider);
-
   lv_obj_t *slider = lv_event_get_target(e);
   uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
 
-  // Update the backlight
-  setBacklight(brightness);
+  // Get event code
+  lv_event_code_t code = lv_event_get_code(e);
 
-  // Update label
+  // Update label immediately
   lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
 
-  StateManager::savePreferences();
+  // For immediate visual feedback during slider movement
+  setBacklightFast(brightness);
+
+  // Update preference value
+  StateManager::prefs().screenBrightness = brightness;
+
+  // Only save preferences when slider is released to avoid writing to flash constantly
+  if (code == LV_EVENT_RELEASED) {
+    // Only save to flash when the user releases the slider
+    StateManager::savePreferences();
+  }
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {

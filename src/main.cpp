@@ -170,6 +170,7 @@ unsigned long lastScreenUpdate = 0;
 
 void loop() {
   lv_timer_handler();
+  updateBacklight();
   benchmark_update();
   PullStateManager::update();
 
