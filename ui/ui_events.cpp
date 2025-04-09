@@ -84,6 +84,11 @@ void SettingsSwitchUnitsChange(lv_event_t *e) {
 
   // Set unit system based on switch state
   StateManager::setUnitSystem(isMetric ? UnitSystem::METRIC : UnitSystem::IMPERIAL);
+
+  // Update label text
+  if (ui_SettingsLabelTrackLengthUnitsTitle != nullptr) {
+    lv_label_set_text(ui_SettingsLabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
+  }
 }
 
 void SettingsSwitchBenchmarkChange(lv_event_t *e) {

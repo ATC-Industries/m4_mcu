@@ -159,8 +159,17 @@ lv_obj_set_height( ui_SettingsTextareaTrackLengthText, LV_SIZE_CONTENT);   /// 7
 lv_obj_set_x( ui_SettingsTextareaTrackLengthText, -169 );
 lv_obj_set_y( ui_SettingsTextareaTrackLengthText, -47 );
 lv_obj_set_align( ui_SettingsTextareaTrackLengthText, LV_ALIGN_CENTER );
-lv_textarea_set_placeholder_text(ui_SettingsTextareaTrackLengthText,"Placeholder...");
+lv_textarea_set_placeholder_text(ui_SettingsTextareaTrackLengthText,"Track Length");
 lv_textarea_set_one_line(ui_SettingsTextareaTrackLengthText,true);
+
+ui_SettingsLabelTrackLengthUnitsTitle = lv_label_create(ui_SettingsContainerSettingGeneral3);
+lv_obj_set_width( ui_SettingsLabelTrackLengthUnitsTitle, lv_pct(20));
+lv_obj_set_height( ui_SettingsLabelTrackLengthUnitsTitle, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelTrackLengthUnitsTitle, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelTrackLengthUnitsTitle,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelTrackLengthUnitsTitle, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelTrackLengthUnitsTitle,"Feet");
+lv_obj_set_style_text_font(ui_SettingsLabelTrackLengthUnitsTitle, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsContainerSettingGeneral4 = lv_obj_create(ui_SettingsPanelGeneralSettings);
 lv_obj_remove_style_all(ui_SettingsContainerSettingGeneral4);
@@ -1266,6 +1275,7 @@ uic_SettingsLabelBrightnessTitle = ui_SettingsLabelBrightnessTitle;
 uic_SettingsSliderBrightnessSlider = ui_SettingsSliderBrightnessSlider;
 uic_SettingsLabelBrightness = ui_SettingsLabelBrightness;
 uic_SettingsTextareaTrackLengthText = ui_SettingsTextareaTrackLengthText;
+uic_SettingsLabelTrackLengthUnitsTitle = ui_SettingsLabelTrackLengthUnitsTitle;
 uic_SettingsSwitchTachToggle = ui_SettingsSwitchTachToggle;
 uic_SettingsSwitchLimitToggle = ui_SettingsSwitchLimitToggle;
 uic_SettingsSwitchRelaysToggle = ui_SettingsSwitchRelaysToggle;
