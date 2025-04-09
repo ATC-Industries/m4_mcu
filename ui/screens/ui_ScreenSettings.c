@@ -521,7 +521,7 @@ ui_SettingsLabelGearToothCalculatorPulses = lv_label_create(ui_SettingsContainer
 lv_obj_set_width( ui_SettingsLabelGearToothCalculatorPulses, lv_pct(100));
 lv_obj_set_height( ui_SettingsLabelGearToothCalculatorPulses, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelGearToothCalculatorPulses, LV_ALIGN_CENTER );
-lv_label_set_text(ui_SettingsLabelGearToothCalculatorPulses,"-----");
+lv_label_set_text(ui_SettingsLabelGearToothCalculatorPulses,"-");
 lv_obj_set_style_text_align(ui_SettingsLabelGearToothCalculatorPulses, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_SettingsLabelGearToothCalculatorPulses, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
 
@@ -631,21 +631,22 @@ ui_SettingsLabelAutoDriveCurrentPulses = lv_label_create(ui_SettingsContainerCal
 lv_obj_set_width( ui_SettingsLabelAutoDriveCurrentPulses, lv_pct(100));
 lv_obj_set_height( ui_SettingsLabelAutoDriveCurrentPulses, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelAutoDriveCurrentPulses, LV_ALIGN_CENTER );
-lv_label_set_text(ui_SettingsLabelAutoDriveCurrentPulses,"123456");
+lv_label_set_text(ui_SettingsLabelAutoDriveCurrentPulses,"-");
 lv_obj_set_style_text_align(ui_SettingsLabelAutoDriveCurrentPulses, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_SettingsLabelAutoDriveCurrentPulses, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_SettingsButtonStartAutoDriveButton1 = lv_btn_create(ui_SettingsContainerCalc1);
-lv_obj_set_height( ui_SettingsButtonStartAutoDriveButton1, 40);
-lv_obj_set_width( ui_SettingsButtonStartAutoDriveButton1, lv_pct(100));
-lv_obj_set_align( ui_SettingsButtonStartAutoDriveButton1, LV_ALIGN_CENTER );
-lv_obj_add_flag( ui_SettingsButtonStartAutoDriveButton1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
-lv_obj_clear_flag( ui_SettingsButtonStartAutoDriveButton1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-ui_object_set_themeable_style_property(ui_SettingsButtonStartAutoDriveButton1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Red);
-ui_object_set_themeable_style_property(ui_SettingsButtonStartAutoDriveButton1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Red);
-lv_obj_set_style_text_font(ui_SettingsButtonStartAutoDriveButton1, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_SettingsButtonFinishAutoDriveButton = lv_btn_create(ui_SettingsContainerCalc1);
+lv_obj_set_height( ui_SettingsButtonFinishAutoDriveButton, 40);
+lv_obj_set_width( ui_SettingsButtonFinishAutoDriveButton, lv_pct(100));
+lv_obj_set_align( ui_SettingsButtonFinishAutoDriveButton, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsButtonFinishAutoDriveButton, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_SettingsButtonFinishAutoDriveButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonFinishAutoDriveButton, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_SettingsButtonFinishAutoDriveButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Red);
+ui_object_set_themeable_style_property(ui_SettingsButtonFinishAutoDriveButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Red);
+lv_obj_set_style_text_font(ui_SettingsButtonFinishAutoDriveButton, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_SettingsLabelLabel23 = lv_label_create(ui_SettingsButtonStartAutoDriveButton1);
+ui_SettingsLabelLabel23 = lv_label_create(ui_SettingsButtonFinishAutoDriveButton);
 lv_obj_set_width( ui_SettingsLabelLabel23, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_SettingsLabelLabel23, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelLabel23, LV_ALIGN_CENTER );
@@ -1250,7 +1251,7 @@ lv_obj_add_event_cb(ui_SettingsButtonCalculateButton, ui_event_SettingsButtonCal
 lv_obj_add_event_cb(ui_SettingsButtonSaveCalibrationCalculatorButton, ui_event_SettingsButtonSaveCalibrationCalculatorButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText1, ui_event_SettingsButtonHelpCalibrationNumberText1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonStartAutoDriveButton, ui_event_SettingsButtonStartAutoDriveButton, LV_EVENT_ALL, NULL);
-lv_obj_add_event_cb(ui_SettingsButtonStartAutoDriveButton1, ui_event_SettingsButtonStartAutoDriveButton1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonFinishAutoDriveButton, ui_event_SettingsButtonFinishAutoDriveButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonSaveCalibrationAutoDriveButton, ui_event_SettingsButtonSaveCalibrationAutoDriveButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText2, ui_event_SettingsButtonHelpCalibrationNumberText2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonButton2, ui_event_SettingsButtonButton2, LV_EVENT_ALL, NULL);

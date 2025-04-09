@@ -276,8 +276,8 @@ lv_obj_t *ui_SettingsButtonStartAutoDriveButton;
 lv_obj_t *ui_SettingsLabelLabel20;
 lv_obj_t *ui_SettingsLabelLabel22;
 lv_obj_t *ui_SettingsLabelAutoDriveCurrentPulses;
-void ui_event_SettingsButtonStartAutoDriveButton1( lv_event_t * e);
-lv_obj_t *ui_SettingsButtonStartAutoDriveButton1;
+void ui_event_SettingsButtonFinishAutoDriveButton( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonFinishAutoDriveButton;
 lv_obj_t *ui_SettingsLabelLabel23;
 void ui_event_SettingsButtonSaveCalibrationAutoDriveButton( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonSaveCalibrationAutoDriveButton;
@@ -525,7 +525,7 @@ if ( event_code == LV_EVENT_VALUE_CHANGED) {
 void ui_event_SettingsTextareaTrackLengthText( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_FOCUSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
@@ -606,7 +606,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_SettingsTextareaCalibrationNumberTextArea( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_FOCUSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationNumberTextArea);
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 }
@@ -634,7 +634,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_SettingsTextareaCalibrationCalculatorNumTeethTextArea( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_FOCUSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea);
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 }
@@ -646,7 +646,7 @@ if ( event_code == LV_EVENT_DEFOCUSED) {
 void ui_event_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_FOCUSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea);
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 }
@@ -658,7 +658,7 @@ if ( event_code == LV_EVENT_DEFOCUSED) {
 void ui_event_SettingsTextareaCalibrationCalculatorGearRatioTextArea( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_FOCUSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea);
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
 }
@@ -696,14 +696,18 @@ void ui_event_SettingsButtonStartAutoDriveButton( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       StartAutoDriveButtonPressed( e );
+      _ui_state_modify( ui_SettingsButtonStartAutoDriveButton, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsButtonFinishAutoDriveButton, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
-void ui_event_SettingsButtonStartAutoDriveButton1( lv_event_t * e) {
+void ui_event_SettingsButtonFinishAutoDriveButton( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_CLICKED) {
       FinishAutoDriveButtonPressed( e );
+      _ui_state_modify( ui_SettingsButtonStartAutoDriveButton, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsButtonFinishAutoDriveButton, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 }
 
@@ -780,7 +784,7 @@ void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_READY) {
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
-      _ui_state_modify( ui_SettingsTextareaTrackLengthText, LV_STATE_FOCUSED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTabviewSettingsView, LV_STATE_FOCUSED, _UI_MODIFY_STATE_ADD);
 }
 }
 
