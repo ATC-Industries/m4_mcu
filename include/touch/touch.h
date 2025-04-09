@@ -33,6 +33,10 @@ public:
   static bool checkRecalibrationFlag();
 
 private:
+  // Helper method to sort an array (for median filtering)
+  void sortArray(uint16_t array[], int size);
+  bool calculateCalibrationMatrix();
+
   // Pin definitions
   const uint8_t kCsPin_;
   const uint8_t kMosiPin_;
@@ -49,12 +53,24 @@ private:
   static const uint8_t kCmdZ1_ = 0xB0;  // Z1 position (0b10110000)
   static const uint8_t kCmdZ2_ = 0xC0;  // Z2 position (0b11000000)
 
+  // struct CalibrationData {
+  //   uint16_t raw_x[4];     // Raw X values for corners
+  //   uint16_t raw_y[4];     // Raw Y values for corners
+  //   uint16_t screen_x[4];  // Screen X coordinates
+  //   uint16_t screen_y[4];  // Screen Y coordinates
+  //   bool valid;
+  // } cal_data_;
+
   struct CalibrationData {
-    uint16_t raw_x[4];     // Raw X values for corners
-    uint16_t raw_y[4];     // Raw Y values for corners
-    uint16_t screen_x[4];  // Screen X coordinates
-    uint16_t screen_y[4];  // Screen Y coordinates
     bool valid;
+    // Raw values from touch sensor
+    uint16_t raw_x[4];
+    uint16_t raw_y[4];
+    // Screen coordinates
+    uint16_t screen_x[4];
+    uint16_t screen_y[4];
+    // Calibration matrix (computed from points)
+    float matrix[6];
   } cal_data_;
 
   // Private helper functions

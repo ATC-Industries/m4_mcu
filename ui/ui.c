@@ -229,6 +229,10 @@ lv_obj_t *ui_SettingsContainerSettingGeneral7;
 void ui_event_SettingsSwitchHelpIconVisibiltyToggle( lv_event_t * e);
 lv_obj_t *ui_SettingsSwitchHelpIconVisibiltyToggle;
 lv_obj_t *ui_SettingsLabelSettingsGeneralTitle7;
+lv_obj_t *ui_SettingsContainerSettingGeneral8;
+void ui_event_SettingsButtonButton5( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonButton5;
+lv_obj_t *ui_SettingsLabelLabel30;
 lv_obj_t *ui_SettingsTabpageSpeed_and_Distance;
 lv_obj_t *ui_SettingsPanelCalibrationNumberPanel;
 lv_obj_t *ui_SettingsLabelSpeedandDistanceTitle;
@@ -588,6 +592,14 @@ void ui_event_SettingsSwitchHelpIconVisibiltyToggle( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
       SettingsSwitchHelpIconVisibility( e );
+}
+}
+
+void ui_event_SettingsButtonButton5( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      RecalibrateTouch( e );
 }
 }
 

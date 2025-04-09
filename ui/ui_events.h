@@ -29,6 +29,7 @@ void EnableLimitsHelpButtonPressed(lv_event_t * e);
 void SettingsSwitchRelaysChange(lv_event_t * e);
 void EnableRelayHelpButtonPressed(lv_event_t * e);
 void SettingsSwitchHelpIconVisibility(lv_event_t * e);
+void RecalibrateTouch(lv_event_t * e);
 void SaveCalibrationNumberButton(lv_event_t * e);
 void HELPCalNumber(lv_event_t * e);
 void CalculateCalibrationCalculatorNumberButton(lv_event_t * e);

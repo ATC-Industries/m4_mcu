@@ -20,6 +20,7 @@ ui_SettingsTabpageGeneral = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "
 lv_obj_set_flex_flow(ui_SettingsTabpageGeneral,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_SettingsTabpageGeneral, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_SettingsTabpageGeneral, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_scrollbar_mode(ui_SettingsTabpageGeneral, LV_SCROLLBAR_MODE_OFF);
 
 ui_SettingsPanelGeneralSettings = lv_obj_create(ui_SettingsTabpageGeneral);
 lv_obj_set_width( ui_SettingsPanelGeneralSettings, lv_pct(100));
@@ -29,8 +30,9 @@ lv_obj_set_y( ui_SettingsPanelGeneralSettings, -190 );
 lv_obj_set_align( ui_SettingsPanelGeneralSettings, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsPanelGeneralSettings,LV_FLEX_FLOW_COLUMN);
 lv_obj_set_flex_align(ui_SettingsPanelGeneralSettings, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
-lv_obj_clear_flag( ui_SettingsPanelGeneralSettings, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_obj_set_style_pad_row(ui_SettingsPanelGeneralSettings, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_clear_flag( ui_SettingsPanelGeneralSettings, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_scrollbar_mode(ui_SettingsPanelGeneralSettings, LV_SCROLLBAR_MODE_OFF);
+lv_obj_set_style_pad_row(ui_SettingsPanelGeneralSettings, 3, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_SettingsPanelGeneralSettings, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsContainertracklength = lv_obj_create(ui_SettingsPanelGeneralSettings);
@@ -106,7 +108,8 @@ lv_obj_set_height( ui_SettingsContainerBrightnessSetting, 25);
 lv_obj_set_align( ui_SettingsContainerBrightnessSetting, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsContainerBrightnessSetting,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_SettingsContainerBrightnessSetting, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_obj_clear_flag( ui_SettingsContainerBrightnessSetting, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_clear_flag( ui_SettingsContainerBrightnessSetting, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_scrollbar_mode(ui_SettingsContainerBrightnessSetting, LV_SCROLLBAR_MODE_OFF);
 
 ui_SettingsLabelBrightnessTitle = lv_label_create(ui_SettingsContainerBrightnessSetting);
 lv_obj_set_width( ui_SettingsLabelBrightnessTitle, LV_SIZE_CONTENT);  /// 1
@@ -325,6 +328,30 @@ lv_obj_set_flex_align(ui_SettingsLabelSettingsGeneralTitle7, LV_FLEX_ALIGN_CENTE
 lv_label_set_text(ui_SettingsLabelSettingsGeneralTitle7,"Turn off Help Icons");
 lv_obj_set_style_text_font(ui_SettingsLabelSettingsGeneralTitle7, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_SettingsContainerSettingGeneral8 = lv_obj_create(ui_SettingsPanelGeneralSettings);
+lv_obj_remove_style_all(ui_SettingsContainerSettingGeneral8);
+lv_obj_set_height( ui_SettingsContainerSettingGeneral8, 38);
+lv_obj_set_width( ui_SettingsContainerSettingGeneral8, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerSettingGeneral8, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerSettingGeneral8,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerSettingGeneral8, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerSettingGeneral8, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerSettingGeneral8, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerSettingGeneral8, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsButtonButton5 = lv_btn_create(ui_SettingsContainerSettingGeneral8);
+lv_obj_set_height( ui_SettingsButtonButton5, 35);
+lv_obj_set_width( ui_SettingsButtonButton5, LV_SIZE_CONTENT);  /// 100
+lv_obj_set_align( ui_SettingsButtonButton5, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsButtonButton5, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonButton5, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsLabelLabel30 = lv_label_create(ui_SettingsButtonButton5);
+lv_obj_set_width( ui_SettingsLabelLabel30, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelLabel30, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel30, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel30,"Recalibrate Touch Screen");
+
 ui_SettingsTabpageSpeed_and_Distance = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Speed + Distance");
 lv_obj_set_flex_flow(ui_SettingsTabpageSpeed_and_Distance,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsTabpageSpeed_and_Distance, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -414,8 +441,8 @@ lv_label_set_text(ui_SettingsLabelLabel14,"?");
 lv_obj_set_style_text_font(ui_SettingsLabelLabel14, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsPanelGearToothCalculatorPanel = lv_obj_create(ui_SettingsTabpageSpeed_and_Distance);
+lv_obj_set_height( ui_SettingsPanelGearToothCalculatorPanel, 290);
 lv_obj_set_width( ui_SettingsPanelGearToothCalculatorPanel, lv_pct(48));
-lv_obj_set_height( ui_SettingsPanelGearToothCalculatorPanel, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsPanelGearToothCalculatorPanel, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsPanelGearToothCalculatorPanel,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsPanelGearToothCalculatorPanel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -550,8 +577,8 @@ lv_label_set_text(ui_SettingsLabelLabel16,"?");
 lv_obj_set_style_text_font(ui_SettingsLabelLabel16, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsPanelAutoCalibration = lv_obj_create(ui_SettingsTabpageSpeed_and_Distance);
+lv_obj_set_height( ui_SettingsPanelAutoCalibration, 290);
 lv_obj_set_width( ui_SettingsPanelAutoCalibration, lv_pct(48));
-lv_obj_set_height( ui_SettingsPanelAutoCalibration, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsPanelAutoCalibration, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsPanelAutoCalibration,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsPanelAutoCalibration, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -1212,6 +1239,7 @@ lv_obj_add_event_cb(ui_SettingsButtonHelpLimit, ui_event_SettingsButtonHelpLimit
 lv_obj_add_event_cb(ui_SettingsSwitchRelaysToggle, ui_event_SettingsSwitchRelaysToggle, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonHelpRelay, ui_event_SettingsButtonHelpRelay, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsSwitchHelpIconVisibiltyToggle, ui_event_SettingsSwitchHelpIconVisibiltyToggle, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonButton5, ui_event_SettingsButtonButton5, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTextareaCalibrationNumberTextArea, ui_event_SettingsTextareaCalibrationNumberTextArea, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonButton4, ui_event_SettingsButtonButton4, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText, ui_event_SettingsButtonHelpCalibrationNumberText, LV_EVENT_ALL, NULL);

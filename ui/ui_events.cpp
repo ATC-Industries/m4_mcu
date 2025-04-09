@@ -9,6 +9,7 @@
 #include "StateManager.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
+#include "touch/touch.h"
 #include "ui.h"
 
 const char *VERSION_STRING = VERSION;
@@ -127,10 +128,6 @@ void SettingsSliderBrightnessChange(lv_event_t *e) {
   lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
 
   StateManager::savePreferences();
-
-  // // Set initial slider value based on current brightness
-  // if (ui_brightness_slider != NULL) {
-  //   lv_slider_set_value(ui_brightness_slider, display_get_brightness(), LV_ANIM_OFF);
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {
@@ -459,3 +456,5 @@ void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
   int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
   lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", result);
 }
+
+void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }

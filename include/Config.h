@@ -17,6 +17,6 @@
 #define GPS_CALIBRATION_PULSES 3780
 
 // Speed input pin
-#define SPEED_SENSOR_PIN 38
+#define SPEED_SENSOR_PIN 19
 
 #endif  // CONFIG_H
