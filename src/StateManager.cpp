@@ -12,6 +12,8 @@ SystemPreferences& StateManager::prefs() { return preferences; }
 
 // ----- Unit-aware getters -----
 
+UnitSystem StateManager::getUnitSystem() { return preferences.unitSystem; }
+
 float StateManager::getDistance() {
   return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.distanceInFeet
                                                           : systemState.distanceInFeet * 0.3048f;
@@ -35,6 +37,11 @@ float StateManager::getMaxSpeed() { return systemState.maxSpeedInMPH; }
 float StateManager::getMaxDistance() { return systemState.maxDistanceInFeet; }
 
 // ----- Setters -----
+
+void StateManager::setUnitSystem(UnitSystem system) {
+  preferences.unitSystem = system;
+  savePreferences();  // Save preferences when unit system changes
+}
 
 void StateManager::setRPM(float rpm) {
   systemState.rpm = rpm;

@@ -461,7 +461,7 @@ lv_obj_set_flex_flow(ui_SettingsContainerCalc,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsContainerCalc, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_SettingsContainerCalc, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_SettingsContainerCalc, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_column(ui_SettingsContainerCalc, 25, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerCalc, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsLabelCalibrationNumberTitle1 = lv_label_create(ui_SettingsContainerCalc);
 lv_obj_set_width( ui_SettingsLabelCalibrationNumberTitle1, lv_pct(100));
@@ -526,7 +526,7 @@ lv_obj_set_style_text_align(ui_SettingsLabelGearToothCalculatorPulses, LV_TEXT_A
 lv_obj_set_style_text_font(ui_SettingsLabelGearToothCalculatorPulses, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsButtonCalculateButton = lv_btn_create(ui_SettingsContainerCalc);
-lv_obj_set_width( ui_SettingsButtonCalculateButton, 140);
+lv_obj_set_width( ui_SettingsButtonCalculateButton, 157);
 lv_obj_set_height( ui_SettingsButtonCalculateButton, 40);
 lv_obj_set_align( ui_SettingsButtonCalculateButton, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_SettingsButtonCalculateButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
@@ -542,7 +542,7 @@ lv_obj_set_align( ui_SettingsLabelLabel29, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelLabel29,"CALCULATE");
 
 ui_SettingsButtonSaveCalibrationCalculatorButton = lv_btn_create(ui_SettingsContainerCalc);
-lv_obj_set_width( ui_SettingsButtonSaveCalibrationCalculatorButton, 72);
+lv_obj_set_width( ui_SettingsButtonSaveCalibrationCalculatorButton, 82);
 lv_obj_set_height( ui_SettingsButtonSaveCalibrationCalculatorButton, 40);
 lv_obj_set_align( ui_SettingsButtonSaveCalibrationCalculatorButton, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_SettingsButtonSaveCalibrationCalculatorButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags

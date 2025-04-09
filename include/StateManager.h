@@ -74,6 +74,7 @@ public:
   static SystemPreferences& prefs();
 
   // Unit-aware getters
+  static UnitSystem getUnitSystem();
   static float getDistance();     // Converts to meters if metric
   static float getSpeed();        // Converts to km/h if metric
   static float getRPM();          // Returns RPM
@@ -83,6 +84,8 @@ public:
   static float getMaxDistance();  // Converts to meters if metric
 
   // State accessors
+  static void setUnitSystem(UnitSystem system);
+
   static void setDistance(float ft);  // Sets distance in feet
   static void setSpeed(float mph);    // Sets speed in mph
   static void setRPM(float rpm);      // Sets RPM

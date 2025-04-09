@@ -15,17 +15,6 @@
 const char *VERSION_STRING = VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
-/**
- * @brief Sets the visibility of a given LVGL object.
- *
- * This function allows you to control the visibility of an LVGL object
- * by setting it to either visible or hidden.
- *
- * @param obj Pointer to the LVGL object to modify.
- * @param visible Boolean value indicating the desired visibility state:
- *                - `true` to make the object visible.
- *                - `false` to hide the object.
- */
 inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   if (visible) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
@@ -34,20 +23,6 @@ inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   }
 }
 
-/**
- * @brief Applies user preferences to the main screen elements.
- *
- * This function adjusts the visibility of various main screen components
- * and sets the screen backlight brightness based on the user's saved preferences.
- *
- * The following preferences are applied:
- * - Visibility of the tachometer container (`uic_MainContainerTach`) based on `tachEnabled`.
- * - Visibility of the relays container (`uic_MainContainerRelays`) based on `relaysEnabled`.
- * - Visibility of the limit switch container (`uic_MainContainerLimit`) based on `limitSwitchesEnabled`.
- * - Screen backlight brightness based on `screenBrightness`.
- *
- * Preferences are retrieved from the `StateManager` class.
- */
 void applyMainScreenPreferences() {
   // Set the visibility of the main screen elements based on preferences
   setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
@@ -103,7 +78,11 @@ void loadMainScreen(lv_event_t *e) {
 }
 
 void SettingsSwitchUnitsChange(lv_event_t *e) {
-  // Your code here
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool isMetric = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  // Set unit system based on switch state
+  StateManager::setUnitSystem(isMetric ? UnitSystem::METRIC : UnitSystem::IMPERIAL);
 }
 
 void SettingsSwitchBenchmarkChange(lv_event_t *e) {
@@ -162,28 +141,6 @@ void SettingsSwitchRelaysChange(lv_event_t *e) {
   StateManager::savePreferences();
 }
 
-// static int settingsExitTabIndex = -1;  // Global or static so it's accessible in the callback
-
-// // Event callback
-// static void exit_tab_handler(lv_event_t *e) {
-//   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
-//   lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
-
-//   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
-
-//   if (selected_idx == settingsExitTabIndex) {
-//     printf("Exit tab clicked!\n");
-
-//     // Optional: reset selection to first tab
-//     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);
-
-//     // Go back to main screen
-//     lv_scr_load(ui_ScreenMain);
-
-//     // Stop tab switching
-//     lv_event_stop_processing(e);
-//   }
-// }
 static void exit_tab_handler(lv_event_t *e) {
   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
   lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
@@ -203,6 +160,10 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
   if (code == LV_EVENT_SCREEN_LOADED) {
+    // Set units toggle to match current preference
+    (StateManager::getUnitSystem() == UnitSystem::METRIC)
+        ? lv_obj_add_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED)
+        : lv_obj_clear_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED);
     // Toggle switches
     StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
                                         : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
@@ -235,14 +196,6 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // Exit Page
   lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
   lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
-
-  // // Save the index of the Exit tab (last one added)
-  // settingsExitTabIndex =
-  //     lv_tabview_get_tab_act(ui_SettingsTabviewSettingsView);  // This works because you just added it
-
-  // // Hook up the event callback
-  // lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
-  // lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
 }
 
 void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
@@ -462,7 +415,7 @@ void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
   float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
   float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
   int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
-  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", result);
+  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
 }
 
 void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }
