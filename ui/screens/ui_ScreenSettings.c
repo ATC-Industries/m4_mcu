@@ -10,11 +10,23 @@ void ui_ScreenSettings_screen_init(void)
 ui_ScreenSettings = lv_obj_create(NULL);
 lv_obj_clear_flag( ui_ScreenSettings, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
-ui_SettingsTabviewSettingsView = lv_tabview_create(ui_ScreenSettings, LV_DIR_LEFT, 100);
+ui_SettingsTabviewSettingsView = lv_tabview_create(ui_ScreenSettings, LV_DIR_LEFT, 75);
 lv_obj_set_width( ui_SettingsTabviewSettingsView, lv_pct(100));
 lv_obj_set_height( ui_SettingsTabviewSettingsView, lv_pct(100));
-lv_obj_set_align( ui_SettingsTabviewSettingsView, LV_ALIGN_CENTER );
+lv_obj_set_align( ui_SettingsTabviewSettingsView, LV_ALIGN_LEFT_MID );
 lv_obj_clear_flag( ui_SettingsTabviewSettingsView, LV_OBJ_FLAG_GESTURE_BUBBLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_text_align(ui_SettingsTabviewSettingsView, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+lv_obj_set_style_text_align(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), LV_TEXT_ALIGN_LEFT,  LV_PART_MAIN| LV_STATE_DEFAULT);
+
+lv_obj_set_style_text_font(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), &lv_font_montserrat_12,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_text_color(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), lv_color_hex(0xFFFFFF),  LV_PART_ITEMS | LV_STATE_CHECKED );
+lv_obj_set_style_text_opa(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), 255,  LV_PART_ITEMS| LV_STATE_CHECKED);
+lv_obj_set_style_bg_color(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), lv_color_hex(0x797979),  LV_PART_ITEMS | LV_STATE_CHECKED );
+lv_obj_set_style_bg_opa(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), 255,  LV_PART_ITEMS| LV_STATE_CHECKED);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView),  LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BORDER_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView),  LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BORDER_OPA, _ui_theme_alpha_Orange);
+lv_obj_set_style_border_side(lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView), LV_BORDER_SIDE_LEFT,  LV_PART_ITEMS| LV_STATE_CHECKED);
 
 ui_SettingsTabpageGeneral = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "General");
 lv_obj_set_flex_flow(ui_SettingsTabpageGeneral,LV_FLEX_FLOW_ROW);
@@ -363,7 +375,7 @@ lv_label_set_text(ui_SettingsLabelLabel30,"Recalibrate Touch Screen");
 
 ui_SettingsTabpageSpeed_and_Distance = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Speed + Distance");
 lv_obj_set_flex_flow(ui_SettingsTabpageSpeed_and_Distance,LV_FLEX_FLOW_ROW_WRAP);
-lv_obj_set_flex_align(ui_SettingsTabpageSpeed_and_Distance, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_set_flex_align(ui_SettingsTabpageSpeed_and_Distance, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_SettingsTabpageSpeed_and_Distance, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 lv_obj_set_style_pad_row(ui_SettingsTabpageSpeed_and_Distance, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_SettingsTabpageSpeed_and_Distance, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -451,7 +463,7 @@ lv_obj_set_style_text_font(ui_SettingsLabelLabel14, &ui_font_BIO_SEMIBOLD_6, LV_
 
 ui_SettingsPanelGearToothCalculatorPanel = lv_obj_create(ui_SettingsTabpageSpeed_and_Distance);
 lv_obj_set_height( ui_SettingsPanelGearToothCalculatorPanel, 290);
-lv_obj_set_width( ui_SettingsPanelGearToothCalculatorPanel, lv_pct(48));
+lv_obj_set_width( ui_SettingsPanelGearToothCalculatorPanel, lv_pct(49));
 lv_obj_set_align( ui_SettingsPanelGearToothCalculatorPanel, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsPanelGearToothCalculatorPanel,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsPanelGearToothCalculatorPanel, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -535,7 +547,7 @@ lv_obj_set_style_text_align(ui_SettingsLabelGearToothCalculatorPulses, LV_TEXT_A
 lv_obj_set_style_text_font(ui_SettingsLabelGearToothCalculatorPulses, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsButtonCalculateButton = lv_btn_create(ui_SettingsContainerCalc);
-lv_obj_set_width( ui_SettingsButtonCalculateButton, 157);
+lv_obj_set_width( ui_SettingsButtonCalculateButton, 172);
 lv_obj_set_height( ui_SettingsButtonCalculateButton, 40);
 lv_obj_set_align( ui_SettingsButtonCalculateButton, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_SettingsButtonCalculateButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
@@ -551,7 +563,7 @@ lv_obj_set_align( ui_SettingsLabelLabel29, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelLabel29,"CALCULATE");
 
 ui_SettingsButtonSaveCalibrationCalculatorButton = lv_btn_create(ui_SettingsContainerCalc);
-lv_obj_set_width( ui_SettingsButtonSaveCalibrationCalculatorButton, 82);
+lv_obj_set_width( ui_SettingsButtonSaveCalibrationCalculatorButton, 89);
 lv_obj_set_height( ui_SettingsButtonSaveCalibrationCalculatorButton, 40);
 lv_obj_set_align( ui_SettingsButtonSaveCalibrationCalculatorButton, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_SettingsButtonSaveCalibrationCalculatorButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
@@ -587,7 +599,7 @@ lv_obj_set_style_text_font(ui_SettingsLabelLabel16, &ui_font_BIO_SEMIBOLD_6, LV_
 
 ui_SettingsPanelAutoCalibration = lv_obj_create(ui_SettingsTabpageSpeed_and_Distance);
 lv_obj_set_height( ui_SettingsPanelAutoCalibration, 290);
-lv_obj_set_width( ui_SettingsPanelAutoCalibration, lv_pct(48));
+lv_obj_set_width( ui_SettingsPanelAutoCalibration, lv_pct(49));
 lv_obj_set_align( ui_SettingsPanelAutoCalibration, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsPanelAutoCalibration,LV_FLEX_FLOW_ROW_WRAP);
 lv_obj_set_flex_align(ui_SettingsPanelAutoCalibration, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
