@@ -7,6 +7,7 @@
 #include "PullStateManager.h"
 #include "SpeedModule.h"
 #include "StateManager.h"
+#include "custom_ui/custom_keyboard.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
 #include "touch/touch.h"
@@ -160,17 +161,7 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
   if (code == LV_EVENT_SCREEN_LOADED) {
-    static const char *custom_keymap[] = {
-        "1", "2", "3", LV_SYMBOL_BACKSPACE, "\n", "4", "5", "6", LV_SYMBOL_OK, "\n", "7", "8", "9", "0", ".", "",
-    };
-    static const lv_btnmatrix_ctrl_t custom_ctrl_map[] = {
-        1, 1, 1, 2 | LV_BTNMATRIX_CTRL_NO_REPEAT,  // Row 1 (BACKSPACE is 2 units wide)
-        1, 1, 1, 2 | LV_BTNMATRIX_CTRL_NO_REPEAT,  // Row 2 (ENTER is 2 units wide)
-        1, 1, 1, 1,
-        1,  // Row 3
-    };
-    lv_keyboard_set_map(ui_SettingsKeyboardSettingsNumberKeyboard, LV_KEYBOARD_MODE_NUMBER, custom_keymap,
-                        custom_ctrl_map);
+    setup_custom_number_keyboard(ui_SettingsKeyboardSettingsNumberKeyboard);
 
     // Set units toggle to match current preference
     (StateManager::getUnitSystem() == UnitSystem::METRIC)

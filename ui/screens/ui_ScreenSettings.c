@@ -1203,10 +1203,10 @@ lv_obj_clear_flag( ui_SettingsContainerExitButtonOverlay, LV_OBJ_FLAG_SCROLLABLE
 
 ui_SettingsKeyboardSettingsNumberKeyboard = lv_keyboard_create(ui_ScreenSettings);
 lv_keyboard_set_mode(ui_SettingsKeyboardSettingsNumberKeyboard,LV_KEYBOARD_MODE_NUMBER);
-lv_obj_set_width( ui_SettingsKeyboardSettingsNumberKeyboard, 611);
-lv_obj_set_height( ui_SettingsKeyboardSettingsNumberKeyboard, 203);
-lv_obj_set_x( ui_SettingsKeyboardSettingsNumberKeyboard, 50 );
-lv_obj_set_y( ui_SettingsKeyboardSettingsNumberKeyboard, 131 );
+lv_obj_set_width( ui_SettingsKeyboardSettingsNumberKeyboard, 327);
+lv_obj_set_height( ui_SettingsKeyboardSettingsNumberKeyboard, 372);
+lv_obj_set_x( ui_SettingsKeyboardSettingsNumberKeyboard, 222 );
+lv_obj_set_y( ui_SettingsKeyboardSettingsNumberKeyboard, 43 );
 lv_obj_set_align( ui_SettingsKeyboardSettingsNumberKeyboard, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN );   /// Flags
 lv_obj_set_style_radius(ui_SettingsKeyboardSettingsNumberKeyboard, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
