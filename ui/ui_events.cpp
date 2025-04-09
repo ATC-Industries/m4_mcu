@@ -148,7 +148,7 @@ static void exit_tab_handler(lv_event_t *e) {
 
   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
 
-  if (selected_idx == 7) {  // Exit tab is the 8th tab (index 7)
+  if (selected_idx == 8) {  // Exit tab is the 8th tab (index 7)
     printf("Exit tab clicked\n");
 
     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);  // Reset tab to first

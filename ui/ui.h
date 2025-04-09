@@ -307,6 +307,7 @@ void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e);
 extern lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText3;
 extern lv_obj_t *ui_SettingsLabelLabel27;
 extern lv_obj_t *ui_SettingsTabpageTach;
+extern lv_obj_t *ui_SettingsTabpageAlarms;
 extern lv_obj_t *ui_SettingsTabpageRelays_and_Limits;
 extern lv_obj_t *ui_SettingsPanelConnectionRLM;
 extern lv_obj_t *ui_SettingsContainerContainer8;
@@ -369,8 +370,6 @@ extern lv_obj_t *ui_SettingsLabelBountyMessage;
 void ui_event_SettingsButtonReturnHome( lv_event_t * e);
 extern lv_obj_t *ui_SettingsButtonReturnHome;
 extern lv_obj_t *ui_SettingsLabelButtonReturnHome;
-void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e);
-extern lv_obj_t *ui_SettingsContainerExitButtonOverlay;
 void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e);
 extern lv_obj_t *ui_SettingsKeyboardSettingsNumberKeyboard;
 // CUSTOM VARIABLES
@@ -416,7 +415,6 @@ extern lv_obj_t *uic_SettingsLabelCopyrightData;
 extern lv_obj_t *uic_SettingsLabelBountyMessage;
 extern lv_obj_t *uic_SettingsButtonReturnHome;
 extern lv_obj_t *uic_SettingsLabelButtonReturnHome;
-extern lv_obj_t *uic_SettingsContainerExitButtonOverlay;
 extern lv_obj_t *uic_SettingsKeyboardSettingsNumberKeyboard;
 
 // EVENTS

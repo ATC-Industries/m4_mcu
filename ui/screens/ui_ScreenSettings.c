@@ -768,6 +768,8 @@ lv_obj_set_style_text_font(ui_SettingsLabelLabel27, &ui_font_BIO_SEMIBOLD_6, LV_
 ui_SettingsTabpageTach = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Tach");
 lv_obj_clear_flag( ui_SettingsTabpageTach, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
+ui_SettingsTabpageAlarms = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Alarms");
+
 ui_SettingsTabpageRelays_and_Limits = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Relays + Limits");
 lv_obj_set_flex_flow(ui_SettingsTabpageRelays_and_Limits,LV_FLEX_FLOW_COLUMN);
 lv_obj_set_flex_align(ui_SettingsTabpageRelays_and_Limits, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -1193,14 +1195,6 @@ lv_obj_set_height( ui_SettingsLabelButtonReturnHome, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelButtonReturnHome, LV_ALIGN_CENTER );
 lv_label_set_text(ui_SettingsLabelButtonReturnHome,"Return To home");
 
-ui_SettingsContainerExitButtonOverlay = lv_obj_create(ui_ScreenSettings);
-lv_obj_remove_style_all(ui_SettingsContainerExitButtonOverlay);
-lv_obj_set_width( ui_SettingsContainerExitButtonOverlay, 100);
-lv_obj_set_height( ui_SettingsContainerExitButtonOverlay, 50);
-lv_obj_set_align( ui_SettingsContainerExitButtonOverlay, LV_ALIGN_BOTTOM_LEFT );
-lv_obj_add_flag( ui_SettingsContainerExitButtonOverlay, LV_OBJ_FLAG_HIDDEN );   /// Flags
-lv_obj_clear_flag( ui_SettingsContainerExitButtonOverlay, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-
 ui_SettingsKeyboardSettingsNumberKeyboard = lv_keyboard_create(ui_ScreenSettings);
 lv_keyboard_set_mode(ui_SettingsKeyboardSettingsNumberKeyboard,LV_KEYBOARD_MODE_NUMBER);
 lv_obj_set_width( ui_SettingsKeyboardSettingsNumberKeyboard, 327);
@@ -1259,7 +1253,6 @@ lv_obj_add_event_cb(ui_SettingsButtonButton3, ui_event_SettingsButtonButton3, LV
 lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText3, ui_event_SettingsButtonHelpCalibrationNumberText3, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonReturnHome, ui_event_SettingsButtonReturnHome, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTabpageExit, ui_event_SettingsTabpageExit, LV_EVENT_ALL, NULL);
-lv_obj_add_event_cb(ui_SettingsContainerExitButtonOverlay, ui_event_SettingsContainerExitButtonOverlay, LV_EVENT_ALL, NULL);
 lv_keyboard_set_textarea(ui_SettingsKeyboardSettingsNumberKeyboard,ui_SettingsTextareaTrackLengthText);
 lv_obj_add_event_cb(ui_SettingsKeyboardSettingsNumberKeyboard, ui_event_SettingsKeyboardSettingsNumberKeyboard, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_ScreenSettings, ui_event_ScreenSettings, LV_EVENT_ALL, NULL);
@@ -1305,7 +1298,6 @@ uic_SettingsLabelCopyrightData = ui_SettingsLabelCopyrightData;
 uic_SettingsLabelBountyMessage = ui_SettingsLabelBountyMessage;
 uic_SettingsButtonReturnHome = ui_SettingsButtonReturnHome;
 uic_SettingsLabelButtonReturnHome = ui_SettingsLabelButtonReturnHome;
-uic_SettingsContainerExitButtonOverlay = ui_SettingsContainerExitButtonOverlay;
 uic_SettingsKeyboardSettingsNumberKeyboard = ui_SettingsKeyboardSettingsNumberKeyboard;
 
 }

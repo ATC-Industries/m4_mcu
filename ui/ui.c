@@ -298,6 +298,7 @@ void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText3;
 lv_obj_t *ui_SettingsLabelLabel27;
 lv_obj_t *ui_SettingsTabpageTach;
+lv_obj_t *ui_SettingsTabpageAlarms;
 lv_obj_t *ui_SettingsTabpageRelays_and_Limits;
 lv_obj_t *ui_SettingsPanelConnectionRLM;
 lv_obj_t *ui_SettingsContainerContainer8;
@@ -360,8 +361,6 @@ lv_obj_t *ui_SettingsLabelBountyMessage;
 void ui_event_SettingsButtonReturnHome( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonReturnHome;
 lv_obj_t *ui_SettingsLabelButtonReturnHome;
-void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e);
-lv_obj_t *ui_SettingsContainerExitButtonOverlay;
 void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e);
 lv_obj_t *ui_SettingsKeyboardSettingsNumberKeyboard;
 // CUSTOM VARIABLES
@@ -407,7 +406,6 @@ lv_obj_t *uic_SettingsLabelCopyrightData;
 lv_obj_t *uic_SettingsLabelBountyMessage;
 lv_obj_t *uic_SettingsButtonReturnHome;
 lv_obj_t *uic_SettingsLabelButtonReturnHome;
-lv_obj_t *uic_SettingsContainerExitButtonOverlay;
 lv_obj_t *uic_SettingsKeyboardSettingsNumberKeyboard;
 
 // EVENTS
@@ -763,18 +761,6 @@ void ui_event_SettingsButtonReturnHome( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_CLICKED) {
-      _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
-}
-}
-
-void ui_event_SettingsContainerExitButtonOverlay( lv_event_t * e) {
-    lv_event_code_t event_code = lv_event_get_code(e);
-
-if ( event_code == LV_EVENT_CLICKED) {
-      _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
-}
-if ( event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_BOTTOM  ) {
-lv_indev_wait_release(lv_indev_get_act());
       _ui_screen_change( &ui_ScreenMain, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenMain_screen_init);
 }
 }
