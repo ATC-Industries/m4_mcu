@@ -427,3 +427,33 @@ void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
 }
 
 void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }
+
+void HELPTachAutoConnect(lv_event_t *e) {
+  // Your code here
+}
+
+void HELPAlarmPresets(lv_event_t *e) {
+  static const char *btn_txts[] = {"OK", NULL};
+
+  const char *help_text =
+      "Each preset defines a full set of alarm thresholds used during the run.\n\n"
+      "There are 4 presets available. You can switch between them using the dropdown menu.\n"
+      "Each preset contains up to 6 alarms:\n"
+      "- 2 Distance alarms\n"
+      "- 2 Speed alarms\n"
+      "- 2 RPM alarms\n\n"
+      "Alarms must be configured with a value and a behavior. The value is the point "
+      "where the system considers the alarm to be tripped (e.g., 300 ft or 30 MPH).\n\n"
+      "Each alarm also has behavior options, such as:\n"
+      "- Silent: no horn or warning, but can still activate relays\n"
+      "- Trip once: activates only once when the threshold is crossed\n"
+      "- Trip and hold (auto reset): stays on until value goes back below threshold\n"
+      "- Trip and hold (persistent): stays on even if value drops below\n"
+      "- Auto End Run: immediately ends the pull and sends stop signals to all devices\n\n"
+      "Use the activation toggle to enable or disable each individual alarm within the preset.";
+
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ALARM PRESETS", help_text, btn_txts, true);
+  lv_obj_set_width(mbox, 600);
+  lv_obj_center(mbox);
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}

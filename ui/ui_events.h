@@ -42,6 +42,8 @@ void HELPAutoCal(lv_event_t * e);
 void SaveRadarCalibration(lv_event_t * e);
 void SaveGPSCalibration(lv_event_t * e);
 void HELPPresetCalNumber(lv_event_t * e);
+void HELPTachAutoConnect(lv_event_t * e);
+void HELPAlarmPresets(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/

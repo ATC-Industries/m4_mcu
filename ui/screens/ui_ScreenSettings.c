@@ -854,9 +854,492 @@ lv_label_set_text(ui_SettingsLabelLabel27,"?");
 lv_obj_set_style_text_font(ui_SettingsLabelLabel27, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsTabpageTach = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Tach");
+lv_obj_set_flex_flow(ui_SettingsTabpageTach,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsTabpageTach, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_SettingsTabpageTach, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
+ui_SettingsPanelPanel2 = lv_obj_create(ui_SettingsTabpageTach);
+lv_obj_set_width( ui_SettingsPanelPanel2, lv_pct(100));
+lv_obj_set_height( ui_SettingsPanelPanel2, lv_pct(100));
+lv_obj_set_align( ui_SettingsPanelPanel2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsPanelPanel2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsPanelPanel2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsPanelPanel2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsContainerSettingTach1 = lv_obj_create(ui_SettingsPanelPanel2);
+lv_obj_remove_style_all(ui_SettingsContainerSettingTach1);
+lv_obj_set_height( ui_SettingsContainerSettingTach1, 35);
+lv_obj_set_width( ui_SettingsContainerSettingTach1, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerSettingTach1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerSettingTach1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerSettingTach1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerSettingTach1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerSettingTach1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerSettingTach1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchTachAutoConnectToggle = lv_switch_create(ui_SettingsContainerSettingTach1);
+lv_obj_set_width( ui_SettingsSwitchTachAutoConnectToggle, 50);
+lv_obj_set_height( ui_SettingsSwitchTachAutoConnectToggle, 25);
+lv_obj_set_align( ui_SettingsSwitchTachAutoConnectToggle, LV_ALIGN_CENTER );
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchTachAutoConnectToggle, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchTachAutoConnectToggle, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelSettingsGeneralTitle9 = lv_label_create(ui_SettingsContainerSettingTach1);
+lv_obj_set_width( ui_SettingsLabelSettingsGeneralTitle9, lv_pct(60));
+lv_obj_set_height( ui_SettingsLabelSettingsGeneralTitle9, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelSettingsGeneralTitle9, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelSettingsGeneralTitle9,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelSettingsGeneralTitle9, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelSettingsGeneralTitle9,"Auto Connect to Nearest Tach Smart Sensor.");
+lv_obj_set_style_text_font(ui_SettingsLabelSettingsGeneralTitle9, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsButtonTachAutoConnectHelp = lv_btn_create(ui_SettingsContainerSettingTach1);
+lv_obj_set_width( ui_SettingsButtonTachAutoConnectHelp, 30);
+lv_obj_set_height( ui_SettingsButtonTachAutoConnectHelp, 30);
+lv_obj_set_align( ui_SettingsButtonTachAutoConnectHelp, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsButtonTachAutoConnectHelp,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsButtonTachAutoConnectHelp, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_SettingsButtonTachAutoConnectHelp, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonTachAutoConnectHelp, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_SettingsButtonTachAutoConnectHelp, 35, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_SettingsButtonTachAutoConnectHelp, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_SettingsButtonTachAutoConnectHelp, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_pad_left(ui_SettingsButtonTachAutoConnectHelp, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsButtonTachAutoConnectHelp, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsButtonTachAutoConnectHelp, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsButtonTachAutoConnectHelp, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsLabelLabel32 = lv_label_create(ui_SettingsButtonTachAutoConnectHelp);
+lv_obj_set_width( ui_SettingsLabelLabel32, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelLabel32, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel32, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel32,"?");
+lv_obj_set_style_text_font(ui_SettingsLabelLabel32, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
 ui_SettingsTabpageAlarms = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Alarms");
+
+ui_SettingsPanelPanel3 = lv_obj_create(ui_SettingsTabpageAlarms);
+lv_obj_set_width( ui_SettingsPanelPanel3, lv_pct(100));
+lv_obj_set_height( ui_SettingsPanelPanel3, lv_pct(100));
+lv_obj_set_align( ui_SettingsPanelPanel3, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsPanelPanel3,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsPanelPanel3, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsPanelPanel3, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsContainerSettingGeneral10 = lv_obj_create(ui_SettingsPanelPanel3);
+lv_obj_remove_style_all(ui_SettingsContainerSettingGeneral10);
+lv_obj_set_height( ui_SettingsContainerSettingGeneral10, 40);
+lv_obj_set_width( ui_SettingsContainerSettingGeneral10, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerSettingGeneral10, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerSettingGeneral10,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerSettingGeneral10, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerSettingGeneral10, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerSettingGeneral10, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerSettingGeneral10, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsLabelSettingsGeneralTitle10 = lv_label_create(ui_SettingsContainerSettingGeneral10);
+lv_obj_set_width( ui_SettingsLabelSettingsGeneralTitle10, lv_pct(20));
+lv_obj_set_height( ui_SettingsLabelSettingsGeneralTitle10, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelSettingsGeneralTitle10, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelSettingsGeneralTitle10,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelSettingsGeneralTitle10, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelSettingsGeneralTitle10,"Select Preset #");
+lv_obj_set_style_text_font(ui_SettingsLabelSettingsGeneralTitle10, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsDropdownDropdown9 = lv_dropdown_create(ui_SettingsContainerSettingGeneral10);
+lv_dropdown_set_options( ui_SettingsDropdownDropdown9, "Preset #1\nPreset #2\nPreset #3\nPreset #4" );
+lv_obj_set_width( ui_SettingsDropdownDropdown9, 225);
+lv_obj_set_height( ui_SettingsDropdownDropdown9, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownDropdown9, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownDropdown9, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_radius(ui_SettingsDropdownDropdown9, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsButtonHelpTach2 = lv_btn_create(ui_SettingsContainerSettingGeneral10);
+lv_obj_set_width( ui_SettingsButtonHelpTach2, 30);
+lv_obj_set_height( ui_SettingsButtonHelpTach2, 30);
+lv_obj_set_align( ui_SettingsButtonHelpTach2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsButtonHelpTach2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsButtonHelpTach2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_SettingsButtonHelpTach2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonHelpTach2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_SettingsButtonHelpTach2, 35, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_SettingsButtonHelpTach2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_SettingsButtonHelpTach2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_pad_left(ui_SettingsButtonHelpTach2, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsButtonHelpTach2, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsButtonHelpTach2, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsButtonHelpTach2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsLabelLabel33 = lv_label_create(ui_SettingsButtonHelpTach2);
+lv_obj_set_width( ui_SettingsLabelLabel33, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelLabel33, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel33, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel33,"?");
+lv_obj_set_style_text_font(ui_SettingsLabelLabel33, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsContainerDistanceAlarms = lv_obj_create(ui_SettingsPanelPanel3);
+lv_obj_remove_style_all(ui_SettingsContainerDistanceAlarms);
+lv_obj_set_width( ui_SettingsContainerDistanceAlarms, lv_pct(100));
+lv_obj_set_height( ui_SettingsContainerDistanceAlarms, LV_SIZE_CONTENT);   /// 11
+lv_obj_set_align( ui_SettingsContainerDistanceAlarms, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerDistanceAlarms,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsContainerDistanceAlarms, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsContainerDistanceAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_border_color(ui_SettingsContainerDistanceAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_SettingsContainerDistanceAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_SettingsContainerDistanceAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_SettingsContainerDistanceAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_SettingsContainerDistanceAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(ui_SettingsContainerDistanceAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsContainerAlarmDistance1 = lv_obj_create(ui_SettingsContainerDistanceAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmDistance1);
+lv_obj_set_height( ui_SettingsContainerAlarmDistance1, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmDistance1, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmDistance1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmDistance1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmDistance1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmDistance1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmDistance1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmDistance1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmDistanceToggle1 = lv_switch_create(ui_SettingsContainerAlarmDistance1);
+lv_obj_set_width( ui_SettingsSwitchAlarmDistanceToggle1, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmDistanceToggle1, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmDistanceToggle1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmDistanceToggle1, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmDistanceToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmDistanceToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmDistanceTitle1 = lv_label_create(ui_SettingsContainerAlarmDistance1);
+lv_obj_set_width( ui_SettingsLabelAlarmDistanceTitle1, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmDistanceTitle1, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmDistanceTitle1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmDistanceTitle1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmDistanceTitle1, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmDistanceTitle1,"Distance #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmDistanceTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmDistanceValueTextArea1 = lv_textarea_create(ui_SettingsContainerAlarmDistance1);
+lv_obj_set_width( ui_SettingsTextareaAlarmDistanceValueTextArea1, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmDistanceValueTextArea1, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmDistanceValueTextArea1, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmDistanceValueTextArea1, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmDistanceValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmDistanceValueTextArea1,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmDistanceValueTextArea1,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmDistanceValueTextArea1,true);
+
+ui_SettingsDropdownAlarmDistanceDropdown1 = lv_dropdown_create(ui_SettingsContainerAlarmDistance1);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmDistanceDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmDistanceDropdown1, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmDistanceDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmDistanceDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmDistanceDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmDistanceDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmDistanceDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmDistanceDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmDistanceDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_SettingsContainerAlarmDistance2 = lv_obj_create(ui_SettingsContainerDistanceAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmDistance2);
+lv_obj_set_height( ui_SettingsContainerAlarmDistance2, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmDistance2, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmDistance2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmDistance2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmDistance2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmDistance2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmDistance2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmDistance2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmDistanceToggle2 = lv_switch_create(ui_SettingsContainerAlarmDistance2);
+lv_obj_set_width( ui_SettingsSwitchAlarmDistanceToggle2, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmDistanceToggle2, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmDistanceToggle2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmDistanceToggle2, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmDistanceToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmDistanceToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmDistanceTitle2 = lv_label_create(ui_SettingsContainerAlarmDistance2);
+lv_obj_set_width( ui_SettingsLabelAlarmDistanceTitle2, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmDistanceTitle2, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmDistanceTitle2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmDistanceTitle2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmDistanceTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmDistanceTitle2,"Distance #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmDistanceTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmDistanceValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmDistance2);
+lv_obj_set_width( ui_SettingsTextareaAlarmDistanceValueTextArea2, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmDistanceValueTextArea2, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmDistanceValueTextArea2, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmDistanceValueTextArea2, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmDistanceValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmDistanceValueTextArea2,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmDistanceValueTextArea2,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmDistanceValueTextArea2,true);
+
+ui_SettingsDropdownAlarmDistanceDropdown2 = lv_dropdown_create(ui_SettingsContainerAlarmDistance2);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmDistanceDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmDistanceDropdown2, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmDistanceDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmDistanceDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmDistanceDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmDistanceDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmDistanceDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmDistanceDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmDistanceDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_SettingsContainerSpeedAlarms = lv_obj_create(ui_SettingsPanelPanel3);
+lv_obj_remove_style_all(ui_SettingsContainerSpeedAlarms);
+lv_obj_set_width( ui_SettingsContainerSpeedAlarms, lv_pct(100));
+lv_obj_set_height( ui_SettingsContainerSpeedAlarms, LV_SIZE_CONTENT);   /// 11
+lv_obj_set_align( ui_SettingsContainerSpeedAlarms, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerSpeedAlarms,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsContainerSpeedAlarms, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsContainerSpeedAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_border_color(ui_SettingsContainerSpeedAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_SettingsContainerSpeedAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_SettingsContainerSpeedAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_SettingsContainerSpeedAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_SettingsContainerSpeedAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(ui_SettingsContainerSpeedAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsContainerAlarmSpeed1 = lv_obj_create(ui_SettingsContainerSpeedAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmSpeed1);
+lv_obj_set_height( ui_SettingsContainerAlarmSpeed1, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmSpeed1, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmSpeed1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmSpeed1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmSpeed1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmSpeed1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmSpeed1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmSpeed1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmSpeedToggle1 = lv_switch_create(ui_SettingsContainerAlarmSpeed1);
+lv_obj_set_width( ui_SettingsSwitchAlarmSpeedToggle1, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmSpeedToggle1, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmSpeedToggle1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmSpeedToggle1, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmSpeedToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmSpeedToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmSpeedTitle1 = lv_label_create(ui_SettingsContainerAlarmSpeed1);
+lv_obj_set_width( ui_SettingsLabelAlarmSpeedTitle1, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmSpeedTitle1, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmSpeedTitle1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmSpeedTitle1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmSpeedTitle1, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmSpeedTitle1,"Speed #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmSpeedTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmSpeedValueTextArea1 = lv_textarea_create(ui_SettingsContainerAlarmSpeed1);
+lv_obj_set_width( ui_SettingsTextareaAlarmSpeedValueTextArea1, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmSpeedValueTextArea1, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmSpeedValueTextArea1, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmSpeedValueTextArea1, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmSpeedValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmSpeedValueTextArea1,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmSpeedValueTextArea1,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmSpeedValueTextArea1,true);
+
+ui_SettingsDropdownAlarmSpeedDropdown1 = lv_dropdown_create(ui_SettingsContainerAlarmSpeed1);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmSpeedDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmSpeedDropdown1, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmSpeedDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmSpeedDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmSpeedDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmSpeedDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmSpeedDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmSpeedDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmSpeedDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_SettingsContainerAlarmSpeed2 = lv_obj_create(ui_SettingsContainerSpeedAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmSpeed2);
+lv_obj_set_height( ui_SettingsContainerAlarmSpeed2, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmSpeed2, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmSpeed2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmSpeed2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmSpeed2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmSpeed2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmSpeed2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmSpeed2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmSpeedToggle2 = lv_switch_create(ui_SettingsContainerAlarmSpeed2);
+lv_obj_set_width( ui_SettingsSwitchAlarmSpeedToggle2, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmSpeedToggle2, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmSpeedToggle2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmSpeedToggle2, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmSpeedToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmSpeedToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmSpeedTitle2 = lv_label_create(ui_SettingsContainerAlarmSpeed2);
+lv_obj_set_width( ui_SettingsLabelAlarmSpeedTitle2, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmSpeedTitle2, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmSpeedTitle2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmSpeedTitle2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmSpeedTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmSpeedTitle2,"Speed #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmSpeedTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmSpeedValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmSpeed2);
+lv_obj_set_width( ui_SettingsTextareaAlarmSpeedValueTextArea2, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmSpeedValueTextArea2, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmSpeedValueTextArea2, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmSpeedValueTextArea2, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmSpeedValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmSpeedValueTextArea2,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmSpeedValueTextArea2,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmSpeedValueTextArea2,true);
+
+ui_SettingsDropdownAlarmSpeedDropdown2 = lv_dropdown_create(ui_SettingsContainerAlarmSpeed2);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmSpeedDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmSpeedDropdown2, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmSpeedDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmSpeedDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmSpeedDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmSpeedDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmSpeedDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmSpeedDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmSpeedDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_SettingsContainerRPMAlarms = lv_obj_create(ui_SettingsPanelPanel3);
+lv_obj_remove_style_all(ui_SettingsContainerRPMAlarms);
+lv_obj_set_width( ui_SettingsContainerRPMAlarms, lv_pct(100));
+lv_obj_set_height( ui_SettingsContainerRPMAlarms, LV_SIZE_CONTENT);   /// 11
+lv_obj_set_align( ui_SettingsContainerRPMAlarms, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerRPMAlarms,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsContainerRPMAlarms, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_SettingsContainerRPMAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_border_color(ui_SettingsContainerRPMAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_SettingsContainerRPMAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_SettingsContainerRPMAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_SettingsContainerRPMAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_SettingsContainerRPMAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(ui_SettingsContainerRPMAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsContainerAlarmRPM1 = lv_obj_create(ui_SettingsContainerRPMAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmRPM1);
+lv_obj_set_height( ui_SettingsContainerAlarmRPM1, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmRPM1, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmRPM1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmRPM1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmRPM1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmRPM1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmRPM1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmRPM1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmRPMToggle1 = lv_switch_create(ui_SettingsContainerAlarmRPM1);
+lv_obj_set_width( ui_SettingsSwitchAlarmRPMToggle1, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmRPMToggle1, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmRPMToggle1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmRPMToggle1, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmRPMToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmRPMToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmRPMTitle1 = lv_label_create(ui_SettingsContainerAlarmRPM1);
+lv_obj_set_width( ui_SettingsLabelAlarmRPMTitle1, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmRPMTitle1, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmRPMTitle1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmRPMTitle1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmRPMTitle1, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmRPMTitle1,"RPM #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmRPMTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmRPMValueTextArea1 = lv_textarea_create(ui_SettingsContainerAlarmRPM1);
+lv_obj_set_width( ui_SettingsTextareaAlarmRPMValueTextArea1, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmRPMValueTextArea1, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmRPMValueTextArea1, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmRPMValueTextArea1, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmRPMValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmRPMValueTextArea1,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmRPMValueTextArea1,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmRPMValueTextArea1,true);
+
+ui_SettingsDropdownAlarmRPMDropdown1 = lv_dropdown_create(ui_SettingsContainerAlarmRPM1);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmRPMDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmRPMDropdown1, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmRPMDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmRPMDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmRPMDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmRPMDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmRPMDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmRPMDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmRPMDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_SettingsContainerAlarmRPM2 = lv_obj_create(ui_SettingsContainerRPMAlarms);
+lv_obj_remove_style_all(ui_SettingsContainerAlarmRPM2);
+lv_obj_set_height( ui_SettingsContainerAlarmRPM2, 40);
+lv_obj_set_width( ui_SettingsContainerAlarmRPM2, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerAlarmRPM2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerAlarmRPM2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerAlarmRPM2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerAlarmRPM2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerAlarmRPM2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerAlarmRPM2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsSwitchAlarmRPMToggle2 = lv_switch_create(ui_SettingsContainerAlarmRPM2);
+lv_obj_set_width( ui_SettingsSwitchAlarmRPMToggle2, 50);
+lv_obj_set_height( ui_SettingsSwitchAlarmRPMToggle2, 25);
+lv_obj_set_align( ui_SettingsSwitchAlarmRPMToggle2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_SettingsSwitchAlarmRPMToggle2, LV_STATE_CHECKED );     /// States
+
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmRPMToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsSwitchAlarmRPMToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelAlarmRPMTitle2 = lv_label_create(ui_SettingsContainerAlarmRPM2);
+lv_obj_set_width( ui_SettingsLabelAlarmRPMTitle2, lv_pct(18));
+lv_obj_set_height( ui_SettingsLabelAlarmRPMTitle2, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_SettingsLabelAlarmRPMTitle2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsLabelAlarmRPMTitle2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsLabelAlarmRPMTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_label_set_text(ui_SettingsLabelAlarmRPMTitle2,"RPM #1");
+lv_obj_set_style_text_font(ui_SettingsLabelAlarmRPMTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsTextareaAlarmRPMValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmRPM2);
+lv_obj_set_width( ui_SettingsTextareaAlarmRPMValueTextArea2, 142);
+lv_obj_set_height( ui_SettingsTextareaAlarmRPMValueTextArea2, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_align( ui_SettingsTextareaAlarmRPMValueTextArea2, LV_ALIGN_CENTER );
+if ("1,2,3,4,5,6,7,8,9,0."=="") lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmRPMValueTextArea2, NULL);
+else lv_textarea_set_accepted_chars(ui_SettingsTextareaAlarmRPMValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
+lv_textarea_set_max_length(ui_SettingsTextareaAlarmRPMValueTextArea2,6);
+lv_textarea_set_placeholder_text(ui_SettingsTextareaAlarmRPMValueTextArea2,"Trip Point");
+lv_textarea_set_one_line(ui_SettingsTextareaAlarmRPMValueTextArea2,true);
+
+ui_SettingsDropdownAlarmRPMDropdown2 = lv_dropdown_create(ui_SettingsContainerAlarmRPM2);
+lv_dropdown_set_options( ui_SettingsDropdownAlarmRPMDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
+lv_obj_set_width( ui_SettingsDropdownAlarmRPMDropdown2, 261);
+lv_obj_set_height( ui_SettingsDropdownAlarmRPMDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsDropdownAlarmRPMDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsDropdownAlarmRPMDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_SettingsDropdownAlarmRPMDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_SettingsDropdownAlarmRPMDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_SettingsDropdownAlarmRPMDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_SettingsDropdownAlarmRPMDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_SettingsTabpageRelays_and_Limits = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Relays + Limits");
 lv_obj_set_flex_flow(ui_SettingsTabpageRelays_and_Limits,LV_FLEX_FLOW_COLUMN);
@@ -1342,6 +1825,21 @@ lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText2, ui_event_Settin
 lv_obj_add_event_cb(ui_SettingsButtonButton2, ui_event_SettingsButtonButton2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonButton3, ui_event_SettingsButtonButton3, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonHelpCalibrationNumberText3, ui_event_SettingsButtonHelpCalibrationNumberText3, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchTachAutoConnectToggle, ui_event_SettingsSwitchTachAutoConnectToggle, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonTachAutoConnectHelp, ui_event_SettingsButtonTachAutoConnectHelp, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonHelpTach2, ui_event_SettingsButtonHelpTach2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmDistanceToggle1, ui_event_SettingsSwitchAlarmDistanceToggle1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmDistanceValueTextArea1, ui_event_SettingsTextareaAlarmDistanceValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmDistanceToggle2, ui_event_SettingsSwitchAlarmDistanceToggle2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmDistanceValueTextArea2, ui_event_SettingsTextareaAlarmDistanceValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmSpeedToggle1, ui_event_SettingsSwitchAlarmSpeedToggle1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmSpeedValueTextArea1, ui_event_SettingsTextareaAlarmSpeedValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmSpeedToggle2, ui_event_SettingsSwitchAlarmSpeedToggle2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmSpeedValueTextArea2, ui_event_SettingsTextareaAlarmSpeedValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmRPMToggle1, ui_event_SettingsSwitchAlarmRPMToggle1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmRPMValueTextArea1, ui_event_SettingsTextareaAlarmRPMValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsSwitchAlarmRPMToggle2, ui_event_SettingsSwitchAlarmRPMToggle2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsTextareaAlarmRPMValueTextArea2, ui_event_SettingsTextareaAlarmRPMValueTextArea2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonReturnHome, ui_event_SettingsButtonReturnHome, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTabpageExit, ui_event_SettingsTabpageExit, LV_EVENT_ALL, NULL);
 lv_keyboard_set_textarea(ui_SettingsKeyboardSettingsNumberKeyboard,ui_SettingsTextareaTrackLengthText);
@@ -1367,6 +1865,12 @@ uic_SettingsTextareaCalibrationCalculatorNumTeethTextArea = ui_SettingsTextareaC
 uic_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea = ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
 uic_SettingsTextareaCalibrationCalculatorGearRatioTextArea = ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
 uic_SettingsButtonCalculateButton = ui_SettingsButtonCalculateButton;
+uic_SettingsSwitchTachAutoConnectToggle = ui_SettingsSwitchTachAutoConnectToggle;
+uic_SettingsButtonTachAutoConnectHelp = ui_SettingsButtonTachAutoConnectHelp;
+uic_SettingsSwitchAlarmDistanceToggle1 = ui_SettingsSwitchAlarmDistanceToggle1;
+uic_SettingsDropdownAlarmDistanceDropdown1 = ui_SettingsDropdownAlarmDistanceDropdown1;
+uic_SettingsSwitchAlarmSpeedToggle1 = ui_SettingsSwitchAlarmSpeedToggle1;
+uic_SettingsContainerAlarmRPM1 = ui_SettingsContainerAlarmRPM1;
 uic_SettingsPanelConnectionRLM = ui_SettingsPanelConnectionRLM;
 uic_SettingsPanelRelayLimitSettings = ui_SettingsPanelRelayLimitSettings;
 uic_SettingsContainerRelaySettings = ui_SettingsContainerRelaySettings;

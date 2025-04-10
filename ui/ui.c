@@ -299,7 +299,67 @@ void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonHelpCalibrationNumberText3;
 lv_obj_t *ui_SettingsLabelLabel27;
 lv_obj_t *ui_SettingsTabpageTach;
+lv_obj_t *ui_SettingsPanelPanel2;
+lv_obj_t *ui_SettingsContainerSettingTach1;
+void ui_event_SettingsSwitchTachAutoConnectToggle( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchTachAutoConnectToggle;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle9;
+void ui_event_SettingsButtonTachAutoConnectHelp( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonTachAutoConnectHelp;
+lv_obj_t *ui_SettingsLabelLabel32;
 lv_obj_t *ui_SettingsTabpageAlarms;
+lv_obj_t *ui_SettingsPanelPanel3;
+lv_obj_t *ui_SettingsContainerSettingGeneral10;
+lv_obj_t *ui_SettingsLabelSettingsGeneralTitle10;
+lv_obj_t *ui_SettingsDropdownDropdown9;
+void ui_event_SettingsButtonHelpTach2( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpTach2;
+lv_obj_t *ui_SettingsLabelLabel33;
+lv_obj_t *ui_SettingsContainerDistanceAlarms;
+lv_obj_t *ui_SettingsContainerAlarmDistance1;
+void ui_event_SettingsSwitchAlarmDistanceToggle1( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmDistanceToggle1;
+lv_obj_t *ui_SettingsLabelAlarmDistanceTitle1;
+void ui_event_SettingsTextareaAlarmDistanceValueTextArea1( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmDistanceValueTextArea1;
+lv_obj_t *ui_SettingsDropdownAlarmDistanceDropdown1;
+lv_obj_t *ui_SettingsContainerAlarmDistance2;
+void ui_event_SettingsSwitchAlarmDistanceToggle2( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmDistanceToggle2;
+lv_obj_t *ui_SettingsLabelAlarmDistanceTitle2;
+void ui_event_SettingsTextareaAlarmDistanceValueTextArea2( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmDistanceValueTextArea2;
+lv_obj_t *ui_SettingsDropdownAlarmDistanceDropdown2;
+lv_obj_t *ui_SettingsContainerSpeedAlarms;
+lv_obj_t *ui_SettingsContainerAlarmSpeed1;
+void ui_event_SettingsSwitchAlarmSpeedToggle1( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmSpeedToggle1;
+lv_obj_t *ui_SettingsLabelAlarmSpeedTitle1;
+void ui_event_SettingsTextareaAlarmSpeedValueTextArea1( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmSpeedValueTextArea1;
+lv_obj_t *ui_SettingsDropdownAlarmSpeedDropdown1;
+lv_obj_t *ui_SettingsContainerAlarmSpeed2;
+void ui_event_SettingsSwitchAlarmSpeedToggle2( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmSpeedToggle2;
+lv_obj_t *ui_SettingsLabelAlarmSpeedTitle2;
+void ui_event_SettingsTextareaAlarmSpeedValueTextArea2( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmSpeedValueTextArea2;
+lv_obj_t *ui_SettingsDropdownAlarmSpeedDropdown2;
+lv_obj_t *ui_SettingsContainerRPMAlarms;
+lv_obj_t *ui_SettingsContainerAlarmRPM1;
+void ui_event_SettingsSwitchAlarmRPMToggle1( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmRPMToggle1;
+lv_obj_t *ui_SettingsLabelAlarmRPMTitle1;
+void ui_event_SettingsTextareaAlarmRPMValueTextArea1( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmRPMValueTextArea1;
+lv_obj_t *ui_SettingsDropdownAlarmRPMDropdown1;
+lv_obj_t *ui_SettingsContainerAlarmRPM2;
+void ui_event_SettingsSwitchAlarmRPMToggle2( lv_event_t * e);
+lv_obj_t *ui_SettingsSwitchAlarmRPMToggle2;
+lv_obj_t *ui_SettingsLabelAlarmRPMTitle2;
+void ui_event_SettingsTextareaAlarmRPMValueTextArea2( lv_event_t * e);
+lv_obj_t *ui_SettingsTextareaAlarmRPMValueTextArea2;
+lv_obj_t *ui_SettingsDropdownAlarmRPMDropdown2;
 lv_obj_t *ui_SettingsTabpageRelays_and_Limits;
 lv_obj_t *ui_SettingsPanelConnectionRLM;
 lv_obj_t *ui_SettingsContainerContainer8;
@@ -385,6 +445,12 @@ lv_obj_t *uic_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
 lv_obj_t *uic_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
 lv_obj_t *uic_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
 lv_obj_t *uic_SettingsButtonCalculateButton;
+lv_obj_t *uic_SettingsSwitchTachAutoConnectToggle;
+lv_obj_t *uic_SettingsButtonTachAutoConnectHelp;
+lv_obj_t *uic_SettingsSwitchAlarmDistanceToggle1;
+lv_obj_t *uic_SettingsDropdownAlarmDistanceDropdown1;
+lv_obj_t *uic_SettingsSwitchAlarmSpeedToggle1;
+lv_obj_t *uic_SettingsContainerAlarmRPM1;
 lv_obj_t *uic_SettingsPanelConnectionRLM;
 lv_obj_t *uic_SettingsPanelRelayLimitSettings;
 lv_obj_t *uic_SettingsContainerRelaySettings;
@@ -748,6 +814,204 @@ void ui_event_SettingsButtonHelpCalibrationNumberText3( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       HELPPresetCalNumber( e );
+}
+}
+
+void ui_event_SettingsSwitchTachAutoConnectToggle( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchBenchmarkChange( e );
+}
+}
+
+void ui_event_SettingsButtonTachAutoConnectHelp( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPTachAutoConnect( e );
+}
+}
+
+void ui_event_SettingsButtonHelpTach2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPAlarmPresets( e );
+}
+}
+
+void ui_event_SettingsSwitchAlarmDistanceToggle1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmDistanceValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmDistanceDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmDistanceDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmDistanceValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmDistanceValueTextArea1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmDistanceValueTextArea1);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsSwitchAlarmDistanceToggle2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmDistanceValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmDistanceDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmDistanceDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmDistanceValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmDistanceValueTextArea2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmDistanceValueTextArea2);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsSwitchAlarmSpeedToggle1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmSpeedValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmSpeedDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmSpeedDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmSpeedValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmSpeedValueTextArea1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmSpeedValueTextArea1);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsSwitchAlarmSpeedToggle2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmSpeedValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmSpeedDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmSpeedDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmSpeedValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmSpeedValueTextArea2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmSpeedValueTextArea2);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsSwitchAlarmRPMToggle1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmRPMValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmRPMDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmRPMDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmRPMValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmRPMValueTextArea1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmRPMValueTextArea1);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsSwitchAlarmRPMToggle2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchRelaysChange( e );
+      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsTextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_SettingsDropdownAlarmRPMDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_state_modify( ui_SettingsDropdownAlarmRPMDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_SettingsTextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+}
+}
+
+void ui_event_SettingsTextareaAlarmRPMValueTextArea2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_keyboard_set_target(ui_SettingsKeyboardSettingsNumberKeyboard,  ui_SettingsTextareaAlarmRPMValueTextArea2);
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
 }
 
