@@ -6,7 +6,7 @@
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192
 
 // Enable this for development-only features like fake pulls
-// #define DEVELOPMENT_MODE
+#define DEVELOPMENT_MODE
 
 // Calibration number boundaries
 #define CALIBRATION_MIN 250

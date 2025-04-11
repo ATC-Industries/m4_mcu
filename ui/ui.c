@@ -402,6 +402,16 @@ lv_obj_t *ui_SettingsLabelLabel3;
 lv_obj_t *ui_SettingsPanelPanel1;
 lv_obj_t *ui_SettingsTabpageJudge;
 lv_obj_t *ui_SettingsTabpageSafety_and_Displays;
+lv_obj_t *ui_SettingsPanelConnectionRLM2;
+lv_obj_t *ui_SettingsContainerContainer3;
+lv_obj_t *ui_SettingsContainerContainer1;
+lv_obj_t *ui_SettingsButtonButton7;
+lv_obj_t *ui_SettingsLabelLabel36;
+lv_obj_t *ui_SettingsLabelLabel31;
+void ui_event_SettingsButtonHelpPairDisplays( lv_event_t * e);
+lv_obj_t *ui_SettingsButtonHelpPairDisplays;
+lv_obj_t *ui_SettingsLabelLabel34;
+lv_obj_t *ui_SettingsPanelDeviceTable;
 lv_obj_t *ui_SettingsTabpageAbout;
 lv_obj_t *ui_SettingsPanelAboutInfo;
 lv_obj_t *ui_SettingsLabelAboutTitle;
@@ -459,6 +469,7 @@ lv_obj_t *uic_SettingsContainercontainerEnableRelay;
 lv_obj_t *uic_SettingsContainercontainterRelaySwitch1;
 lv_obj_t *uic_SettingsContainercontainerLimitSettings;
 lv_obj_t *uic_SettingsContainercontainerEnableLimit;
+lv_obj_t *uic_SettingsPanelDeviceTable;
 lv_obj_t *uic_SettingsPanelAboutInfo;
 lv_obj_t *uic_SettingsLabelAboutTitle;
 lv_obj_t *uic_SettingsLabelVersionTitle;
@@ -561,6 +572,7 @@ void ui_event_ScreenSettings( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_SCREEN_LOADED) {
       SettingsScreenLoaded( e );
+      CreateDeviceTable( e );
 }
 }
 
@@ -1012,6 +1024,14 @@ if ( event_code == LV_EVENT_CLICKED) {
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_SettingsKeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_SettingsButtonHelpPairDisplays( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      HELPTachAutoConnect( e );
 }
 }
 

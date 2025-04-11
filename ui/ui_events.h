@@ -18,6 +18,7 @@ void PULLENDDiscardBtnPressed(lv_event_t * e);
 void PULLENDSaveBtnPressed(lv_event_t * e);
 void EMERGENCYSTOPResetBtnPressed(lv_event_t * e);
 void SettingsScreenLoaded(lv_event_t * e);
+void CreateDeviceTable(lv_event_t * e);
 void SettingsSwitchUnitsChange(lv_event_t * e);
 void SettingsSwitchBenchmarkChange(lv_event_t * e);
 void SettingsSliderBrightnessChange(lv_event_t * e);

@@ -1074,7 +1074,7 @@ lv_obj_set_height( ui_SettingsLabelAlarmDistanceTitle2, LV_SIZE_CONTENT);   /// 
 lv_obj_set_align( ui_SettingsLabelAlarmDistanceTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsLabelAlarmDistanceTitle2,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_SettingsLabelAlarmDistanceTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_label_set_text(ui_SettingsLabelAlarmDistanceTitle2,"Distance #1");
+lv_label_set_text(ui_SettingsLabelAlarmDistanceTitle2,"Distance #2");
 lv_obj_set_style_text_font(ui_SettingsLabelAlarmDistanceTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsTextareaAlarmDistanceValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmDistance2);
@@ -1195,7 +1195,7 @@ lv_obj_set_height( ui_SettingsLabelAlarmSpeedTitle2, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_SettingsLabelAlarmSpeedTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsLabelAlarmSpeedTitle2,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_SettingsLabelAlarmSpeedTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_label_set_text(ui_SettingsLabelAlarmSpeedTitle2,"Speed #1");
+lv_label_set_text(ui_SettingsLabelAlarmSpeedTitle2,"Speed #2");
 lv_obj_set_style_text_font(ui_SettingsLabelAlarmSpeedTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsTextareaAlarmSpeedValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmSpeed2);
@@ -1316,7 +1316,7 @@ lv_obj_set_height( ui_SettingsLabelAlarmRPMTitle2, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_SettingsLabelAlarmRPMTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_SettingsLabelAlarmRPMTitle2,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_SettingsLabelAlarmRPMTitle2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_label_set_text(ui_SettingsLabelAlarmRPMTitle2,"RPM #1");
+lv_label_set_text(ui_SettingsLabelAlarmRPMTitle2,"RPM #2");
 lv_obj_set_style_text_font(ui_SettingsLabelAlarmRPMTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsTextareaAlarmRPMValueTextArea2 = lv_textarea_create(ui_SettingsContainerAlarmRPM2);
@@ -1657,7 +1657,98 @@ ui_SettingsTabpageJudge = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Ju
 lv_obj_clear_flag( ui_SettingsTabpageJudge, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_SettingsTabpageSafety_and_Displays = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "Safety + Displays");
+lv_obj_set_flex_flow(ui_SettingsTabpageSafety_and_Displays,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsTabpageSafety_and_Displays, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_SettingsTabpageSafety_and_Displays, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+
+ui_SettingsPanelConnectionRLM2 = lv_obj_create(ui_SettingsTabpageSafety_and_Displays);
+lv_obj_set_width( ui_SettingsPanelConnectionRLM2, lv_pct(100));
+lv_obj_set_height( ui_SettingsPanelConnectionRLM2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_SettingsPanelConnectionRLM2, -118 );
+lv_obj_set_y( ui_SettingsPanelConnectionRLM2, -111 );
+lv_obj_set_align( ui_SettingsPanelConnectionRLM2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsPanelConnectionRLM2,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_SettingsPanelConnectionRLM2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsPanelConnectionRLM2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_SettingsContainerContainer3 = lv_obj_create(ui_SettingsPanelConnectionRLM2);
+lv_obj_remove_style_all(ui_SettingsContainerContainer3);
+lv_obj_set_height( ui_SettingsContainerContainer3, 50);
+lv_obj_set_width( ui_SettingsContainerContainer3, lv_pct(100));
+lv_obj_set_align( ui_SettingsContainerContainer3, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerContainer3,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerContainer3, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerContainer3, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerContainer3, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerContainer3, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsContainerContainer1 = lv_obj_create(ui_SettingsContainerContainer3);
+lv_obj_remove_style_all(ui_SettingsContainerContainer1);
+lv_obj_set_height( ui_SettingsContainerContainer1, 50);
+lv_obj_set_flex_grow( ui_SettingsContainerContainer1, 1);
+lv_obj_set_align( ui_SettingsContainerContainer1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsContainerContainer1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsContainerContainer1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_SettingsContainerContainer1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_SettingsContainerContainer1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_SettingsContainerContainer1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsButtonButton7 = lv_btn_create(ui_SettingsContainerContainer1);
+lv_obj_set_height( ui_SettingsButtonButton7, 50);
+lv_obj_set_width( ui_SettingsButtonButton7, LV_SIZE_CONTENT);  /// 100
+lv_obj_set_align( ui_SettingsButtonButton7, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SettingsButtonButton7, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonButton7, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_SettingsButtonButton7, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_SettingsButtonButton7, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_SettingsButtonButton7, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_SettingsLabelLabel36 = lv_label_create(ui_SettingsButtonButton7);
+lv_obj_set_width( ui_SettingsLabelLabel36, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelLabel36, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel36, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel36,"Enter Pairing Mode");
+
+ui_SettingsLabelLabel31 = lv_label_create(ui_SettingsContainerContainer1);
+lv_obj_set_width( ui_SettingsLabelLabel31, 387);
+lv_obj_set_height( ui_SettingsLabelLabel31, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel31, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel31,"Searching...");
+
+ui_SettingsButtonHelpPairDisplays = lv_btn_create(ui_SettingsContainerContainer1);
+lv_obj_set_width( ui_SettingsButtonHelpPairDisplays, 30);
+lv_obj_set_height( ui_SettingsButtonHelpPairDisplays, 30);
+lv_obj_set_align( ui_SettingsButtonHelpPairDisplays, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsButtonHelpPairDisplays,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsButtonHelpPairDisplays, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_SettingsButtonHelpPairDisplays, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_SettingsButtonHelpPairDisplays, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_SettingsButtonHelpPairDisplays, 35, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_SettingsButtonHelpPairDisplays, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_SettingsButtonHelpPairDisplays, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_pad_left(ui_SettingsButtonHelpPairDisplays, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsButtonHelpPairDisplays, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsButtonHelpPairDisplays, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsButtonHelpPairDisplays, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsLabelLabel34 = lv_label_create(ui_SettingsButtonHelpPairDisplays);
+lv_obj_set_width( ui_SettingsLabelLabel34, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SettingsLabelLabel34, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_SettingsLabelLabel34, LV_ALIGN_CENTER );
+lv_label_set_text(ui_SettingsLabelLabel34,"?");
+lv_obj_set_style_text_font(ui_SettingsLabelLabel34, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_SettingsPanelDeviceTable = lv_obj_create(ui_SettingsTabpageSafety_and_Displays);
+lv_obj_set_width( ui_SettingsPanelDeviceTable, lv_pct(100));
+lv_obj_set_flex_grow( ui_SettingsPanelDeviceTable, 1);
+lv_obj_set_align( ui_SettingsPanelDeviceTable, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_SettingsPanelDeviceTable,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_SettingsPanelDeviceTable, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_set_scroll_dir(ui_SettingsPanelDeviceTable, LV_DIR_VER);
+lv_obj_set_style_pad_left(ui_SettingsPanelDeviceTable, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_SettingsPanelDeviceTable, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_SettingsPanelDeviceTable, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_SettingsPanelDeviceTable, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_SettingsTabpageAbout = lv_tabview_add_tab(ui_SettingsTabviewSettingsView, "About");
 lv_obj_clear_flag( ui_SettingsTabpageAbout, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
@@ -1734,7 +1825,7 @@ ui_SettingsLabelSupportData = lv_label_create(ui_SettingsPanelAboutInfo);
 lv_obj_set_width( ui_SettingsLabelSupportData, lv_pct(73));
 lv_obj_set_height( ui_SettingsLabelSupportData, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_SettingsLabelSupportData, LV_ALIGN_CENTER );
-lv_label_set_text(ui_SettingsLabelSupportData,"support@agritronix.com\n(317) 738-4474");
+lv_label_set_text(ui_SettingsLabelSupportData,"support@agri-tronix.com\n(317) 738-4474");
 
 ui_SettingsLabelCopyrightData = lv_label_create(ui_SettingsPanelAboutInfo);
 lv_obj_set_width( ui_SettingsLabelCopyrightData, lv_pct(73));
@@ -1840,6 +1931,7 @@ lv_obj_add_event_cb(ui_SettingsSwitchAlarmRPMToggle1, ui_event_SettingsSwitchAla
 lv_obj_add_event_cb(ui_SettingsTextareaAlarmRPMValueTextArea1, ui_event_SettingsTextareaAlarmRPMValueTextArea1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsSwitchAlarmRPMToggle2, ui_event_SettingsSwitchAlarmRPMToggle2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTextareaAlarmRPMValueTextArea2, ui_event_SettingsTextareaAlarmRPMValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_SettingsButtonHelpPairDisplays, ui_event_SettingsButtonHelpPairDisplays, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsButtonReturnHome, ui_event_SettingsButtonReturnHome, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_SettingsTabpageExit, ui_event_SettingsTabpageExit, LV_EVENT_ALL, NULL);
 lv_keyboard_set_textarea(ui_SettingsKeyboardSettingsNumberKeyboard,ui_SettingsTextareaTrackLengthText);
@@ -1879,6 +1971,7 @@ uic_SettingsContainercontainerEnableRelay = ui_SettingsContainercontainerEnableR
 uic_SettingsContainercontainterRelaySwitch1 = ui_SettingsContainercontainterRelaySwitch1;
 uic_SettingsContainercontainerLimitSettings = ui_SettingsContainercontainerLimitSettings;
 uic_SettingsContainercontainerEnableLimit = ui_SettingsContainercontainerEnableLimit;
+uic_SettingsPanelDeviceTable = ui_SettingsPanelDeviceTable;
 uic_SettingsPanelAboutInfo = ui_SettingsPanelAboutInfo;
 uic_SettingsLabelAboutTitle = ui_SettingsLabelAboutTitle;
 uic_SettingsLabelVersionTitle = ui_SettingsLabelVersionTitle;

@@ -3,6 +3,9 @@
 // LVGL version: 8.3.11
 // Project name: M4_MCU_2025
 
+#include <algorithm>
+#include <vector>
+
 #include "Config.h"
 #include "PullStateManager.h"
 #include "SpeedModule.h"
@@ -436,24 +439,142 @@ void HELPAlarmPresets(lv_event_t *e) {
   static const char *btn_txts[] = {"OK", NULL};
 
   const char *help_text =
-      "Each preset defines a full set of alarm thresholds used during the run.\n\n"
-      "There are 4 presets available. You can switch between them using the dropdown menu.\n"
+      "Each preset defines a full set of alarm thresholds used during the pull.\n\n"
+      "There are 4 presets available. You can switch between them using the dropdown menu.\n\n"
       "Each preset contains up to 6 alarms:\n"
-      "- 2 Distance alarms\n"
-      "- 2 Speed alarms\n"
-      "- 2 RPM alarms\n\n"
+      "• 2 Distance alarms\n"
+      "• 2 Speed alarms\n"
+      "• 2 RPM alarms\n\n"
       "Alarms must be configured with a value and a behavior. The value is the point "
       "where the system considers the alarm to be tripped (e.g., 300 ft or 30 MPH).\n\n"
       "Each alarm also has behavior options, such as:\n"
-      "- Silent: no horn or warning, but can still activate relays\n"
-      "- Trip once: activates only once when the threshold is crossed\n"
-      "- Trip and hold (auto reset): stays on until value goes back below threshold\n"
-      "- Trip and hold (persistent): stays on even if value drops below\n"
-      "- Auto End Run: immediately ends the pull and sends stop signals to all devices\n\n"
+      "• Silent: no horn or warning, but can still activate relays\n"
+      "• Trip once: activates only once when the threshold is crossed\n"
+      "• Trip and hold (auto reset): stays on until value goes back below threshold\n"
+      "• Trip and hold (persistent): stays on even if value drops below\n"
+      "• Auto End Run: immediately ends the pull and sends stop signals to all devices\n\n"
       "Use the activation toggle to enable or disable each individual alarm within the preset.";
 
   lv_obj_t *mbox = lv_msgbox_create(NULL, "ALARM PRESETS", help_text, btn_txts, true);
-  lv_obj_set_width(mbox, 600);
+  lv_obj_set_width(mbox, 700);
   lv_obj_center(mbox);
   lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void CreateDeviceTable(lv_event_t *e) {
+  // lv_obj_clean(ui_SettingsPanelDeviceTable);  // Clear old content
+
+  // // Scrollable panel setup
+  // lv_obj_set_scroll_dir(ui_SettingsPanelDeviceTable, LV_DIR_VER);
+  // lv_obj_set_scrollbar_mode(ui_SettingsPanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
+
+  // // Table container
+  // lv_obj_t *table_container = lv_obj_create(ui_SettingsPanelDeviceTable);
+  // lv_obj_set_size(table_container, lv_pct(100), LV_SIZE_CONTENT);
+  // lv_obj_set_flex_flow(table_container, LV_FLEX_FLOW_COLUMN);
+  // lv_obj_set_scroll_dir(table_container, LV_DIR_VER);
+  // lv_obj_set_style_pad_row(table_container, 6, 0);
+  // lv_obj_set_style_pad_column(table_container, 4, 0);
+  // lv_obj_set_style_border_width(table_container, 0, 0);
+  // lv_obj_set_style_bg_opa(table_container, LV_OPA_TRANSP, 0);
+
+  // // Header row
+  // lv_obj_t *header = lv_obj_create(table_container);
+  // lv_obj_set_width(header, lv_pct(100));
+  // lv_obj_set_height(header, LV_SIZE_CONTENT);
+  // lv_obj_set_flex_flow(header, LV_FLEX_FLOW_ROW);
+  // lv_obj_set_flex_align(header, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  // lv_obj_set_style_pad_all(header, 4, 0);
+  // lv_obj_set_style_pad_column(header, 6, 0);
+  // lv_obj_set_style_bg_color(header, lv_palette_lighten(LV_PALETTE_GREY, 3), 0);
+  // lv_obj_set_style_border_width(header, 0, 0);
+  // lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+
+  // auto add_header_label = [&](const char *text, lv_coord_t width) {
+  //   lv_obj_t *label = lv_label_create(header);
+  //   lv_label_set_text(label, text);
+  //   lv_obj_set_width(label, width);
+  // };
+
+  // add_header_label("Type", 120);
+  // add_header_label("Name", 130);
+  // add_header_label("MAC Address", 140);
+  // add_header_label("Status", 50);
+  // add_header_label("Action", 70);
+  // add_header_label("Show Max", 70);
+
+  // // Device struct
+  // struct Device {
+  //   const char *type;
+  //   const char *name;
+  //   const char *mac;
+  //   bool connected;
+  // };
+
+  // std::vector<Device> devices = {{"Distance Display", "Finish Line Display", "AA:BB:CC:DD:EE:01", true},
+  //                                {"Safety Light", "Track Light A", "AA:BB:CC:DD:EE:02", false},
+  //                                {"Speed Display", "Mid Track Display", "AA:BB:CC:DD:EE:03", false},
+  //                                {"Safety Light", "Track Light B", "AA:BB:CC:DD:EE:04", true}};
+
+  // std::sort(devices.begin(), devices.end(), [](const Device &a, const Device &b) { return b.connected < a.connected;
+  // });
+
+  // for (const auto &device : devices) {
+  //   lv_obj_t *row = lv_obj_create(table_container);
+  //   lv_obj_set_width(row, lv_pct(100));
+  //   lv_obj_set_height(row, LV_SIZE_CONTENT);
+  //   lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+  //   lv_obj_set_flex_align(row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  //   lv_obj_set_style_pad_all(row, 4, 0);
+  //   lv_obj_set_style_pad_column(row, 4, 0);
+  //   lv_obj_set_style_border_width(row, 0, 0);
+  //   lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
+  //   lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
+
+  //   // Type
+  //   lv_obj_t *type_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(type_label, "%s", device.type);
+  //   lv_obj_set_width(type_label, 120);
+
+  //   // Name
+  //   lv_obj_t *name_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(name_label, "%s", device.name);
+  //   lv_obj_set_width(name_label, 130);
+
+  //   // MAC
+  //   lv_obj_t *mac_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(mac_label, "%s", device.mac);
+  //   lv_obj_set_width(mac_label, 140);
+
+  //   // Status icon
+  //   lv_obj_t *status_icon = lv_label_create(row);
+  //   lv_obj_set_width(status_icon, 50);
+  //   if (device.connected) {
+  //     lv_label_set_text(status_icon, LV_SYMBOL_WIFI);
+  //     lv_obj_set_style_text_color(status_icon, lv_color_hex(0x1FA709), 0);
+  //   } else {
+  //     lv_label_set_text(status_icon, "");
+  //   }
+
+  //   // Action button
+  //   lv_obj_t *btn = lv_btn_create(row);
+  //   lv_obj_set_width(btn, 70);
+  //   lv_obj_set_height(btn, 36);
+  //   lv_obj_set_style_radius(btn, 5, 0);
+  //   lv_obj_set_style_bg_color(btn, lv_color_hex(0xF06B00), 0);
+  //   lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
+  //   lv_obj_set_flex_align(btn, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+  //   lv_obj_t *btn_label = lv_label_create(btn);
+  //   lv_label_set_text(btn_label, device.connected ? "Unpair" : "Pair");
+
+  //   // Show Max toggle
+  //   lv_obj_t *toggle = lv_switch_create(row);
+  //   lv_obj_set_width(toggle, 50);
+  //   lv_obj_add_state(toggle, LV_STATE_CHECKED);
+  //   lv_obj_set_style_bg_color(toggle, lv_color_hex(0xF06B00), LV_PART_INDICATOR | LV_STATE_CHECKED);
+  //   lv_obj_set_style_bg_color(toggle, lv_palette_main(LV_PALETTE_GREY), LV_PART_INDICATOR);
+  //   lv_obj_set_style_radius(toggle, LV_RADIUS_CIRCLE, 0);
+  //   lv_obj_set_style_pad_all(toggle, 0, 0);
+  // }
 }
