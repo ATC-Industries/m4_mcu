@@ -81,9 +81,9 @@ uint16_t TouchScreen::readChannel(uint8_t channel) {
 // }
 /////////////
 bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 8;  // Increased sample count for better averaging
-  const int kPressureThreshold = 800;
-  const int kJitterThreshold = 50;  // Maximum allowed point movement to be considered the same point
+  const int kSamples = 10;  // Increased sample count for better averaging
+  const int kPressureThreshold = 1000;
+  const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
 
   static uint16_t last_x = 0, last_y = 0;
   static uint16_t stable_x = 0, stable_y = 0;
