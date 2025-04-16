@@ -6,7 +6,7 @@
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192
 
 // Enable this for development-only features like fake pulls
-#define DEVELOPMENT_MODE
+// #define DEVELOPMENT_MODE
 
 // Calibration number boundaries
 #define CALIBRATION_MIN 250
@@ -17,6 +17,6 @@
 #define GPS_CALIBRATION_PULSES 3780
 
 // Speed input pin
-#define SPEED_SENSOR_PIN 20
+#define SPEED_SENSOR_PIN 44
 
 #endif  // CONFIG_H

@@ -179,9 +179,6 @@ void SettingsScreenLoaded(lv_event_t *e) {
     StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
                                         : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
-
     StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED)
                                       : lv_obj_clear_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
 
@@ -199,6 +196,12 @@ void SettingsScreenLoaded(lv_event_t *e) {
     snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
     lv_textarea_set_text(uic_SettingsTextareaTrackLengthText, buf);
   }
+
+  // Speed and Distance Page
+  // Update calibration number input box with stored integer pulse calibration value
+  char calibBuf[16];
+  snprintf(calibBuf, sizeof(calibBuf), "%d", StateManager::getSpeedCalibrationNumber());
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, calibBuf);
 
   // About Page
   lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
