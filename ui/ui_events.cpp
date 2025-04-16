@@ -581,3 +581,12 @@ void CreateDeviceTable(lv_event_t *e) {
   //   lv_obj_set_style_pad_all(toggle, 0, 0);
   // }
 }
+
+void DriverButton(lv_event_t *e) {
+  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  StateManager::prefs().pullingClassWeight = 0;
+  StateManager::prefs().driverName = "Driver";
+  StateManager::prefs().driverNumber += 1;
+
+  StateManager::savePreferences();
+}

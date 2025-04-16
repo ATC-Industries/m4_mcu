@@ -1355,6 +1355,7 @@ ui_object_set_themeable_style_property(ui_MainLabelDistanceTitle, LV_PART_MAIN| 
 lv_obj_set_style_text_font(ui_MainLabelDistanceTitle, &ui_font_BIO_SEMIBOLD_7, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_add_event_cb(ui_MainButtonSettings, ui_event_MainButtonSettings, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_MainButtonDriverChange, ui_event_MainButtonDriverChange, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainButtonREADYStage, ui_event_MainButtonREADYStage, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainButtonSTAGEDCancel, ui_event_MainButtonSTAGEDCancel, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainButtonPULLINGStop, ui_event_MainButtonPULLINGStop, LV_EVENT_ALL, NULL);

@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 void loadMainScreen(lv_event_t * e);
+void DriverButton(lv_event_t * e);
 void READYStageBtnPressed(lv_event_t * e);
 void STAGEDCancelBtnPressed(lv_event_t * e);
 void PULLINGStopBtnPressed(lv_event_t * e);

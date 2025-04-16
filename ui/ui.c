@@ -59,6 +59,7 @@ lv_obj_t *ui_MainLabelDriverNumber;
 lv_obj_t *ui_MainContainerDriverNameLabel;
 lv_obj_t *ui_MainLabelDriverName;
 lv_obj_t *ui_MainContainerDriverChangeButton;
+void ui_event_MainButtonDriverChange( lv_event_t * e);
 lv_obj_t *ui_MainButtonDriverChange;
 lv_obj_t *ui_MainContainerDistance;
 lv_obj_t *ui_MainLabelDistanceValue;
@@ -402,7 +403,7 @@ lv_obj_t *ui_SettingsLabelLabel3;
 lv_obj_t *ui_SettingsPanelPanel1;
 lv_obj_t *ui_SettingsTabpageJudge;
 lv_obj_t *ui_SettingsTabpageSafety_and_Displays;
-lv_obj_t *ui_SettingsPanelConnectionRLM2;
+lv_obj_t *ui_SettingsPanelConnectionRemotes;
 lv_obj_t *ui_SettingsContainerContainer3;
 lv_obj_t *ui_SettingsContainerContainer1;
 lv_obj_t *ui_SettingsButtonButton7;
@@ -412,6 +413,33 @@ void ui_event_SettingsButtonHelpPairDisplays( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonHelpPairDisplays;
 lv_obj_t *ui_SettingsLabelLabel34;
 lv_obj_t *ui_SettingsPanelDeviceTable;
+lv_obj_t *ui_SettingsContainerTable;
+lv_obj_t *ui_SettingsContainerDeviceTableHeader;
+lv_obj_t *ui_SettingsContainerContainer13;
+lv_obj_t *ui_SettingsLabelLabel35;
+lv_obj_t *ui_SettingsContainerContainer2;
+lv_obj_t *ui_SettingsLabelLabel37;
+lv_obj_t *ui_SettingsContainerContainer4;
+lv_obj_t *ui_SettingsLabelLabel38;
+lv_obj_t *ui_SettingsContainerContainer5;
+lv_obj_t *ui_SettingsLabelLabel39;
+lv_obj_t *ui_SettingsContainerContainer6;
+lv_obj_t *ui_SettingsLabelLabel40;
+lv_obj_t *ui_SettingsContainerContainer7;
+lv_obj_t *ui_SettingsLabelLabel41;
+lv_obj_t *ui_SettingsContainerDeviceTableRow1;
+lv_obj_t *ui_SettingsContainerTypeRow1;
+lv_obj_t *ui_SettingsLabelLabel42;
+lv_obj_t *ui_SettingsContainerContainer12;
+lv_obj_t *ui_SettingsLabelLabel43;
+lv_obj_t *ui_SettingsContainerContainer14;
+lv_obj_t *ui_SettingsLabelLabel44;
+lv_obj_t *ui_SettingsContainerContainer15;
+lv_obj_t *ui_SettingsLabelLabel45;
+lv_obj_t *ui_SettingsContainerContainer16;
+lv_obj_t *ui_SettingsLabelLabel46;
+lv_obj_t *ui_SettingsContainerContainer17;
+lv_obj_t *ui_SettingsLabelLabel47;
 lv_obj_t *ui_SettingsTabpageAbout;
 lv_obj_t *ui_SettingsPanelAboutInfo;
 lv_obj_t *ui_SettingsLabelAboutTitle;
@@ -432,6 +460,7 @@ lv_obj_t *ui_SettingsLabelBountyMessage;
 void ui_event_SettingsButtonReturnHome( lv_event_t * e);
 lv_obj_t *ui_SettingsButtonReturnHome;
 lv_obj_t *ui_SettingsLabelButtonReturnHome;
+lv_obj_t *ui_SettingsContainerContainer11;
 void ui_event_SettingsKeyboardSettingsNumberKeyboard( lv_event_t * e);
 lv_obj_t *ui_SettingsKeyboardSettingsNumberKeyboard;
 // CUSTOM VARIABLES
@@ -516,6 +545,14 @@ void ui_event_MainButtonSettings( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       _ui_screen_change( &ui_ScreenSettings, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenSettings_screen_init);
+}
+}
+
+void ui_event_MainButtonDriverChange( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      DriverButton( e );
 }
 }
 

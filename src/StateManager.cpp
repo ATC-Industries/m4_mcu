@@ -124,10 +124,10 @@ void StateManager::loadPreferences() {
   preferences.unitSystem =
       static_cast<UnitSystem>(storage.getUChar("unitSystem", static_cast<uint8_t>(UnitSystem::IMPERIAL)));
 
-  preferences.pullingClassName = storage.getString("className", "Default Class");
+  preferences.pullingClassName = storage.getString("className", "M4 Sled Monitor - " + String(VERSION));
   preferences.pullingClassWeight = storage.getInt("classWeight", 0);
-  preferences.driverName = storage.getString("driverName", "Driver Name");
-  preferences.driverNumber = storage.getInt("driverNumber", 2448);
+  preferences.driverName = storage.getString("driverName", "Driver");
+  preferences.driverNumber = storage.getInt("driverNumber", 1);
 
   preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
   preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);

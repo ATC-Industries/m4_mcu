@@ -157,6 +157,9 @@ void setup() {
   PullStateManager::init();
   SpeedModule::begin();
 
+  StateManager::prefs().driverNumber = 1;
+  StateManager::savePreferences();
+
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   Serial.println("Setup complete");
 }
