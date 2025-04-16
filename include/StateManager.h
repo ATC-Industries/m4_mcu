@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "Config.h"
+
 //
 // ENUMS
 //
@@ -19,10 +21,10 @@ enum class RelayState { ENGAGED, DISENGAGED };
 struct SystemPreferences {
   UnitSystem unitSystem = UnitSystem::IMPERIAL;
 
-  String pullingClassName = "Default Class";
+  String pullingClassName = "M4 Sled Monitor - " + String(VERSION);
   int pullingClassWeight = 0;
-  String driverName = "Sample Driver";
-  int driverNumber = 2448;
+  String driverName = "Driver";
+  int driverNumber = 1;
 
   bool limitSwitchEnabled[2] = {true, true};
 
