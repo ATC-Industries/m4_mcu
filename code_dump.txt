@@ -5,7 +5,10 @@ src/
 ├── PreferencesManager.cpp
 ├── PullStateManager.cpp
 ├── ScreenUpdater.cpp
+├── SpeedModule.cpp
 ├── StateManager.cpp
+├── custom_ui/
+│   └── custom_keyboard.cpp
 ├── dev_utils/
 │   ├── DevSimulator.cpp
 │   ├── benchmark.cpp
@@ -27,7 +30,10 @@ include/
 ├── PullStateManager.h
 ├── README
 ├── ScreenUpdater.h
+├── SpeedModule.h
 ├── StateManager.h
+├── custom_ui/
+│   └── custom_keyboard.h
 ├── dev_utils/
 │   ├── DevSimulator.h
 │   ├── benchmark.h
@@ -56,12 +62,13 @@ uint32_t lv_tick_get_ms() { return millis(); }
 #endif
 
 // src/.DS_Store
-// Error reading file src/.DS_Store: 'utf-8' codec can't decode byte 0xb6 in position 1073: invalid start byte
+// Error reading file src/.DS_Store: 'utf-8' codec can't decode bytes in position 1111-1112: invalid continuation byte
 
 // src/PullStateManager.cpp
 #include "PullStateManager.h"
 
 #include "../ui/ui.h"
+#include "SpeedModule.h"
 
 static unsigned long lastDebugPrint = 0;
 static const unsigned long debugInterval = 2000;  // Every 2 seconds
@@ -70,6 +77,7 @@ void PullStateManager::enterState(PullState newState) {
   StateManager::setPullState(newState);
   updateUIForState(newState);
   triggerRelaysForState(newState);
+  SpeedModule::notifyPullStateChanged(newState);
 
   if (newState == PullState::READY) {
     resetMaxValues();
@@ -132,7 +140,7 @@ void PullStateManager::update() {
         break;
     }
 
-    Serial.printf("[PullState] Current state: %s\n", stateStr);
+    // Serial.printf("[PullState] Current state: %s\n", stateStr);
     updateUIForState(current);
   }
 }
@@ -411,6 +419,222 @@ void updateMainScreen() {
 }
 
 
+// src/SpeedModule.cpp
+#include "SpeedModule.h"
+
+#include <cmath>
+
+#include "StateManager.h"
+#include "lvgl.h"
+
+#define SPEED_TIMEOUT_MICROS 500000  // 500ms
+
+static unsigned long lastPulseMicros = 0;
+static float currentSpeedMPH = 0.0f;
+static volatile int pendingPulses = 0;
+static volatile bool pulseReceived = false;
+
+// UI Elements (externs from UI event screen)
+extern lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
+extern lv_obj_t *ui_SettingsLabelGearToothCalculatorPulses;
+extern lv_obj_t *ui_SettingsLabelAutoDriveCurrentPulses;
+
+// Internal state
+static int calibrationPulses = 1000;  // default/fallback
+static int pulseCount = 0;
+static bool driveOffMode = false;
+static PullState currentPullState = PullState::READY;
+
+static void IRAM_ATTR onSpeedSensorPulseISR() {
+  pendingPulses++;
+  pulseReceived = true;
+}
+
+void SpeedModule::begin() {
+  pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
+  attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
+}
+
+void SpeedModule::tick() {
+  unsigned long now = micros();
+
+  // Handle pulse updates
+  if (pulseReceived) {
+    noInterrupts();
+    int pulses = pendingPulses;
+    pendingPulses = 0;
+    pulseReceived = false;
+    interrupts();
+
+    if (pulses > 0) {
+      pulseCount += pulses;
+
+      if (lastPulseMicros > 0 && pulses == 1) {
+        float deltaSec = (now - lastPulseMicros) / 1e6f;
+        if (deltaSec > 0.0f && calibrationPulses > 0) {
+          float feetPerPulse = 300.0f / calibrationPulses;
+          float feetPerSecond = feetPerPulse / deltaSec;
+          currentSpeedMPH = feetPerSecond * 0.681818f;
+        }
+      }
+
+      lastPulseMicros = now;
+    }
+
+    updateSpeedAndDistance();
+    return;
+  }
+
+  // Handle speed decay if no new pulse
+  if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+    if (currentSpeedMPH > 0.01f) {
+      currentSpeedMPH = 0.0f;
+      updateSpeedAndDistance();
+    }
+  }
+}
+
+// ---- Validation ----
+bool SpeedModule::isValidCalibrationNumber(int pulses) {
+  return pulses >= CALIBRATION_MIN && pulses <= CALIBRATION_MAX;
+}
+
+// ---- Manual Calibration ----
+void SpeedModule::saveManualCalibration(int pulses) {
+  if (!isValidCalibrationNumber(pulses)) return;
+  calibrationPulses = pulses;
+  StateManager::setSpeedCalibrationNumber(pulses);
+}
+
+// ---- Presets ----
+void SpeedModule::applyRadarCalibration() {
+  saveManualCalibration(RADAR_CALIBRATION_PULSES);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(RADAR_CALIBRATION_PULSES).c_str());
+}
+
+void SpeedModule::applyGPSCalibration() {
+  saveManualCalibration(GPS_CALIBRATION_PULSES);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(GPS_CALIBRATION_PULSES).c_str());
+}
+
+// ---- Gear Tooth Calculation ----
+int SpeedModule::calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio) {
+  float wheelCircumference = M_PI * wheelDiameterInches;
+  float rotationsIn300ft = 300.0f / (wheelCircumference / 12.0f);  // Convert inches to feet
+  int pulses = static_cast<int>(roundf(numTeeth * rotationsIn300ft * gearRatio));
+  return pulses;
+}
+
+void SpeedModule::saveCalculatorCalibration() {
+  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+
+  int pulses = calculateCalibrationFromInputs(teeth, diameter, ratio);
+  if (!isValidCalibrationNumber(pulses)) {
+    // Show error
+    static const char *btn_txts[] = {NULL};
+
+    // Help text
+    const char *help_text = "Invalid calibration number. Must be between 250 and 25,000.";
+
+    // Create a modal message box
+    lv_obj_t *mbox = lv_msgbox_create(NULL, "INVALID CALIBRATION NUMBER", help_text, btn_txts, true);
+
+    // Center the message box on the screen
+    lv_obj_set_width(mbox, 300);  // Adjust the width here
+    lv_obj_center(mbox);
+    return;
+  }
+
+  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", pulses);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulses).c_str());
+  saveManualCalibration(pulses);
+}
+
+// ---- Drive-Off Calibration ----
+void SpeedModule::startDriveOffCalibration() {
+  driveOffMode = true;
+  pulseCount = 0;
+  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+}
+
+void SpeedModule::stopDriveOffCalibration() {
+  driveOffMode = false;
+  saveManualCalibration(pulseCount);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulseCount).c_str());
+}
+
+bool SpeedModule::isDriveOffModeActive() { return driveOffMode; }
+
+void SpeedModule::handlePulseDuringDriveOff() {
+  if (!driveOffMode) return;
+  pulseCount++;
+  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+}
+
+// ---- Runtime Tracking ----
+void SpeedModule::onPulseDetected() {
+  unsigned long now = micros();
+
+  if (driveOffMode) {
+    handlePulseDuringDriveOff();
+    return;
+  }
+
+  if (currentPullState == PullState::PULLING) {
+    pulseCount++;
+
+    if (lastPulseMicros != 0) {
+      unsigned long deltaMicros = now - lastPulseMicros;
+      if (deltaMicros > 0) {
+        float timeSeconds = deltaMicros / 1e6f;
+
+        // Distance per pulse in feet
+        float feetPerPulse = 300.0f / static_cast<float>(calibrationPulses);
+        float feetPerSecond = feetPerPulse / timeSeconds;
+        currentSpeedMPH = feetPerSecond * 0.681818f;  // 1 fps = 0.681818 mph
+      }
+    }
+
+    lastPulseMicros = now;
+
+    updateSpeedAndDistance();
+  } else if (currentPullState == PullState::STAGED) {
+    resetDistance();
+    lastPulseMicros = 0;
+  }
+}
+
+void SpeedModule::notifyPullStateChanged(PullState newState) {
+  currentPullState = newState;
+  if (newState == PullState::STAGED) resetDistance();
+}
+
+void SpeedModule::resetDistance() {
+  pulseCount = 0;
+  StateManager::setDistance(0.0f);
+}
+
+void SpeedModule::updateSpeedAndDistance() {
+  float distanceFeet = (300.0f * static_cast<float>(pulseCount)) / calibrationPulses;
+
+  Serial.printf("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n", pulseCount, distanceFeet,
+                currentSpeedMPH);
+
+  StateManager::setSpeed(currentSpeedMPH);  // Always track live speed
+  StateManager::setDistance(distanceFeet);  // Always track live distance
+}
+
+// ---- Optional Accessors ----
+int SpeedModule::getCurrentPulseCount() { return pulseCount; }
+float SpeedModule::getCurrentDistance() { return (300.0f * static_cast<float>(pulseCount)) / calibrationPulses; }
+float SpeedModule::getCurrentSpeed() { return 0.0f; }  // Placeholder
+
+
 // src/StateManager.cpp
 #include "StateManager.h"
 
@@ -425,6 +649,8 @@ SystemState& StateManager::state() { return systemState; }
 SystemPreferences& StateManager::prefs() { return preferences; }
 
 // ----- Unit-aware getters -----
+
+UnitSystem StateManager::getUnitSystem() { return preferences.unitSystem; }
 
 float StateManager::getDistance() {
   return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.distanceInFeet
@@ -449,6 +675,11 @@ float StateManager::getMaxSpeed() { return systemState.maxSpeedInMPH; }
 float StateManager::getMaxDistance() { return systemState.maxDistanceInFeet; }
 
 // ----- Setters -----
+
+void StateManager::setUnitSystem(UnitSystem system) {
+  preferences.unitSystem = system;
+  savePreferences();  // Save preferences when unit system changes
+}
 
 void StateManager::setRPM(float rpm) {
   systemState.rpm = rpm;
@@ -485,6 +716,13 @@ void StateManager::resetAllMaxValues() {
 void StateManager::setPullState(PullState newState) { systemState.currentPullState = newState; }
 
 PullState StateManager::getPullState() { return systemState.currentPullState; }
+
+int StateManager::getSpeedCalibrationNumber() { return preferences.speedCalibrationPulses; }
+
+void StateManager::setSpeedCalibrationNumber(int pulses) {
+  preferences.speedCalibrationPulses = pulses;
+  savePreferences();
+}
 
 RelayState StateManager::getRelayState(int index) {
   if (index < 0 || index >= 4) return RelayState::DISENGAGED;
@@ -524,10 +762,10 @@ void StateManager::loadPreferences() {
   preferences.unitSystem =
       static_cast<UnitSystem>(storage.getUChar("unitSystem", static_cast<uint8_t>(UnitSystem::IMPERIAL)));
 
-  preferences.pullingClassName = storage.getString("className", "Default Class");
+  preferences.pullingClassName = storage.getString("className", "M4 Sled Monitor - " + String(VERSION));
   preferences.pullingClassWeight = storage.getInt("classWeight", 0);
-  preferences.driverName = storage.getString("driverName", "Driver Name");
-  preferences.driverNumber = storage.getInt("driverNumber", 2448);
+  preferences.driverName = storage.getString("driverName", "Driver");
+  preferences.driverNumber = storage.getInt("driverNumber", 1);
 
   preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
   preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);
@@ -550,6 +788,8 @@ void StateManager::loadPreferences() {
   preferences.tachEnabled = storage.getBool("tachEnabled", true);
   preferences.limitSwitchesEnabled = storage.getBool("limitsEnabled", true);
   preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
+
+  preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
 
   storage.end();
   Serial.printf("[Prefs] LimitSwitchEnabled: LS1 = %d, LS2 = %d\n", preferences.limitSwitchEnabled[0],
@@ -587,6 +827,7 @@ void StateManager::savePreferences() {
   storage.putBool("tachEnabled", preferences.tachEnabled);
   storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
   storage.putBool("relaysEnabled", preferences.relaysEnabled);
+  storage.putInt("speedCal", preferences.speedCalibrationPulses);
 
   storage.end();
 }
@@ -600,6 +841,7 @@ void StateManager::savePreferences() {
 #include "PreferencesManager.h"
 #include "PullStateManager.h"
 #include "ScreenUpdater.h"
+#include "SpeedModule.h"
 #include "StateManager.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
@@ -749,6 +991,10 @@ void setup() {
   init_lvgl();
   ui_init();
   PullStateManager::init();
+  SpeedModule::begin();
+
+  StateManager::prefs().driverNumber = 1;
+  StateManager::savePreferences();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   Serial.println("Setup complete");
@@ -763,8 +1009,10 @@ unsigned long lastScreenUpdate = 0;
 
 void loop() {
   lv_timer_handler();
+  updateBacklight();
   benchmark_update();
   PullStateManager::update();
+  SpeedModule::tick();
 
 #ifdef DEVELOPMENT_MODE
   devSimulator::update();
@@ -775,6 +1023,7 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
+  // TouchScreen::setRecalibrationFlag();
 
   delay(5);
 }
@@ -1016,46 +1265,151 @@ uint16_t TouchScreen::readChannel(uint8_t channel) {
   return data >> 3;  // 12-bit resolution
 }
 
-bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 3;
-  uint32_t avg_x = 0, avg_y = 0, avg_z1 = 0, avg_z2 = 0;
+// bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
+//   const int kSamples = 3;
+//   uint32_t avg_x = 0, avg_y = 0, avg_z1 = 0, avg_z2 = 0;
 
+//   for (int i = 0; i < kSamples; i++) {
+//     avg_z1 += readChannel(kCmdZ1_);
+//     avg_z2 += readChannel(kCmdZ2_);
+//     avg_x += readChannel(kCmdX_);
+//     avg_y += readChannel(kCmdY_);
+//   }
+
+//   avg_x /= kSamples;
+//   avg_y /= kSamples;
+//   avg_z1 /= kSamples;
+//   avg_z2 /= kSamples;
+
+//   uint16_t pressure = avg_z1 + 4095 - avg_z2;
+//   if (z != nullptr) {
+//     *z = pressure;
+//   }
+
+//   if (pressure > 500) {  // Minimum pressure for valid touch
+//     // SWAP X and Y axes and map to screen coordinates with constraints
+//     int32_t mapped_x = map(avg_y, 200, 3800, 0, 800);
+//     int32_t mapped_y = map(avg_x, 350, 3700, 0, 480);
+
+//     // Constrain values to screen boundaries
+//     *x = constrain(mapped_x, 0, 799);
+//     *y = constrain(mapped_y, 0, 479);
+
+//     // Debug output
+//     Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d (P=%d)\n", avg_x, avg_y, *x, *y, pressure);
+
+//     return true;
+//   }
+
+//   *x = 0;
+//   *y = 0;
+//   return false;
+// }
+/////////////
+bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
+  const int kSamples = 10;  // Increased sample count for better averaging
+  const int kPressureThreshold = 1000;
+  const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
+
+  static uint16_t last_x = 0, last_y = 0;
+  static uint16_t stable_x = 0, stable_y = 0;
+  static uint8_t stable_count = 0;
+
+  // Arrays to store samples
+  uint16_t samples_x[kSamples];
+  uint16_t samples_y[kSamples];
+  uint16_t samples_z1[kSamples];
+  uint16_t samples_z2[kSamples];
+
+  // Take multiple samples
   for (int i = 0; i < kSamples; i++) {
-    avg_z1 += readChannel(kCmdZ1_);
-    avg_z2 += readChannel(kCmdZ2_);
-    avg_x += readChannel(kCmdX_);
-    avg_y += readChannel(kCmdY_);
+    samples_z1[i] = readChannel(kCmdZ1_);
+    samples_z2[i] = readChannel(kCmdZ2_);
+    samples_x[i] = readChannel(kCmdX_);
+    samples_y[i] = readChannel(kCmdY_);
+    delayMicroseconds(100);  // Small delay between samples
   }
 
-  avg_x /= kSamples;
-  avg_y /= kSamples;
-  avg_z1 /= kSamples;
-  avg_z2 /= kSamples;
+  // Sort samples to remove outliers
+  sortArray(samples_x, kSamples);
+  sortArray(samples_y, kSamples);
+  sortArray(samples_z1, kSamples);
+  sortArray(samples_z2, kSamples);
 
-  uint16_t pressure = avg_z1 + 4095 - avg_z2;
+  // Use median values (more robust than mean)
+  uint16_t med_x = samples_x[kSamples / 2];
+  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_z1 = samples_z1[kSamples / 2];
+  uint16_t med_z2 = samples_z2[kSamples / 2];
+
+  // Calculate pressure
+  uint16_t pressure = med_z1 + 4095 - med_z2;
   if (z != nullptr) {
     *z = pressure;
   }
 
-  if (pressure > 500) {  // Minimum pressure for valid touch
-    // SWAP X and Y axes and map to screen coordinates with constraints
-    int32_t mapped_x = map(avg_y, 200, 3800, 0, 800);
-    int32_t mapped_y = map(avg_x, 350, 3700, 0, 480);
-
-    // Constrain values to screen boundaries
-    *x = constrain(mapped_x, 0, 799);
-    *y = constrain(mapped_y, 0, 479);
-
-    // Debug output
-    Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d (P=%d)\n", avg_x, avg_y, *x, *y, pressure);
-
-    return true;
+  // Check pressure threshold
+  if (pressure <= kPressureThreshold) {
+    *x = 0;
+    *y = 0;
+    stable_count = 0;
+    return false;
   }
 
-  *x = 0;
-  *y = 0;
-  return false;
+  // Apply coordinate transformations (swap X/Y and map to screen)
+  // Adjust these map ranges based on your actual touchscreen characteristics
+  int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
+  int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
+
+  // Constrain values to screen boundaries
+  mapped_x = constrain(mapped_x, 0, 799);
+  mapped_y = constrain(mapped_y, 0, 479);
+
+  // Apply stability checking - if point hasn't moved much, keep previous stable point
+  if (stable_count > 0 && abs(mapped_x - last_x) < kJitterThreshold && abs(mapped_y - last_y) < kJitterThreshold) {
+    // Slowly adjust stable point toward current position (dampening)
+    stable_x = (stable_x * 3 + mapped_x) / 4;
+    stable_y = (stable_y * 3 + mapped_y) / 4;
+
+    if (stable_count < 255) stable_count++;
+  } else {
+    // Point moved significantly, reset stability
+    stable_x = mapped_x;
+    stable_y = mapped_y;
+    stable_count = 1;
+  }
+
+  // Save last position
+  last_x = mapped_x;
+  last_y = mapped_y;
+
+  // Return the stable point instead of raw point
+  *x = stable_x;
+  *y = stable_y;
+
+  // Debug output
+  Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d -> Stable: X=%d Y=%d (P=%d)\n", med_x, med_y, mapped_x, mapped_y,
+                stable_x, stable_y, pressure);
+
+  return true;
 }
+
+// Helper function to sort an array (insertion sort)
+void TouchScreen::sortArray(uint16_t array[], int size) {
+  for (int i = 1; i < size; i++) {
+    uint16_t key = array[i];
+    int j = i - 1;
+
+    while (j >= 0 && array[j] > key) {
+      array[j + 1] = array[j];
+      j--;
+    }
+
+    array[j + 1] = key;
+  }
+}
+
+/////////////
 
 bool TouchScreen::isTouched() {
   uint16_t x, y, z;
@@ -1068,18 +1422,77 @@ uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max
   return out_min + dividend / (in_max - in_min);
 }
 
-void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
-  if (!cal_data_.valid) {
-    *x = raw_x;
-    *y = raw_y;
-    return;
+// void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
+//   if (!cal_data_.valid) {
+//     *x = raw_x;
+//     *y = raw_y;
+//     return;
+//   }
+
+//   // Simple linear interpolation between calibration points
+//   *y = interpolate(raw_x, cal_data_.raw_x[0], cal_data_.raw_x[1], cal_data_.screen_y[0], cal_data_.screen_y[1]);
+//   *x = interpolate(raw_y, cal_data_.raw_y[0], cal_data_.raw_y[2], cal_data_.screen_x[0], cal_data_.screen_x[2]);
+// }
+
+// bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t
+// y1,
+//                                  uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
+//   memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
+//   memcpy(cal_data_.raw_y, raw_y, sizeof(uint16_t) * 4);
+
+//   cal_data_.screen_x[0] = x0;
+//   cal_data_.screen_y[0] = y0;  // TL
+//   cal_data_.screen_x[1] = x1;
+//   cal_data_.screen_y[1] = y1;  // TR
+//   cal_data_.screen_x[2] = x2;
+//   cal_data_.screen_y[2] = y2;  // BR
+//   cal_data_.screen_x[3] = x3;
+//   cal_data_.screen_y[3] = y3;  // BL
+
+//   cal_data_.valid = true;
+//   return saveCalibration();
+// }
+
+// Add this method to calculate the transformation matrix
+bool TouchScreen::calculateCalibrationMatrix() {
+  if (!cal_data_.valid) return false;
+
+  // For a resistive touch panel, we need to calculate the transformation
+  // matrix that converts touch coordinates to screen coordinates.
+
+  // Variables for matrix calculation
+  float x[4], y[4], X[4], Y[4];
+
+  // Copy calibration points to floating point arrays
+  for (int i = 0; i < 4; i++) {
+    x[i] = cal_data_.raw_x[i];
+    y[i] = cal_data_.raw_y[i];
+    X[i] = cal_data_.screen_x[i];
+    Y[i] = cal_data_.screen_y[i];
   }
 
-  // Simple linear interpolation between calibration points
-  *y = interpolate(raw_x, cal_data_.raw_x[0], cal_data_.raw_x[1], cal_data_.screen_y[0], cal_data_.screen_y[1]);
-  *x = interpolate(raw_y, cal_data_.raw_y[0], cal_data_.raw_y[2], cal_data_.screen_x[0], cal_data_.screen_x[2]);
+  // Calculate determinant of coefficient matrix
+  float det = (x[0] - x[2]) * (y[1] - y[2]) - (x[1] - x[2]) * (y[0] - y[2]);
+
+  // If determinant is zero, calibration points are collinear
+  if (abs(det) < 0.1) return false;
+
+  // Calculate matrix coefficients
+  cal_data_.matrix[0] = ((X[0] - X[2]) * (y[1] - y[2]) - (X[1] - X[2]) * (y[0] - y[2])) / det;
+  cal_data_.matrix[1] = ((x[0] - x[2]) * (X[1] - X[2]) - (X[0] - X[2]) * (x[1] - x[2])) / det;
+  cal_data_.matrix[2] =
+      (y[0] * (x[2] * X[1] - x[1] * X[2]) + y[1] * (x[0] * X[2] - x[2] * X[0]) + y[2] * (x[1] * X[0] - x[0] * X[1])) /
+      det;
+  cal_data_.matrix[3] = ((Y[0] - Y[2]) * (y[1] - y[2]) - (Y[1] - Y[2]) * (y[0] - y[2])) / det;
+  cal_data_.matrix[4] = ((x[0] - x[2]) * (Y[1] - Y[2]) - (Y[0] - Y[2]) * (x[1] - x[2])) / det;
+  cal_data_.matrix[5] =
+      (y[0] * (x[2] * Y[1] - x[1] * Y[2]) + y[1] * (x[0] * Y[2] - x[2] * Y[0]) + y[2] * (x[1] * Y[0] - x[0] * Y[1])) /
+      det;
+
+  return true;
 }
 
+// Update your setCalibration method to call calculateCalibrationMatrix
 bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                                  uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
   memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
@@ -1094,8 +1507,30 @@ bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0
   cal_data_.screen_x[3] = x3;
   cal_data_.screen_y[3] = y3;  // BL
 
+  // Calculate the transformation matrix
+  if (!calculateCalibrationMatrix()) {
+    return false;
+  }
+
   cal_data_.valid = true;
   return saveCalibration();
+}
+
+// Replace your mapRawToScreen method with this one
+void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
+  if (!cal_data_.valid) {
+    *x = raw_x;
+    *y = raw_y;
+    return;
+  }
+
+  // Apply matrix transformation
+  float tx = cal_data_.matrix[0] * raw_x + cal_data_.matrix[1] * raw_y + cal_data_.matrix[2];
+  float ty = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
+
+  // Convert to integers and constrain to screen boundaries
+  *x = constrain(static_cast<uint16_t>(tx + 0.5), 0, 799);
+  *y = constrain(static_cast<uint16_t>(ty + 0.5), 0, 479);
 }
 
 bool TouchScreen::saveCalibration() {
@@ -1151,6 +1586,79 @@ bool TouchScreen::checkRecalibrationFlag() {
   return need_cal;
 }
 
+// src/custom_ui/custom_keyboard.cpp
+#include "custom_ui/custom_keyboard.h"
+
+// Static styles
+static lv_style_t style_green_btn;
+static lv_style_t style_red_btn;
+static bool styles_initialized = false;
+
+// Static keymap and ctrl_map
+static const char *custom_keymap[] = {
+    "1",  "2",          "3", "\n", "4", "5", "6", "\n", "7", "8", "9", "\n", ".", "0", LV_SYMBOL_BACKSPACE,
+    "\n", LV_SYMBOL_OK, "",  "",   ""  // ENTER (3-wide) + fillers
+};
+
+static const lv_btnmatrix_ctrl_t custom_ctrl_map[] = {
+    1,
+    1,
+    1,  // Row 1
+    1,
+    1,
+    1,  // Row 2
+    1,
+    1,
+    1,  // Row 3
+    1,
+    1,
+    1 | LV_BTNMATRIX_CTRL_NO_REPEAT,  // Row 4
+    3 | LV_BTNMATRIX_CTRL_NO_REPEAT,
+    0,
+    0  // Row 5
+};
+
+// Custom draw event for coloring buttons
+static void keyboard_draw_event_cb(lv_event_t *e) {
+  lv_event_code_t code = lv_event_get_code(e);
+  if (code != LV_EVENT_DRAW_PART_BEGIN) return;
+
+  lv_obj_draw_part_dsc_t *dsc = (lv_obj_draw_part_dsc_t *)lv_event_get_param(e);
+  if (dsc->part != LV_PART_ITEMS) return;
+
+  const char *txt = lv_btnmatrix_get_btn_text(e->current_target, dsc->id);
+  if (!txt) return;
+
+  if (strcmp(txt, LV_SYMBOL_OK) == 0) {
+    dsc->rect_dsc->bg_color = lv_color_hex(0x1FA709);  // green
+  } else if (strcmp(txt, LV_SYMBOL_BACKSPACE) == 0) {
+    dsc->rect_dsc->bg_color = lv_color_hex(0xA70909);  // red
+  }
+}
+
+// Public setup function
+void setup_custom_number_keyboard(lv_obj_t *keyboard) {
+  // Initialize styles once
+  if (!styles_initialized) {
+    styles_initialized = true;
+
+    lv_style_init(&style_green_btn);
+    lv_style_set_bg_color(&style_green_btn, lv_color_hex(0x1FA709));
+    lv_style_set_bg_grad_color(&style_green_btn, lv_color_hex(0x1FA709));
+
+    lv_style_init(&style_red_btn);
+    lv_style_set_bg_color(&style_red_btn, lv_color_hex(0xA70909));
+    lv_style_set_bg_grad_color(&style_red_btn, lv_color_hex(0xA70909));
+  }
+
+  // Set custom layout
+  lv_keyboard_set_map(keyboard, LV_KEYBOARD_MODE_NUMBER, custom_keymap, custom_ctrl_map);
+
+  // Apply event callback for coloring
+  lv_obj_add_event_cb(keyboard, keyboard_draw_event_cb, LV_EVENT_ALL, NULL);
+}
+
+
 // src/display/display.cpp
 #include "display/display.h"
 
@@ -1159,23 +1667,90 @@ LGFX lcd;
 // src/display/backlight.cpp
 #include "display/backlight.h"
 
+// Constants
+#define LCD_BL_FREQUENCY 10000            // 10KHz - higher frequency reduces flickering
 static uint8_t current_brightness = 200;  // Default brightness (0-255)
+static uint8_t target_brightness = 200;   // Target brightness for smooth transitions
+static bool transition_active = false;    // Flag to indicate transition in progress
+static unsigned long last_update_time = 0;
+static const unsigned long UPDATE_INTERVAL = 5;  // 5ms between updates (faster)
+static const uint8_t STEP_SIZE = 5;              // Larger steps for faster transitions
 
+// Setup function - call this in your main setup()
+void setupBacklight(uint8_t pin, uint8_t channel, uint8_t initial_brightness) {
+  // Configure PWM with higher frequency for smoother operation
+  ledcSetup(channel, LCD_BL_FREQUENCY, 8);  // 10kHz frequency, 8-bit resolution
+  ledcAttachPin(pin, channel);
+
+  // Set initial brightness
+  current_brightness = initial_brightness;
+  target_brightness = initial_brightness;
+  ledcWrite(channel, initial_brightness);
+}
+
+// Set backlight immediately
 void setBacklight(uint8_t brightness) {
   current_brightness = brightness;  // Store the current brightness
+  target_brightness = brightness;   // Also set as target
   ledcWrite(LCD_BL_CHANNEL, brightness);
+  transition_active = false;
 }
-void fadeBacklight(bool fadeIn, int duration) {
-  int steps = 256;
-  int delayTime = duration / steps;
-  for (int i = 0; i < steps; i++) {
-    int brightness = fadeIn ? i : (255 - i);
-    setBacklight(brightness);
-    delay(delayTime);
+
+// Start smooth transition to new brightness level
+void setBacklightSmooth(uint8_t brightness) {
+  target_brightness = brightness;
+  transition_active = true;
+}
+
+// Call this function regularly in your main loop
+void updateBacklight() {
+  if (!transition_active) return;
+
+  unsigned long current_time = millis();
+  if (current_time - last_update_time < UPDATE_INTERVAL) return;
+  last_update_time = current_time;
+
+  // Use larger step size for faster transitions
+  if (current_brightness < target_brightness) {
+    // Calculate step size based on difference (for very responsive UI)
+    uint8_t step = min((uint8_t)STEP_SIZE, (uint8_t)(target_brightness - current_brightness));
+    current_brightness += step;
+    ledcWrite(LCD_BL_CHANNEL, current_brightness);
+  } else if (current_brightness > target_brightness) {
+    uint8_t step = min((uint8_t)STEP_SIZE, (uint8_t)(current_brightness - target_brightness));
+    current_brightness -= step;
+    ledcWrite(LCD_BL_CHANNEL, current_brightness);
+  } else {
+    transition_active = false;  // Reached target, stop transition
   }
 }
-uint8_t getBacklight() { return current_brightness; }
 
+// Fast mode for UI interactions like sliders
+void setBacklightFast(uint8_t brightness) {
+  // For UI sliders, we want immediate feedback
+  // Use a larger step size but still avoid an abrupt change
+  int difference = abs((int)brightness - (int)current_brightness);
+
+  // For small changes (like during slider movement), make it faster
+  if (difference < 20) {
+    current_brightness = brightness;
+    ledcWrite(LCD_BL_CHANNEL, brightness);
+    target_brightness = brightness;
+    transition_active = false;
+  } else {
+    // For larger changes, use smooth transition but faster
+    target_brightness = brightness;
+    transition_active = true;
+  }
+}
+
+// Fade backlight without blocking (just initiates the fade)
+void fadeBacklight(bool fadeIn, int duration) {
+  target_brightness = fadeIn ? 255 : 0;
+  transition_active = true;
+}
+
+uint8_t getBacklight() { return current_brightness; }
 
 // src/dev_utils/test_display.cpp
 #include "dev_utils/test_display.h"
@@ -1947,8 +2522,49 @@ void create_demo_ui() {
   lv_obj_add_event_cb(cb, checkbox_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
+// include/SpeedModule.h
+#ifndef SPEED_MODULE_H
+#define SPEED_MODULE_H
+
+#include "Config.h"            // For radar/gps cal values
+#include "PullStateManager.h"  // For pull state enum
+
+namespace SpeedModule {
+
+void begin();  // Call this once during setup()
+void tick();   // Call this every loop
+
+// ---- Calibration ----
+bool isValidCalibrationNumber(int pulses);
+void saveManualCalibration(int pulses);
+void applyRadarCalibration();
+void applyGPSCalibration();
+int calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio);
+void saveCalculatorCalibration();
+
+// ---- Drive-Off Calibration ----
+void startDriveOffCalibration();
+void stopDriveOffCalibration();
+bool isDriveOffModeActive();
+void handlePulseDuringDriveOff();
+
+// ---- Runtime Tracking ----
+void onPulseDetected();
+void notifyPullStateChanged(PullState newState);
+void resetDistance();
+void updateSpeedAndDistance();
+
+// ---- Internals (optional: expose for debugging/testing) ----
+int getCurrentPulseCount();
+float getCurrentSpeed();
+float getCurrentDistance();
+}  // namespace SpeedModule
+
+#endif  // SPEED_MODULE_H
+
+
 // include/.DS_Store
-// Error reading file include/.DS_Store: 'utf-8' codec can't decode byte 0xf8 in position 1139: invalid start byte
+// Error reading file include/.DS_Store: 'utf-8' codec can't decode byte 0xb0 in position 1104: invalid start byte
 
 // include/Config.h
 #ifndef CONFIG_H
@@ -1959,7 +2575,18 @@ void create_demo_ui() {
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192
 
 // Enable this for development-only features like fake pulls
-#define DEVELOPMENT_MODE
+// #define DEVELOPMENT_MODE
+
+// Calibration number boundaries
+#define CALIBRATION_MIN 250
+#define CALIBRATION_MAX 25000
+
+// Factory-default calibration values (pulses per 300 ft)
+#define RADAR_CALIBRATION_PULSES 3542
+#define GPS_CALIBRATION_PULSES 3780
+
+// Speed input pin
+#define SPEED_SENSOR_PIN 44
 
 #endif  // CONFIG_H
 
@@ -1969,6 +2596,8 @@ void create_demo_ui() {
 #define STATEMANAGER_H
 
 #include <Arduino.h>
+
+#include "Config.h"
 
 //
 // ENUMS
@@ -1986,10 +2615,10 @@ enum class RelayState { ENGAGED, DISENGAGED };
 struct SystemPreferences {
   UnitSystem unitSystem = UnitSystem::IMPERIAL;
 
-  String pullingClassName = "Default Class";
+  String pullingClassName = "M4 Sled Monitor - " + String(VERSION);
   int pullingClassWeight = 0;
-  String driverName = "Sample Driver";
-  int driverNumber = 2448;
+  String driverName = "Driver";
+  int driverNumber = 1;
 
   bool limitSwitchEnabled[2] = {true, true};
 
@@ -2009,6 +2638,8 @@ struct SystemPreferences {
   bool tachEnabled = true;
   bool limitSwitchesEnabled = true;
   bool relaysEnabled = true;
+
+  int speedCalibrationPulses = 1000;
 };
 
 struct SystemState {
@@ -2039,6 +2670,7 @@ public:
   static SystemPreferences& prefs();
 
   // Unit-aware getters
+  static UnitSystem getUnitSystem();
   static float getDistance();     // Converts to meters if metric
   static float getSpeed();        // Converts to km/h if metric
   static float getRPM();          // Returns RPM
@@ -2048,6 +2680,8 @@ public:
   static float getMaxDistance();  // Converts to meters if metric
 
   // State accessors
+  static void setUnitSystem(UnitSystem system);
+
   static void setDistance(float ft);  // Sets distance in feet
   static void setSpeed(float mph);    // Sets speed in mph
   static void setRPM(float rpm);      // Sets RPM
@@ -2068,6 +2702,9 @@ public:
 
   static RelayState getRelayState(int index);
   static void setRelayState(int index, RelayState state);
+
+  static int getSpeedCalibrationNumber();
+  static void setSpeedCalibrationNumber(int pulses);
 
   // Persistence
   static void loadPreferences();
@@ -2387,7 +3024,7 @@ e.g. "stm32f7xx.h" or "stm32f4xx.h"*/
 /*Fonts*/
 #define LV_FONT_MONTSERRAT_8 0
 #define LV_FONT_MONTSERRAT_10 0
-#define LV_FONT_MONTSERRAT_12 0
+#define LV_FONT_MONTSERRAT_12 1
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 1
 #define LV_FONT_MONTSERRAT_18 0
@@ -2479,6 +3116,10 @@ public:
   static bool checkRecalibrationFlag();
 
 private:
+  // Helper method to sort an array (for median filtering)
+  void sortArray(uint16_t array[], int size);
+  bool calculateCalibrationMatrix();
+
   // Pin definitions
   const uint8_t kCsPin_;
   const uint8_t kMosiPin_;
@@ -2495,12 +3136,24 @@ private:
   static const uint8_t kCmdZ1_ = 0xB0;  // Z1 position (0b10110000)
   static const uint8_t kCmdZ2_ = 0xC0;  // Z2 position (0b11000000)
 
+  // struct CalibrationData {
+  //   uint16_t raw_x[4];     // Raw X values for corners
+  //   uint16_t raw_y[4];     // Raw Y values for corners
+  //   uint16_t screen_x[4];  // Screen X coordinates
+  //   uint16_t screen_y[4];  // Screen Y coordinates
+  //   bool valid;
+  // } cal_data_;
+
   struct CalibrationData {
-    uint16_t raw_x[4];     // Raw X values for corners
-    uint16_t raw_y[4];     // Raw Y values for corners
-    uint16_t screen_x[4];  // Screen X coordinates
-    uint16_t screen_y[4];  // Screen Y coordinates
     bool valid;
+    // Raw values from touch sensor
+    uint16_t raw_x[4];
+    uint16_t raw_y[4];
+    // Screen coordinates
+    uint16_t screen_x[4];
+    uint16_t screen_y[4];
+    // Calibration matrix (computed from points)
+    float matrix[6];
   } cal_data_;
 
   // Private helper functions
@@ -2513,6 +3166,17 @@ private:
 extern TouchScreen touch;
 
 #endif  // INCLUDE_TOUCH_H_
+
+// include/custom_ui/custom_keyboard.h
+#ifndef CUSTOM_KEYBOARD_H
+#define CUSTOM_KEYBOARD_H
+
+#include "lvgl.h"
+
+void setup_custom_number_keyboard(lv_obj_t *keyboard);
+
+#endif  // CUSTOM_KEYBOARD_H
+
 
 // include/display/display.h
 #ifndef INCLUDE_DISPLAY_H_
@@ -2605,39 +3269,19 @@ extern LGFX lcd;
 
 // Backlight control definitions
 #define LCD_BL_PIN 2
-#define LCD_BL_FREQ 1000
+#define LCD_BL_FREQ 10000  // Increased to 10kHz for smoother PWM
 #define LCD_BL_CHANNEL 0
 #define LCD_BL_RESOLUTION 8
 
-/**
- * @brief Sets the backlight brightness of the display.
- *
- * This function adjusts the brightness level of the display's backlight.
- *
- * @param brightness The desired brightness level, ranging from 0 (off) to 255 (maximum brightness).
- */
+void setupBacklight(uint8_t pin = LCD_BL_PIN, uint8_t channel = LCD_BL_CHANNEL, uint8_t initial_brightness = 200);
 void setBacklight(uint8_t brightness);
-
-
-/**
- * @brief Retrieves the current backlight level.
- * 
- * @return uint8_t The current backlight level as an 8-bit unsigned integer.
- */
+void setBacklightSmooth(uint8_t brightness);
+void setBacklightFast(uint8_t brightness);
+void updateBacklight();
 uint8_t getBacklight();
-
-/**
- * @brief Fades the backlight brightness of the display.
- *
- * This function fades the brightness level of the display's backlight.
- *
- * @param fadeIn True to fade in, false to fade out.
- * @param duration The duration of the fade effect in milliseconds.
- */
 void fadeBacklight(bool fadeIn, int duration = 1000);
 
 #endif  // BACKLIGHT_H
-
 
 // include/dev_utils/test_display.h
 #ifndef TEST_DISPLAY_H
@@ -2757,27 +3401,22 @@ void create_demo_ui();
 // LVGL version: 8.3.11
 // Project name: M4_MCU_2025
 
+#include <algorithm>
+#include <vector>
+
 #include "Config.h"
 #include "PullStateManager.h"
+#include "SpeedModule.h"
 #include "StateManager.h"
+#include "custom_ui/custom_keyboard.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
+#include "touch/touch.h"
 #include "ui.h"
 
 const char *VERSION_STRING = VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
-/**
- * @brief Sets the visibility of a given LVGL object.
- *
- * This function allows you to control the visibility of an LVGL object
- * by setting it to either visible or hidden.
- *
- * @param obj Pointer to the LVGL object to modify.
- * @param visible Boolean value indicating the desired visibility state:
- *                - `true` to make the object visible.
- *                - `false` to hide the object.
- */
 inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   if (visible) {
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
@@ -2786,20 +3425,6 @@ inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   }
 }
 
-/**
- * @brief Applies user preferences to the main screen elements.
- *
- * This function adjusts the visibility of various main screen components
- * and sets the screen backlight brightness based on the user's saved preferences.
- *
- * The following preferences are applied:
- * - Visibility of the tachometer container (`uic_MainContainerTach`) based on `tachEnabled`.
- * - Visibility of the relays container (`uic_MainContainerRelays`) based on `relaysEnabled`.
- * - Visibility of the limit switch container (`uic_MainContainerLimit`) based on `limitSwitchesEnabled`.
- * - Screen backlight brightness based on `screenBrightness`.
- *
- * Preferences are retrieved from the `StateManager` class.
- */
 void applyMainScreenPreferences() {
   // Set the visibility of the main screen elements based on preferences
   setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
@@ -2855,7 +3480,16 @@ void loadMainScreen(lv_event_t *e) {
 }
 
 void SettingsSwitchUnitsChange(lv_event_t *e) {
-  // Your code here
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool isMetric = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  // Set unit system based on switch state
+  StateManager::setUnitSystem(isMetric ? UnitSystem::METRIC : UnitSystem::IMPERIAL);
+
+  // Update label text
+  if (ui_SettingsLabelTrackLengthUnitsTitle != nullptr) {
+    lv_label_set_text(ui_SettingsLabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
+  }
 }
 
 void SettingsSwitchBenchmarkChange(lv_event_t *e) {
@@ -2868,22 +3502,26 @@ void SettingsSwitchBenchmarkChange(lv_event_t *e) {
 }
 
 void SettingsSliderBrightnessChange(lv_event_t *e) {
-  StateManager::prefs().screenBrightness = lv_slider_get_value(uic_SettingsSliderBrightnessSlider);
-
   lv_obj_t *slider = lv_event_get_target(e);
   uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
 
-  // Update the backlight
-  setBacklight(brightness);
+  // Get event code
+  lv_event_code_t code = lv_event_get_code(e);
 
-  // Update label
+  // Update label immediately
   lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
 
-  StateManager::savePreferences();
+  // For immediate visual feedback during slider movement
+  setBacklightFast(brightness);
 
-  // // Set initial slider value based on current brightness
-  // if (ui_brightness_slider != NULL) {
-  //   lv_slider_set_value(ui_brightness_slider, display_get_brightness(), LV_ANIM_OFF);
+  // Update preference value
+  StateManager::prefs().screenBrightness = brightness;
+
+  // Only save preferences when slider is released to avoid writing to flash constantly
+  if (code == LV_EVENT_RELEASED) {
+    // Only save to flash when the user releases the slider
+    StateManager::savePreferences();
+  }
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {
@@ -2910,35 +3548,13 @@ void SettingsSwitchRelaysChange(lv_event_t *e) {
   StateManager::savePreferences();
 }
 
-// static int settingsExitTabIndex = -1;  // Global or static so it's accessible in the callback
-
-// // Event callback
-// static void exit_tab_handler(lv_event_t *e) {
-//   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
-//   lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
-
-//   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
-
-//   if (selected_idx == settingsExitTabIndex) {
-//     printf("Exit tab clicked!\n");
-
-//     // Optional: reset selection to first tab
-//     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);
-
-//     // Go back to main screen
-//     lv_scr_load(ui_ScreenMain);
-
-//     // Stop tab switching
-//     lv_event_stop_processing(e);
-//   }
-// }
 static void exit_tab_handler(lv_event_t *e) {
   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
   lv_obj_t *tabview = (lv_obj_t *)lv_event_get_user_data(e);
 
   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
 
-  if (selected_idx == 7) {  // Exit tab is the 8th tab (index 7)
+  if (selected_idx == 8) {  // Exit tab is the 8th tab (index 7)
     printf("Exit tab clicked\n");
 
     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);  // Reset tab to first
@@ -2951,10 +3567,13 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
   if (code == LV_EVENT_SCREEN_LOADED) {
-    // Toggle switches
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+    setup_custom_number_keyboard(ui_SettingsKeyboardSettingsNumberKeyboard);
 
+    // Set units toggle to match current preference
+    (StateManager::getUnitSystem() == UnitSystem::METRIC)
+        ? lv_obj_add_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED)
+        : lv_obj_clear_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED);
+    // Toggle switches
     StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
                                         : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
 
@@ -2976,6 +3595,12 @@ void SettingsScreenLoaded(lv_event_t *e) {
     lv_textarea_set_text(uic_SettingsTextareaTrackLengthText, buf);
   }
 
+  // Speed and Distance Page
+  // Update calibration number input box with stored integer pulse calibration value
+  char calibBuf[16];
+  snprintf(calibBuf, sizeof(calibBuf), "%d", StateManager::getSpeedCalibrationNumber());
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, calibBuf);
+
   // About Page
   lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
   lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
@@ -2983,14 +3608,6 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // Exit Page
   lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
   lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
-
-  // // Save the index of the Exit tab (last one added)
-  // settingsExitTabIndex =
-  //     lv_tabview_get_tab_act(ui_SettingsTabviewSettingsView);  // This works because you just added it
-
-  // // Hook up the event callback
-  // lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
-  // lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
 }
 
 void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
@@ -3034,7 +3651,7 @@ void EnableTachHelpButtonPressed(lv_event_t *e) {
       "to remove it from the main screen.";
 
   // Create a modal message box
-  lv_obj_t *mbox = lv_msgbox_create(NULL, "Enable Tach", help_text, btn_txts, true);
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE TACHOMETER", help_text, btn_txts, true);
 
   // Center the message box on the screen
   lv_obj_set_width(mbox, 600);  // Adjust the width here
@@ -3056,7 +3673,7 @@ void EnableLimitsHelpButtonPressed(lv_event_t *e) {
       "making it possible to trigger events when a mechanical switch is engaged or released.";
 
   // Create a modal message box
-  lv_obj_t *mbox = lv_msgbox_create(NULL, "Enable Limit Switches", help_text, btn_txts, true);
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE LIMIT SWITCHES", help_text, btn_txts, true);
 
   // Center the message box on the screen
   lv_obj_set_width(mbox, 600);  // Adjust the width here
@@ -3080,7 +3697,7 @@ void EnableRelayHelpButtonPressed(lv_event_t *e) {
       "horns, or mechanical actions to modify the behavior of the sled.";
 
   // Create a modal message box
-  lv_obj_t *mbox = lv_msgbox_create(NULL, "Enable Relays", help_text, btn_txts, true);
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ENABLE RELAYS", help_text, btn_txts, true);
 
   // Center the message box on the screen
   lv_obj_set_width(mbox, 600);  // Adjust the width here
@@ -3088,6 +3705,288 @@ void EnableRelayHelpButtonPressed(lv_event_t *e) {
 
   // Attach the close handler to the message box
   lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void SettingsSwitchHelpIconVisibility(lv_event_t *e) {
+  // Your code here
+}
+
+void HELPCalNumber(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "The calibration number represents how many sensor pulses occur during a 300-foot pull.\n"
+      "This number is used to convert pulses into accurate speed and distance measurements.\n\n"
+      "You can manually enter this number, or use one of the tools below to calculate it "
+      "automatically based on your gear and wheel setup, by driving off 300 feet, "
+      "or by selecting a standard radar or GPS calibration value.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "CALIBRATION NUMBER", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPGearToothCalc(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "This calculator estimates your calibration number based on your hardware setup.\n\n"
+      "- Enter the number of teeth on your sprocket (not the number of gears).\n"
+      "- Enter the diameter of the drive wheel in inches.\n"
+      "- Enter the gear ratio between the wheel and the sensor (use 1.00 for direct drive).\n\n"
+      "The system will calculate how many pulses would occur in a 300-foot pull.\n"
+      "You can still fine-tune this value afterward using the manual input or drive-off calibration.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "GEAR TOOTH CALCULATOR", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPAutoCal(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "This option lets you calibrate your speed input by driving exactly 300 feet.\n"
+      "Press 'Start Driving' to begin counting pulses, then drive straight down the track.\n"
+      "Press 'Finished Driving' when you've reached the 300-foot mark.\n\n"
+      "The system will count the total number of pulses during that distance "
+      "and automatically save that number as your calibration value.\n\n"
+      "If you are using metric units, drive exactly 91.44 meters instead.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "AUTO CALIBRATION", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void HELPPresetCalNumber(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "If you're using a radar or GPS-based speed sensor, you can use this button to apply "
+      "a standard factory calibration number.\n\n"
+      "This skips the need to manually calculate or drive off 300 feet.\n"
+      "However, if you want to fine-tune the calibration for your specific setup, "
+      "you can still use the drive-off method or manually enter your own value.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "CALIBRATION PRESETS", help_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);  // Adjust the width here
+  lv_obj_center(mbox);
+
+  // Attach the close handler to the message box
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void SaveCalibrationNumberButton(lv_event_t *e) {
+  int val = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationNumberTextArea));
+  SpeedModule::saveManualCalibration(val);
+}
+
+void SaveCalibrationCalculatorNumberButton(lv_event_t *e) { SpeedModule::saveCalculatorCalibration(); }
+
+void StartAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::startDriveOffCalibration(); }
+
+void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+
+void SaveRadarCalibration(lv_event_t *e) { SpeedModule::applyRadarCalibration(); }
+
+void FinishAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+
+void SaveGPSCalibration(lv_event_t *e) { SpeedModule::applyGPSCalibration(); }
+
+void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
+  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+  int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
+  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
+}
+
+void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }
+
+void HELPTachAutoConnect(lv_event_t *e) {
+  // Your code here
+}
+
+void HELPAlarmPresets(lv_event_t *e) {
+  static const char *btn_txts[] = {"OK", NULL};
+
+  const char *help_text =
+      "Each preset defines a full set of alarm thresholds used during the pull.\n\n"
+      "There are 4 presets available. You can switch between them using the dropdown menu.\n\n"
+      "Each preset contains up to 6 alarms:\n"
+      "• 2 Distance alarms\n"
+      "• 2 Speed alarms\n"
+      "• 2 RPM alarms\n\n"
+      "Alarms must be configured with a value and a behavior. The value is the point "
+      "where the system considers the alarm to be tripped (e.g., 300 ft or 30 MPH).\n\n"
+      "Each alarm also has behavior options, such as:\n"
+      "• Silent: no horn or warning, but can still activate relays\n"
+      "• Trip once: activates only once when the threshold is crossed\n"
+      "• Trip and hold (auto reset): stays on until value goes back below threshold\n"
+      "• Trip and hold (persistent): stays on even if value drops below\n"
+      "• Auto End Run: immediately ends the pull and sends stop signals to all devices\n\n"
+      "Use the activation toggle to enable or disable each individual alarm within the preset.";
+
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "ALARM PRESETS", help_text, btn_txts, true);
+  lv_obj_set_width(mbox, 700);
+  lv_obj_center(mbox);
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void CreateDeviceTable(lv_event_t *e) {
+  // lv_obj_clean(ui_SettingsPanelDeviceTable);  // Clear old content
+
+  // // Scrollable panel setup
+  // lv_obj_set_scroll_dir(ui_SettingsPanelDeviceTable, LV_DIR_VER);
+  // lv_obj_set_scrollbar_mode(ui_SettingsPanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
+
+  // // Table container
+  // lv_obj_t *table_container = lv_obj_create(ui_SettingsPanelDeviceTable);
+  // lv_obj_set_size(table_container, lv_pct(100), LV_SIZE_CONTENT);
+  // lv_obj_set_flex_flow(table_container, LV_FLEX_FLOW_COLUMN);
+  // lv_obj_set_scroll_dir(table_container, LV_DIR_VER);
+  // lv_obj_set_style_pad_row(table_container, 6, 0);
+  // lv_obj_set_style_pad_column(table_container, 4, 0);
+  // lv_obj_set_style_border_width(table_container, 0, 0);
+  // lv_obj_set_style_bg_opa(table_container, LV_OPA_TRANSP, 0);
+
+  // // Header row
+  // lv_obj_t *header = lv_obj_create(table_container);
+  // lv_obj_set_width(header, lv_pct(100));
+  // lv_obj_set_height(header, LV_SIZE_CONTENT);
+  // lv_obj_set_flex_flow(header, LV_FLEX_FLOW_ROW);
+  // lv_obj_set_flex_align(header, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  // lv_obj_set_style_pad_all(header, 4, 0);
+  // lv_obj_set_style_pad_column(header, 6, 0);
+  // lv_obj_set_style_bg_color(header, lv_palette_lighten(LV_PALETTE_GREY, 3), 0);
+  // lv_obj_set_style_border_width(header, 0, 0);
+  // lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+
+  // auto add_header_label = [&](const char *text, lv_coord_t width) {
+  //   lv_obj_t *label = lv_label_create(header);
+  //   lv_label_set_text(label, text);
+  //   lv_obj_set_width(label, width);
+  // };
+
+  // add_header_label("Type", 120);
+  // add_header_label("Name", 130);
+  // add_header_label("MAC Address", 140);
+  // add_header_label("Status", 50);
+  // add_header_label("Action", 70);
+  // add_header_label("Show Max", 70);
+
+  // // Device struct
+  // struct Device {
+  //   const char *type;
+  //   const char *name;
+  //   const char *mac;
+  //   bool connected;
+  // };
+
+  // std::vector<Device> devices = {{"Distance Display", "Finish Line Display", "AA:BB:CC:DD:EE:01", true},
+  //                                {"Safety Light", "Track Light A", "AA:BB:CC:DD:EE:02", false},
+  //                                {"Speed Display", "Mid Track Display", "AA:BB:CC:DD:EE:03", false},
+  //                                {"Safety Light", "Track Light B", "AA:BB:CC:DD:EE:04", true}};
+
+  // std::sort(devices.begin(), devices.end(), [](const Device &a, const Device &b) { return b.connected < a.connected;
+  // });
+
+  // for (const auto &device : devices) {
+  //   lv_obj_t *row = lv_obj_create(table_container);
+  //   lv_obj_set_width(row, lv_pct(100));
+  //   lv_obj_set_height(row, LV_SIZE_CONTENT);
+  //   lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+  //   lv_obj_set_flex_align(row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  //   lv_obj_set_style_pad_all(row, 4, 0);
+  //   lv_obj_set_style_pad_column(row, 4, 0);
+  //   lv_obj_set_style_border_width(row, 0, 0);
+  //   lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
+  //   lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
+
+  //   // Type
+  //   lv_obj_t *type_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(type_label, "%s", device.type);
+  //   lv_obj_set_width(type_label, 120);
+
+  //   // Name
+  //   lv_obj_t *name_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(name_label, "%s", device.name);
+  //   lv_obj_set_width(name_label, 130);
+
+  //   // MAC
+  //   lv_obj_t *mac_label = lv_label_create(row);
+  //   lv_label_set_text_fmt(mac_label, "%s", device.mac);
+  //   lv_obj_set_width(mac_label, 140);
+
+  //   // Status icon
+  //   lv_obj_t *status_icon = lv_label_create(row);
+  //   lv_obj_set_width(status_icon, 50);
+  //   if (device.connected) {
+  //     lv_label_set_text(status_icon, LV_SYMBOL_WIFI);
+  //     lv_obj_set_style_text_color(status_icon, lv_color_hex(0x1FA709), 0);
+  //   } else {
+  //     lv_label_set_text(status_icon, "");
+  //   }
+
+  //   // Action button
+  //   lv_obj_t *btn = lv_btn_create(row);
+  //   lv_obj_set_width(btn, 70);
+  //   lv_obj_set_height(btn, 36);
+  //   lv_obj_set_style_radius(btn, 5, 0);
+  //   lv_obj_set_style_bg_color(btn, lv_color_hex(0xF06B00), 0);
+  //   lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
+  //   lv_obj_set_flex_align(btn, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+  //   lv_obj_t *btn_label = lv_label_create(btn);
+  //   lv_label_set_text(btn_label, device.connected ? "Unpair" : "Pair");
+
+  //   // Show Max toggle
+  //   lv_obj_t *toggle = lv_switch_create(row);
+  //   lv_obj_set_width(toggle, 50);
+  //   lv_obj_add_state(toggle, LV_STATE_CHECKED);
+  //   lv_obj_set_style_bg_color(toggle, lv_color_hex(0xF06B00), LV_PART_INDICATOR | LV_STATE_CHECKED);
+  //   lv_obj_set_style_bg_color(toggle, lv_palette_main(LV_PALETTE_GREY), LV_PART_INDICATOR);
+  //   lv_obj_set_style_radius(toggle, LV_RADIUS_CIRCLE, 0);
+  //   lv_obj_set_style_pad_all(toggle, 0, 0);
+  // }
+}
+
+void DriverButton(lv_event_t *e) {
+  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  StateManager::prefs().pullingClassWeight = 0;
+  StateManager::prefs().driverName = "Driver";
+  StateManager::prefs().driverNumber += 1;
+
+  StateManager::savePreferences();
 }
 
 
@@ -3105,6 +4004,7 @@ extern "C" {
 #endif
 
 void loadMainScreen(lv_event_t * e);
+void DriverButton(lv_event_t * e);
 void READYStageBtnPressed(lv_event_t * e);
 void STAGEDCancelBtnPressed(lv_event_t * e);
 void PULLINGStopBtnPressed(lv_event_t * e);
@@ -3112,6 +4012,7 @@ void PULLENDDiscardBtnPressed(lv_event_t * e);
 void PULLENDSaveBtnPressed(lv_event_t * e);
 void EMERGENCYSTOPResetBtnPressed(lv_event_t * e);
 void SettingsScreenLoaded(lv_event_t * e);
+void CreateDeviceTable(lv_event_t * e);
 void SettingsSwitchUnitsChange(lv_event_t * e);
 void SettingsSwitchBenchmarkChange(lv_event_t * e);
 void SettingsSliderBrightnessChange(lv_event_t * e);
@@ -3122,6 +4023,22 @@ void SettingsSwitchLimitChange(lv_event_t * e);
 void EnableLimitsHelpButtonPressed(lv_event_t * e);
 void SettingsSwitchRelaysChange(lv_event_t * e);
 void EnableRelayHelpButtonPressed(lv_event_t * e);
+void SettingsSwitchHelpIconVisibility(lv_event_t * e);
+void RecalibrateTouch(lv_event_t * e);
+void SaveCalibrationNumberButton(lv_event_t * e);
+void HELPCalNumber(lv_event_t * e);
+void CalculateCalibrationCalculatorNumberButton(lv_event_t * e);
+void SaveCalibrationCalculatorNumberButton(lv_event_t * e);
+void HELPGearToothCalc(lv_event_t * e);
+void StartAutoDriveButtonPressed(lv_event_t * e);
+void FinishAutoDriveButtonPressed(lv_event_t * e);
+void SaveCalibrationAutoDriveNumberButton(lv_event_t * e);
+void HELPAutoCal(lv_event_t * e);
+void SaveRadarCalibration(lv_event_t * e);
+void SaveGPSCalibration(lv_event_t * e);
+void HELPPresetCalNumber(lv_event_t * e);
+void HELPTachAutoConnect(lv_event_t * e);
+void HELPAlarmPresets(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/

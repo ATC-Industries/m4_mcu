@@ -176,6 +176,7 @@ void loop() {
   updateBacklight();
   benchmark_update();
   PullStateManager::update();
+  SpeedModule::tick();
 
 #ifdef DEVELOPMENT_MODE
   devSimulator::update();

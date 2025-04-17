@@ -135,6 +135,9 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
   int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
 
+  // uint16_t mapped_x, mapped_y;
+  // mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);
+
   // Constrain values to screen boundaries
   mapped_x = constrain(mapped_x, 0, 799);
   mapped_y = constrain(mapped_y, 0, 479);

@@ -5,6 +5,13 @@
 #include "StateManager.h"
 #include "lvgl.h"
 
+#define SPEED_TIMEOUT_MICROS 500000  // 500ms
+
+static unsigned long lastPulseMicros = 0;
+static float currentSpeedMPH = 0.0f;
+static volatile int pendingPulses = 0;
+static volatile bool pulseReceived = false;
+
 // UI Elements (externs from UI event screen)
 extern lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
 extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
@@ -19,11 +26,53 @@ static int pulseCount = 0;
 static bool driveOffMode = false;
 static PullState currentPullState = PullState::READY;
 
-static void IRAM_ATTR onSpeedSensorPulseISR() { SpeedModule::onPulseDetected(); }
+static void IRAM_ATTR onSpeedSensorPulseISR() {
+  pendingPulses++;
+  pulseReceived = true;
+}
 
 void SpeedModule::begin() {
   pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
   attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
+}
+
+void SpeedModule::tick() {
+  unsigned long now = micros();
+
+  // Handle pulse updates
+  if (pulseReceived) {
+    noInterrupts();
+    int pulses = pendingPulses;
+    pendingPulses = 0;
+    pulseReceived = false;
+    interrupts();
+
+    if (pulses > 0) {
+      pulseCount += pulses;
+
+      if (lastPulseMicros > 0 && pulses == 1) {
+        float deltaSec = (now - lastPulseMicros) / 1e6f;
+        if (deltaSec > 0.0f && calibrationPulses > 0) {
+          float feetPerPulse = 300.0f / calibrationPulses;
+          float feetPerSecond = feetPerPulse / deltaSec;
+          currentSpeedMPH = feetPerSecond * 0.681818f;
+        }
+      }
+
+      lastPulseMicros = now;
+    }
+
+    updateSpeedAndDistance();
+    return;
+  }
+
+  // Handle speed decay if no new pulse
+  if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+    if (currentSpeedMPH > 0.01f) {
+      currentSpeedMPH = 0.0f;
+      updateSpeedAndDistance();
+    }
+  }
 }
 
 // ---- Validation ----
@@ -107,6 +156,8 @@ void SpeedModule::handlePulseDuringDriveOff() {
 
 // ---- Runtime Tracking ----
 void SpeedModule::onPulseDetected() {
+  unsigned long now = micros();
+
   if (driveOffMode) {
     handlePulseDuringDriveOff();
     return;
@@ -114,9 +165,25 @@ void SpeedModule::onPulseDetected() {
 
   if (currentPullState == PullState::PULLING) {
     pulseCount++;
+
+    if (lastPulseMicros != 0) {
+      unsigned long deltaMicros = now - lastPulseMicros;
+      if (deltaMicros > 0) {
+        float timeSeconds = deltaMicros / 1e6f;
+
+        // Distance per pulse in feet
+        float feetPerPulse = 300.0f / static_cast<float>(calibrationPulses);
+        float feetPerSecond = feetPerPulse / timeSeconds;
+        currentSpeedMPH = feetPerSecond * 0.681818f;  // 1 fps = 0.681818 mph
+      }
+    }
+
+    lastPulseMicros = now;
+
     updateSpeedAndDistance();
   } else if (currentPullState == PullState::STAGED) {
     resetDistance();
+    lastPulseMicros = 0;
   }
 }
 
@@ -130,14 +197,14 @@ void SpeedModule::resetDistance() {
   StateManager::setDistance(0.0f);
 }
 
-// Simple speed/distance update
 void SpeedModule::updateSpeedAndDistance() {
-  // TODO expand updateSpeedAndDistance() to compute real speed via pulse frequency and time deltas.
-  float distanceFeet = (300.0f * static_cast<float>(pulseCount)) / static_cast<float>(calibrationPulses);
-  float speed = 0.0f;  // You could integrate time-based delta here for true MPH later
+  float distanceFeet = (300.0f * static_cast<float>(pulseCount)) / calibrationPulses;
 
-  StateManager::setDistance(distanceFeet);
-  StateManager::setSpeed(speed);
+  Serial.printf("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n", pulseCount, distanceFeet,
+                currentSpeedMPH);
+
+  StateManager::setSpeed(currentSpeedMPH);  // Always track live speed
+  StateManager::setDistance(distanceFeet);  // Always track live distance
 }
 
 // ---- Optional Accessors ----

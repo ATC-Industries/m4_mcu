@@ -34,7 +34,7 @@ void PullStateManager::update() {
       break;
 
     case PullState::PULLING:
-      if (StateManager::getSpeed() <= 0.1f) {
+      if (StateManager::getSpeed() <= 0.0f) {
         enterState(PullState::PULLEND);
       }
       break;

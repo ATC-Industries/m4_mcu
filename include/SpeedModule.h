@@ -7,6 +7,7 @@
 namespace SpeedModule {
 
 void begin();  // Call this once during setup()
+void tick();   // Call this every loop
 
 // ---- Calibration ----
 bool isValidCalibrationNumber(int pulses);
