@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debug logs enhanced to track matrix computation and touch mapping behavior
 - Raw touch axis swap issue that caused incorrect calibration results.
 - Touch mapping instability during diagonal gestures and edge presses.
+- Fixed inaccurate touch mapping caused by incorrect calibration point references
+- Calibration routine now uses actual on-screen target positions during setCalibration
+- Touch inputs now register at the correct visual locations, including near screen edges
 
 ### Refactored
 
