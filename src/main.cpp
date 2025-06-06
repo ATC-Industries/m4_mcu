@@ -169,17 +169,35 @@ void setup() {
 
   init_display_and_touch();
 
-  // ⬇️ Add this here to test raw touch points
+  // ⬇️ test raw touch points
   Serial.println("==== RAW TOUCH TEST START ====");
   Serial.println("Touch each corner of the screen...");
+
+  lcd.fillScreen(TFT_BLACK);
+  lcd.setTextColor(TFT_WHITE);
+  lcd.setTextSize(2);
+  lcd.setCursor(10, 10);
+  lcd.println("RAW Touch Test Mode");
+
+  const int kDuration = 15;  // Seconds
   unsigned long startTime = millis();
-  while (millis() - startTime < 15000) {  // Run for 15 seconds
+
+  while ((millis() - startTime) < kDuration * 1000) {
+    // Show countdown
+    int secondsLeft = kDuration - ((millis() - startTime) / 1000);
+    lcd.fillRect(10, 40, 200, 30, TFT_BLACK);  // Clear countdown area
+    lcd.setCursor(10, 40);
+    lcd.printf("Seconds left: %d", secondsLeft);
+
     uint16_t x, y, z;
     if (touch.readRawTouchPoint(&x, &y, &z)) {
       Serial.printf("Raw Touch: X=%d Y=%d Z=%d\n", x, y, z);
-      delay(500);  // wait a bit to reduce spam
+      lcd.fillCircle(x, y, 3, TFT_WHITE);  // Draw touch point
     }
+
+    delay(100);
   }
+
   Serial.println("==== RAW TOUCH TEST END ====");
 
   init_lvgl();
@@ -217,7 +235,7 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  TouchScreen::setRecalibrationFlag();
+  // TouchScreen::setRecalibrationFlag();
 
   delay(5);
 }
