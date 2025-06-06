@@ -169,14 +169,10 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
     delay(kDebounceDelay);
 
     // Get touch point
-    uint16_t x, y, z;
-    while (!waitForTouch(touch, &x, &y, &z)) {
-      delay(10);
-    }
-
-    // Store raw values
-    cal_x[i] = x;
-    cal_y[i] = y;
+    uint16_t raw_x, raw_y, z;
+    waitForRawTouch(touch, &raw_x, &raw_y, &z);
+    cal_x[i] = raw_x;
+    cal_y[i] = raw_y;
 
     // Show success
     clearTextArea(lcd);
@@ -207,6 +203,14 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
 
   return true;
 }
+
+bool TouchCalibration::waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z) {
+  while (true) {
+    if (touch.readRawTouchPoint(raw_x, raw_y, z)) return true;
+    delay(10);
+  }
+}
+
 
 // src/touch/touch.cpp
 #include "touch/touch.h"
@@ -383,6 +387,41 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   return true;
 }
 
+bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
+  const int kSamples = 10;
+  uint16_t samples_x[kSamples];
+  uint16_t samples_y[kSamples];
+  uint16_t samples_z1[kSamples];
+  uint16_t samples_z2[kSamples];
+
+  for (int i = 0; i < kSamples; i++) {
+    samples_z1[i] = readChannel(kCmdZ1_);
+    samples_z2[i] = readChannel(kCmdZ2_);
+    samples_x[i] = readChannel(kCmdX_);
+    samples_y[i] = readChannel(kCmdY_);
+    delayMicroseconds(100);
+  }
+
+  sortArray(samples_x, kSamples);
+  sortArray(samples_y, kSamples);
+  sortArray(samples_z1, kSamples);
+  sortArray(samples_z2, kSamples);
+
+  uint16_t med_x = samples_x[kSamples / 2];
+  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_z1 = samples_z1[kSamples / 2];
+  uint16_t med_z2 = samples_z2[kSamples / 2];
+  uint16_t pressure = med_z1 + 4095 - med_z2;
+
+  if (z) *z = pressure;
+
+  if (pressure < 1000) return false;
+
+  *x = med_x;
+  *y = med_y;
+  return true;
+}
+
 // Helper function to sort an array (insertion sort)
 void TouchScreen::sortArray(uint16_t array[], int size) {
   for (int i = 1; i < size; i++) {
@@ -540,8 +579,8 @@ void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, ui
   float ty = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
 
   // Convert to integers and constrain to screen boundaries
-  *x = constrain(static_cast<uint16_t>(tx + 0.5), 0, 799);
-  *y = constrain(static_cast<uint16_t>(ty + 0.5), 0, 479);
+  *x = static_cast<uint16_t>(constrain(tx + 0.5f, 0.0f, 799.0f));
+  *y = static_cast<uint16_t>(constrain(ty + 0.5f, 0.0f, 479.0f));
 }
 
 bool TouchScreen::saveCalibration() {
@@ -632,6 +671,7 @@ private:
   static void showTouchTest(LGFX& lcd, TouchScreen& touch);
   static void clearTextArea(LGFX& lcd);
   static bool waitForTouch(TouchScreen& touch, uint16_t* x, uint16_t* y, uint16_t* z);
+  static bool waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z);
   static bool waitForRelease(TouchScreen& touch);
 };
 
@@ -655,7 +695,8 @@ public:
 
   // Read touch coordinates
   bool readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z = nullptr);
-
+  bool readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z);
+  
   // Check if screen is being touched
   bool isTouched();
 
@@ -883,10 +924,10 @@ void setup() {
   delay(1000);
 
   StateManager::loadPreferences();
-  Preferences prefs;
-  prefs.begin("touch_cal", false);
-  prefs.clear();  // ⚠️ This erases everything in "touch_cal"
-  prefs.end();
+  // Preferences prefs;
+  // prefs.begin("touch_cal", false);
+  // prefs.clear();  // ⚠️ This erases everything in "touch_cal"
+  // prefs.end();
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
@@ -930,7 +971,7 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  TouchScreen::setRecalibrationFlag();
+  // TouchScreen::setRecalibrationFlag();
 
   delay(5);
 }
