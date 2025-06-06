@@ -14,8 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Touchscreen edge glitch caused by float underflow during coordinate mapping
 - Stable calibration now stores and uses proper matrix values
 - Debug logs enhanced to track matrix computation and touch mapping behavior
-- Corrected axis mapping in `TouchScreen::readTouchPoint()` and `readRawTouchPoint()` to align with physical screen orientation.
-- Resolved calibration matrix mismatch caused by swapped raw axes.
+- Raw touch axis swap issue that caused incorrect calibration results.
+- Touch mapping instability during diagonal gestures and edge presses.
+
+### Refactored
+
+- Calibration input pipeline cleaned up to reflect correct axis orientation.
 
 ### Changed
 
