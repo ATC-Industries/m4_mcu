@@ -156,10 +156,10 @@ void setup() {
   delay(1000);
 
   StateManager::loadPreferences();
-  Preferences prefs;
-  prefs.begin("touch_cal", false);
-  prefs.clear();  // ⚠️ This erases everything in "touch_cal"
-  prefs.end();
+  // Preferences prefs;
+  // prefs.begin("touch_cal", false);
+  // prefs.clear();  // ⚠️ This erases everything in "touch_cal"
+  // prefs.end();
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
@@ -168,6 +168,20 @@ void setup() {
   Serial.println(__DATE__ " " __TIME__);
 
   init_display_and_touch();
+
+  // ⬇️ Add this here to test raw touch points
+  Serial.println("==== RAW TOUCH TEST START ====");
+  Serial.println("Touch each corner of the screen...");
+  unsigned long startTime = millis();
+  while (millis() - startTime < 15000) {  // Run for 15 seconds
+    uint16_t x, y, z;
+    if (touch.readRawTouchPoint(&x, &y, &z)) {
+      Serial.printf("Raw Touch: X=%d Y=%d Z=%d\n", x, y, z);
+      delay(500);  // wait a bit to reduce spam
+    }
+  }
+  Serial.println("==== RAW TOUCH TEST END ====");
+
   init_lvgl();
   ui_init();
   PullStateManager::init();
@@ -203,7 +217,7 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  TouchScreen::setRecalibrationFlag();
+  // TouchScreen::setRecalibrationFlag();
 
   delay(5);
 }

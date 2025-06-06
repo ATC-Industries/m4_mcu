@@ -112,8 +112,8 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   sortArray(samples_z2, kSamples);
 
   // Use median values (more robust than mean)
-  uint16_t med_x = samples_x[kSamples / 2];
-  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_y = samples_x[kSamples / 2];  // vertical axis
+  uint16_t med_x = samples_y[kSamples / 2];  // horizontal axis
   uint16_t med_z1 = samples_z1[kSamples / 2];
   uint16_t med_z2 = samples_z2[kSamples / 2];
 
@@ -137,7 +137,7 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   // int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
 
   uint16_t mapped_x, mapped_y;
-  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);
+  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);  // DO NOT SWAP
 
   // Constrain values to screen boundaries
   mapped_x = constrain(mapped_x, 0, 799);
@@ -192,8 +192,9 @@ bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   sortArray(samples_z1, kSamples);
   sortArray(samples_z2, kSamples);
 
-  uint16_t med_x = samples_x[kSamples / 2];
-  uint16_t med_y = samples_y[kSamples / 2];
+
+  uint16_t med_y = samples_x[kSamples / 2];
+  uint16_t med_x = samples_y[kSamples / 2];
   uint16_t med_z1 = samples_z1[kSamples / 2];
   uint16_t med_z2 = samples_z2[kSamples / 2];
   uint16_t pressure = med_z1 + 4095 - med_z2;
@@ -204,6 +205,7 @@ bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
 
   *x = med_x;
   *y = med_y;
+
   return true;
 }
 
