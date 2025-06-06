@@ -2,6 +2,7 @@
 
 // Create the global instance
 TouchScreen touch(38, 11, 13, 12);  // CS, MOSI, MISO, SCK
+static Preferences touchPrefs;
 
 TouchScreen::TouchScreen(uint8_t cs_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t sck_pin)
     : kCsPin_(cs_pin),
@@ -132,11 +133,11 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
 
   // Apply coordinate transformations (swap X/Y and map to screen)
   // Adjust these map ranges based on your actual touchscreen characteristics
-  int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
-  int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
+  // int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
+  // int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
 
-  // uint16_t mapped_x, mapped_y;
-  // mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);
+  uint16_t mapped_x, mapped_y;
+  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);
 
   // Constrain values to screen boundaries
   mapped_x = constrain(mapped_x, 0, 799);
@@ -168,6 +169,41 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d -> Stable: X=%d Y=%d (P=%d)\n", med_x, med_y, mapped_x, mapped_y,
                 stable_x, stable_y, pressure);
 
+  return true;
+}
+
+bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
+  const int kSamples = 10;
+  uint16_t samples_x[kSamples];
+  uint16_t samples_y[kSamples];
+  uint16_t samples_z1[kSamples];
+  uint16_t samples_z2[kSamples];
+
+  for (int i = 0; i < kSamples; i++) {
+    samples_z1[i] = readChannel(kCmdZ1_);
+    samples_z2[i] = readChannel(kCmdZ2_);
+    samples_x[i] = readChannel(kCmdX_);
+    samples_y[i] = readChannel(kCmdY_);
+    delayMicroseconds(100);
+  }
+
+  sortArray(samples_x, kSamples);
+  sortArray(samples_y, kSamples);
+  sortArray(samples_z1, kSamples);
+  sortArray(samples_z2, kSamples);
+
+  uint16_t med_x = samples_x[kSamples / 2];
+  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_z1 = samples_z1[kSamples / 2];
+  uint16_t med_z2 = samples_z2[kSamples / 2];
+  uint16_t pressure = med_z1 + 4095 - med_z2;
+
+  if (z) *z = pressure;
+
+  if (pressure < 1000) return false;
+
+  *x = med_x;
+  *y = med_y;
   return true;
 }
 
@@ -230,7 +266,6 @@ uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max
 //   return saveCalibration();
 // }
 
-// Add this method to calculate the transformation matrix
 bool TouchScreen::calculateCalibrationMatrix() {
   if (!cal_data_.valid) return false;
 
@@ -252,7 +287,15 @@ bool TouchScreen::calculateCalibrationMatrix() {
   float det = (x[0] - x[2]) * (y[1] - y[2]) - (x[1] - x[2]) * (y[0] - y[2]);
 
   // If determinant is zero, calibration points are collinear
-  if (abs(det) < 0.1) return false;
+  if (fabs(det) < 5.0f) {
+    Serial.println("Determinant too small — calibration invalid.");
+    return false;
+  }
+
+  for (int i = 0; i < 4; i++) {
+    Serial.printf("RawX[%d]=%u RawY[%d]=%u -> ScreenX=%u ScreenY=%u\n", i, cal_data_.raw_x[i], i, cal_data_.raw_y[i],
+                  cal_data_.screen_x[i], cal_data_.screen_y[i]);
+  }
 
   // Calculate matrix coefficients
   cal_data_.matrix[0] = ((X[0] - X[2]) * (y[1] - y[2]) - (X[1] - X[2]) * (y[0] - y[2])) / det;
@@ -265,6 +308,11 @@ bool TouchScreen::calculateCalibrationMatrix() {
   cal_data_.matrix[5] =
       (y[0] * (x[2] * Y[1] - x[1] * Y[2]) + y[1] * (x[0] * Y[2] - x[2] * Y[0]) + y[2] * (x[1] * Y[0] - x[0] * Y[1])) /
       det;
+
+  for (int i = 0; i < 6; i++) {
+    Serial.printf("Matrix[%d]: %.6f\n", i, cal_data_.matrix[i]);
+  }
+  Serial.printf("det: %.6f\n", det);
 
   return true;
 }
@@ -295,10 +343,13 @@ bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0
   }
 
   Serial.println("Saving calibration...");
+  Serial.println("Calling saveCalibration from setCalibration()");
   if (!saveCalibration()) {
     Serial.println("Calibration save failed.");
     return false;
   }
+
+  return true;
 }
 
 void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
@@ -313,59 +364,65 @@ void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, ui
   float ty = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
 
   // Convert to integers and constrain to screen boundaries
-  *x = constrain(static_cast<uint16_t>(tx + 0.5), 0, 799);
-  *y = constrain(static_cast<uint16_t>(ty + 0.5), 0, 479);
+  *x = static_cast<uint16_t>(constrain(tx + 0.5f, 0.0f, 799.0f));
+  *y = static_cast<uint16_t>(constrain(ty + 0.5f, 0.0f, 479.0f));
 }
 
 bool TouchScreen::saveCalibration() {
-  Preferences prefs;
-  if (!prefs.begin("touch_cal", false)) {
+  Serial.println("Entered saveCalibration()");
+
+  if (!touchPrefs.begin("touch_cal", false)) {
+    Serial.println("Failed to open prefs for saving");
     return false;
   }
 
-  bool success = prefs.putBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  prefs.end();
-  return success;
+  size_t written = touchPrefs.putBytes("cal_data", &cal_data_, sizeof(CalibrationData));
+  touchPrefs.end();
+
+  if (written != sizeof(CalibrationData)) {
+    Serial.printf("Failed to save all calibration bytes (%u of %u)\n", written, sizeof(CalibrationData));
+    return false;
+  }
+  Serial.printf("Wrote %u of %u bytes\n", written, sizeof(CalibrationData));
+
+  Serial.println("Calibration data saved successfully");
+  return true;
 }
 
 bool TouchScreen::loadCalibration() {
-  Preferences prefs;
-  if (!prefs.begin("touch_cal", true)) {
+  if (!touchPrefs.begin("touch_cal", true)) {
     return false;
   }
 
-  size_t size = prefs.getBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  prefs.end();
+  size_t size = touchPrefs.getBytes("cal_data", &cal_data_, sizeof(CalibrationData));
+  touchPrefs.end();
 
   return (size == sizeof(CalibrationData) && cal_data_.valid);
 }
 
 bool TouchScreen::setRecalibrationFlag() {
-  Preferences prefs;
-  if (!prefs.begin("touch_cal", false)) {
+  if (!touchPrefs.begin("touch_cal", false)) {
     return false;
   }
-  bool success = prefs.putBool("need_cal", true);
-  prefs.end();
+  bool success = touchPrefs.putBool("need_cal", true);
+  touchPrefs.end();
   return success;
 }
 
 bool TouchScreen::clearRecalibrationFlag() {
-  Preferences prefs;
-  if (!prefs.begin("touch_cal", false)) {
+  if (!touchPrefs.begin("touch_cal", false)) {
     return false;
   }
-  bool success = prefs.putBool("need_cal", false);
-  prefs.end();
+  bool success = touchPrefs.putBool("need_cal", false);
+  touchPrefs.end();
   return success;
 }
 
 bool TouchScreen::checkRecalibrationFlag() {
-  Preferences prefs;
-  if (!prefs.begin("touch_cal", true)) {
+  if (!touchPrefs.begin("touch_cal", true)) {
     return false;
   }
-  bool need_cal = prefs.getBool("need_cal", false);
-  prefs.end();
+  bool need_cal = touchPrefs.getBool("need_cal", false);
+  touchPrefs.end();
   return need_cal;
 }

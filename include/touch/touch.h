@@ -15,7 +15,8 @@ public:
 
   // Read touch coordinates
   bool readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z = nullptr);
-
+  bool readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z);
+  
   // Check if screen is being touched
   bool isTouched();
 

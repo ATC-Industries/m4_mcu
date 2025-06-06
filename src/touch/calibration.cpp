@@ -150,14 +150,10 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
     delay(kDebounceDelay);
 
     // Get touch point
-    uint16_t x, y, z;
-    while (!waitForTouch(touch, &x, &y, &z)) {
-      delay(10);
-    }
-
-    // Store raw values
-    cal_x[i] = x;
-    cal_y[i] = y;
+    uint16_t raw_x, raw_y, z;
+    waitForRawTouch(touch, &raw_x, &raw_y, &z);
+    cal_x[i] = raw_x;
+    cal_y[i] = raw_y;
 
     // Show success
     clearTextArea(lcd);
@@ -187,4 +183,11 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
   showTouchTest(lcd, touch);
 
   return true;
+}
+
+bool TouchCalibration::waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z) {
+  while (true) {
+    if (touch.readRawTouchPoint(raw_x, raw_y, z)) return true;
+    delay(10);
+  }
 }

@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define VERSION "0.0.1-alpha"
+#define VERSION "0.0.2-alpha"
 #define SCREEN_UPDATE_INTERVAL_MS 200
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192
 

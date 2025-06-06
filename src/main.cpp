@@ -99,13 +99,25 @@ void init_display_and_touch() {
   // Perform calibration if needed
   if (!calibration_loaded || recalibration_needed) {
     Serial.println("Touch calibration required...");
-    // Run the calibration
-    bool cal_success = TouchCalibration::runCalibration(lcd, touch);
-    if (cal_success) {
-      Serial.println("Calibration successful");
-      touch.clearRecalibrationFlag();
-    } else {
-      Serial.println("Calibration failed!");
+
+    const int max_attempts = 3;
+    bool cal_success = false;
+
+    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
+      Serial.printf("Calibration attempt %d...\n", attempt);
+      cal_success = TouchCalibration::runCalibration(lcd, touch);
+      if (cal_success) {
+        Serial.println("Calibration successful");
+        touch.clearRecalibrationFlag();
+        break;
+      } else {
+        Serial.println("Calibration failed!");
+      }
+    }
+
+    if (!cal_success) {
+      Serial.println("Calibration ultimately failed after multiple attempts.");
+      // Optionally: show a warning on screen or enter fallback mode
     }
   } else {
     Serial.println("Touch calibration loaded successfully");
@@ -144,6 +156,10 @@ void setup() {
   delay(1000);
 
   StateManager::loadPreferences();
+  Preferences prefs;
+  prefs.begin("touch_cal", false);
+  prefs.clear();  // ⚠️ This erases everything in "touch_cal"
+  prefs.end();
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
