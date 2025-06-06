@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `TouchScreen::mapRawToScreen()` now clamps float values *before* casting to `uint16_t`
+- Lowered touch pressure threshold from 1000 to 200 to restore responsiveness in screen corners, especially bottom-left
 
 ---
 

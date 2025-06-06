@@ -83,7 +83,7 @@ uint16_t TouchScreen::readChannel(uint8_t channel) {
 /////////////
 bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   const int kSamples = 10;  // Increased sample count for better averaging
-  const int kPressureThreshold = 1000;
+  const int kPressureThreshold = 200;
   const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
 
   static uint16_t last_x = 0, last_y = 0;
@@ -192,7 +192,6 @@ bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   sortArray(samples_z1, kSamples);
   sortArray(samples_z2, kSamples);
 
-
   uint16_t med_y = samples_x[kSamples / 2];
   uint16_t med_x = samples_y[kSamples / 2];
   uint16_t med_z1 = samples_z1[kSamples / 2];
@@ -201,7 +200,7 @@ bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
 
   if (z) *z = pressure;
 
-  if (pressure < 1000) return false;
+  if (pressure < 200) return false;
 
   *x = med_x;
   *y = med_y;

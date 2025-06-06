@@ -177,25 +177,35 @@ void setup() {
   lcd.setTextColor(TFT_WHITE);
   lcd.setTextSize(2);
   lcd.setCursor(10, 10);
-  lcd.println("RAW Touch Test Mode");
+  lcd.println("Touch Test Mode");
 
-  const int kDuration = 15;  // Seconds
   unsigned long startTime = millis();
+  const uint32_t duration = 15000;
 
-  while ((millis() - startTime) < kDuration * 1000) {
-    // Show countdown
-    int secondsLeft = kDuration - ((millis() - startTime) / 1000);
-    lcd.fillRect(10, 40, 200, 30, TFT_BLACK);  // Clear countdown area
-    lcd.setCursor(10, 40);
-    lcd.printf("Seconds left: %d", secondsLeft);
+  while (millis() - startTime < duration) {
+    // Show countdown timer (once per second)
+    static uint32_t lastSecond = 0;
+    uint32_t secondsLeft = (duration - (millis() - startTime)) / 1000;
+    if (secondsLeft != lastSecond) {
+      lastSecond = secondsLeft;
+      lcd.fillRect(10, 40, 200, 30, TFT_BLACK);  // Clear countdown area
+      lcd.setCursor(10, 40);
+      lcd.printf("Time Left: %2ds", secondsLeft);
+    }
 
     uint16_t x, y, z;
     if (touch.readRawTouchPoint(&x, &y, &z)) {
       Serial.printf("Raw Touch: X=%d Y=%d Z=%d\n", x, y, z);
-      lcd.fillCircle(x, y, 3, TFT_WHITE);  // Draw touch point
-    }
 
-    delay(100);
+      // Clear full coord area
+      lcd.fillRect(10, 80, 300, 30, TFT_BLACK);  // Wide enough to clear old text
+
+      // Display coordinates
+      lcd.setCursor(10, 80);
+      lcd.printf("X: %d  Y: %d  Z: %d", x, y, z);
+
+      delay(100);
+    }
   }
 
   Serial.println("==== RAW TOUCH TEST END ====");
