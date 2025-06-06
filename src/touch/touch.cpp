@@ -284,16 +284,23 @@ bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0
   cal_data_.screen_x[3] = x3;
   cal_data_.screen_y[3] = y3;  // BL
 
+  // ✅ Temporarily mark valid so matrix can be calculated
+  cal_data_.valid = true;
+
   // Calculate the transformation matrix
+  Serial.println("Calculating matrix...");
   if (!calculateCalibrationMatrix()) {
+    Serial.println("Matrix calculation failed.");
     return false;
   }
 
-  cal_data_.valid = true;
-  return saveCalibration();
+  Serial.println("Saving calibration...");
+  if (!saveCalibration()) {
+    Serial.println("Calibration save failed.");
+    return false;
+  }
 }
 
-// Replace your mapRawToScreen method with this one
 void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
   if (!cal_data_.valid) {
     *x = raw_x;

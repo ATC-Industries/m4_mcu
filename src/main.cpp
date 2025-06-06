@@ -187,7 +187,7 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  // TouchScreen::setRecalibrationFlag();
+  TouchScreen::setRecalibrationFlag();
 
   delay(5);
 }
