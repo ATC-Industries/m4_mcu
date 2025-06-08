@@ -1,4 +1,3 @@
-// calibration.h
 #ifndef INCLUDE_TOUCH_CALIBRATION_H_
 #define INCLUDE_TOUCH_CALIBRATION_H_
 
@@ -9,7 +8,6 @@
 
 class TouchCalibration {
 public:
-  // Run full calibration procedure
   static bool runCalibration(LGFX& lcd, TouchScreen& touch);
 
 private:
@@ -25,6 +23,9 @@ private:
   static bool waitForTouch(TouchScreen& touch, uint16_t* x, uint16_t* y, uint16_t* z);
   static bool waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z);
   static bool waitForRelease(TouchScreen& touch);
+
+  // Add this new method declaration
+  static void waitForStableTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z);
 };
 
-#endif  // INCLUDE_TOUCH_CALIBRATION_H_
+#endif

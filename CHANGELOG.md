@@ -12,22 +12,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Touchscreen edge glitch caused by float underflow during coordinate mapping
-- Stable calibration now stores and uses proper matrix values
-- Debug logs enhanced to track matrix computation and touch mapping behavior
-- Raw touch axis swap issue that caused incorrect calibration results.
-- Touch mapping instability during diagonal gestures and edge presses.
-- Fixed inaccurate touch mapping caused by incorrect calibration point references
-- Calibration routine now uses actual on-screen target positions during setCalibration
+- Touch mapping instability during diagonal gestures and edge presses
+- Raw touch axis swap issue that caused incorrect calibration results
+- Inaccurate touch mapping caused by incorrect calibration point references
 - Touch inputs now register at the correct visual locations, including near screen edges
-
-### Refactored
-
-- Calibration input pipeline cleaned up to reflect correct axis orientation.
+- Touch spike detection now filters phantom touches that appear diagonally from corners
+- Corrected XPT2046 command bytes (X=0xD0, Y=0x90) to match standard chip configuration
 
 ### Changed
 
-- `TouchScreen::mapRawToScreen()` now clamps float values *before* casting to `uint16_t`
-- Lowered touch pressure threshold from 1000 to 200 to restore responsiveness in screen corners, especially bottom-left
+- `TouchScreen::mapRawToScreen()` now clamps float values before casting to `uint16_t`
+- Touch pressure threshold increased from 200 to 250 for better noise rejection
+- Enhanced raw touch sampling with 32 samples, discarding 6 highest/lowest outliers
+- Touch calibration now uses stable reading collection (10 consecutive readings within 30px)
+- Stable calibration now stores and uses proper matrix values
+- Debug logs enhanced to track matrix computation and touch mapping behavior
+
+### Added
+
+- Jump detection prevents impossible touch movements (>300px within 100ms)
+- Touch test visualization shows spike detection with red indicators
+- `waitForStableTouch()` method for more accurate calibration point collection
+
+### Refactored
+
+- Calibration input pipeline cleaned up to reflect correct axis orientation
+- Calibration routine now uses actual on-screen target positions during setCalibration
 
 ---
 

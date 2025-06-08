@@ -1,5 +1,7 @@
 #include "touch/touch.h"
 
+#include <math.h>
+
 // Create the global instance
 TouchScreen touch(38, 11, 13, 12);  // CS, MOSI, MISO, SCK
 static Preferences touchPrefs;
@@ -28,16 +30,17 @@ bool TouchScreen::begin() {
 uint16_t TouchScreen::readChannel(uint8_t channel) {
   SPI.beginTransaction(spi_settings_);
   digitalWrite(kCsPin_, LOW);
-  delayMicroseconds(100);
 
+  // Send command byte
   SPI.transfer(channel);
-  delayMicroseconds(100);
+  // Read 16-bit result
   uint16_t data = SPI.transfer16(0x00);
 
   digitalWrite(kCsPin_, HIGH);
   SPI.endTransaction();
 
-  return data >> 3;  // 12-bit resolution
+  // XPT2046 returns 12-bit data in bits 14-3
+  return data >> 3;
 }
 
 // bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
@@ -82,128 +85,131 @@ uint16_t TouchScreen::readChannel(uint8_t channel) {
 // }
 /////////////
 bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 10;  // Increased sample count for better averaging
-  const int kPressureThreshold = 200;
-  const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
+  uint16_t raw_x, raw_y, raw_z;
 
-  static uint16_t last_x = 0, last_y = 0;
-  static uint16_t stable_x = 0, stable_y = 0;
-  static uint8_t stable_count = 0;
-
-  // Arrays to store samples
-  uint16_t samples_x[kSamples];
-  uint16_t samples_y[kSamples];
-  uint16_t samples_z1[kSamples];
-  uint16_t samples_z2[kSamples];
-
-  // Take multiple samples
-  for (int i = 0; i < kSamples; i++) {
-    samples_z1[i] = readChannel(kCmdZ1_);
-    samples_z2[i] = readChannel(kCmdZ2_);
-    samples_x[i] = readChannel(kCmdX_);
-    samples_y[i] = readChannel(kCmdY_);
-    delayMicroseconds(100);  // Small delay between samples
-  }
-
-  // Sort samples to remove outliers
-  sortArray(samples_x, kSamples);
-  sortArray(samples_y, kSamples);
-  sortArray(samples_z1, kSamples);
-  sortArray(samples_z2, kSamples);
-
-  // Use median values (more robust than mean)
-  uint16_t med_y = samples_x[kSamples / 2];  // vertical axis
-  uint16_t med_x = samples_y[kSamples / 2];  // horizontal axis
-  uint16_t med_z1 = samples_z1[kSamples / 2];
-  uint16_t med_z2 = samples_z2[kSamples / 2];
-
-  // Calculate pressure
-  uint16_t pressure = med_z1 + 4095 - med_z2;
-  if (z != nullptr) {
-    *z = pressure;
-  }
-
-  // Check pressure threshold
-  if (pressure <= kPressureThreshold) {
+  if (!readRawTouchPoint(&raw_x, &raw_y, &raw_z)) {
     *x = 0;
     *y = 0;
-    stable_count = 0;
+    if (z) *z = 0;
     return false;
   }
 
-  // Apply coordinate transformations (swap X/Y and map to screen)
-  // Adjust these map ranges based on your actual touchscreen characteristics
-  // int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
-  // int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
+  if (z) *z = raw_z;
 
-  uint16_t mapped_x, mapped_y;
-  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);  // DO NOT SWAP
-
-  // Constrain values to screen boundaries
-  mapped_x = constrain(mapped_x, 0, 799);
-  mapped_y = constrain(mapped_y, 0, 479);
-
-  // Apply stability checking - if point hasn't moved much, keep previous stable point
-  if (stable_count > 0 && abs(mapped_x - last_x) < kJitterThreshold && abs(mapped_y - last_y) < kJitterThreshold) {
-    // Slowly adjust stable point toward current position (dampening)
-    stable_x = (stable_x * 3 + mapped_x) / 4;
-    stable_y = (stable_y * 3 + mapped_y) / 4;
-
-    if (stable_count < 255) stable_count++;
+  // Apply calibration
+  if (cal_data_.valid) {
+    // Use bilinear interpolation for better corner accuracy
+    applyBilinearInterpolation(raw_x, raw_y, x, y);
   } else {
-    // Point moved significantly, reset stability
-    stable_x = mapped_x;
-    stable_y = mapped_y;
-    stable_count = 1;
+    // Simple linear mapping as fallback
+    *x = map(raw_x, 200, 3800, 0, 800);
+    *y = map(raw_y, 350, 3700, 0, 480);
   }
 
-  // Save last position
-  last_x = mapped_x;
-  last_y = mapped_y;
-
-  // Return the stable point instead of raw point
-  *x = stable_x;
-  *y = stable_y;
-
-  // Debug output
-  Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d -> Stable: X=%d Y=%d (P=%d)\n", med_x, med_y, mapped_x, mapped_y,
-                stable_x, stable_y, pressure);
+  // Constrain to screen boundaries
+  *x = constrain(*x, 0, 799);
+  *y = constrain(*y, 0, 479);
 
   return true;
 }
 
 bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 10;
+  const int kSamples = 32;
+  const int kPressureThreshold = 250;
+  const int kDiscardCount = 6;
+  const int kSpikeThreshold = 500;  // Raw units spike threshold
+
   uint16_t samples_x[kSamples];
   uint16_t samples_y[kSamples];
   uint16_t samples_z1[kSamples];
   uint16_t samples_z2[kSamples];
+  int valid_samples = 0;
+
+  // First pass: collect samples and detect spikes
+  uint16_t first_x = 0, first_y = 0;
+  bool has_reference = false;
 
   for (int i = 0; i < kSamples; i++) {
-    samples_z1[i] = readChannel(kCmdZ1_);
-    samples_z2[i] = readChannel(kCmdZ2_);
-    samples_x[i] = readChannel(kCmdX_);
-    samples_y[i] = readChannel(kCmdY_);
+    // Read pressure first
+    uint16_t z1 = readChannel(kCmdZ1_);
+    uint16_t z2 = readChannel(kCmdZ2_);
+    uint16_t pressure = z1 + 4095 - z2;
+
+    if (pressure > 100) {  // Basic pressure check
+      uint16_t curr_x = readChannel(kCmdX_);
+      uint16_t curr_y = readChannel(kCmdY_);
+
+      // Spike detection
+      bool is_spike = false;
+      if (has_reference) {
+        int dx = abs((int)curr_x - (int)first_x);
+        int dy = abs((int)curr_y - (int)first_y);
+        if (dx > kSpikeThreshold || dy > kSpikeThreshold) {
+          is_spike = true;
+          Serial.printf("Raw spike filtered: X:%d->%d Y:%d->%d\n", first_x, curr_x, first_y, curr_y);
+        }
+      } else {
+        // First valid reading becomes reference
+        first_x = curr_x;
+        first_y = curr_y;
+        has_reference = true;
+      }
+
+      // Only store non-spike samples
+      if (!is_spike && valid_samples < kSamples) {
+        samples_x[valid_samples] = curr_x;
+        samples_y[valid_samples] = curr_y;
+        samples_z1[valid_samples] = z1;
+        samples_z2[valid_samples] = z2;
+        valid_samples++;
+      }
+    }
+
     delayMicroseconds(100);
   }
 
-  sortArray(samples_x, kSamples);
-  sortArray(samples_y, kSamples);
-  sortArray(samples_z1, kSamples);
-  sortArray(samples_z2, kSamples);
+  // Need minimum valid samples
+  if (valid_samples < (kDiscardCount * 2 + 1)) {
+    return false;
+  }
 
-  uint16_t med_y = samples_x[kSamples / 2];
-  uint16_t med_x = samples_y[kSamples / 2];
-  uint16_t med_z1 = samples_z1[kSamples / 2];
-  uint16_t med_z2 = samples_z2[kSamples / 2];
-  uint16_t pressure = med_z1 + 4095 - med_z2;
+  // Sort valid samples
+  sortArray(samples_x, valid_samples);
+  sortArray(samples_y, valid_samples);
+  sortArray(samples_z1, valid_samples);
+  sortArray(samples_z2, valid_samples);
 
+  // Calculate average excluding outliers
+  int start_idx = min(kDiscardCount, valid_samples / 4);
+  int end_idx = max(valid_samples - kDiscardCount, valid_samples * 3 / 4);
+  int count = end_idx - start_idx;
+
+  if (count <= 0) {
+    return false;
+  }
+
+  uint32_t sum_x = 0, sum_y = 0, sum_z1 = 0, sum_z2 = 0;
+  for (int i = start_idx; i < end_idx; i++) {
+    sum_x += samples_x[i];
+    sum_y += samples_y[i];
+    sum_z1 += samples_z1[i];
+    sum_z2 += samples_z2[i];
+  }
+
+  uint16_t avg_x = sum_x / count;
+  uint16_t avg_y = sum_y / count;
+  uint16_t avg_z1 = sum_z1 / count;
+  uint16_t avg_z2 = sum_z2 / count;
+
+  uint16_t pressure = avg_z1 + 4095 - avg_z2;
   if (z) *z = pressure;
 
-  if (pressure < 200) return false;
+  if (pressure < kPressureThreshold) {
+    return false;
+  }
 
-  *x = med_x;
-  *y = med_y;
+  *x = avg_x;
+  *y = avg_y;
 
   return true;
 }
@@ -230,11 +236,12 @@ bool TouchScreen::isTouched() {
   return readTouchPoint(&x, &y, &z);
 }
 
-uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
-  if (in_min == in_max) return (out_min + out_max) / 2;
-  long dividend = (long)(val - in_min) * (out_max - out_min);
-  return out_min + dividend / (in_max - in_min);
-}
+// uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max)
+// {
+//   if (in_min == in_max) return (out_min + out_max) / 2;
+//   long dividend = (long)(val - in_min) * (out_max - out_min);
+//   return out_min + dividend / (in_max - in_min);
+// }
 
 // void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
 //   if (!cal_data_.valid) {
@@ -267,60 +274,120 @@ uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max
 //   return saveCalibration();
 // }
 
+void TouchScreen::applyBilinearInterpolation(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
+  // Bilinear interpolation using the 4 calibration points
+  // This handles non-linear behavior near corners much better
+
+  // Find normalized position (0-1) within the calibration rectangle
+  float norm_x = (float)(raw_x - cal_data_.raw_min_x) / (cal_data_.raw_max_x - cal_data_.raw_min_x);
+  float norm_y = (float)(raw_y - cal_data_.raw_min_y) / (cal_data_.raw_max_y - cal_data_.raw_min_y);
+
+  // Clamp to 0-1 range
+  norm_x = constrain(norm_x, 0.0f, 1.0f);
+  norm_y = constrain(norm_y, 0.0f, 1.0f);
+
+  // Apply edge correction factor (reduces sensitivity near edges)
+  if (cal_data_.edge_correction_factor > 0) {
+    // Apply non-linear transformation to reduce edge effects
+    float edge_factor = cal_data_.edge_correction_factor;
+    norm_x = 0.5f + (norm_x - 0.5f) * (1.0f - edge_factor * (0.5f - fabs(norm_x - 0.5f)));
+    norm_y = 0.5f + (norm_y - 0.5f) * (1.0f - edge_factor * (0.5f - fabs(norm_y - 0.5f)));
+  }
+
+  // Bilinear interpolation
+  // Order: TL(0), TR(1), BR(2), BL(3)
+  float x_top = cal_data_.screen_x[0] + norm_x * (cal_data_.screen_x[1] - cal_data_.screen_x[0]);
+  float x_bot = cal_data_.screen_x[3] + norm_x * (cal_data_.screen_x[2] - cal_data_.screen_x[3]);
+  float x_final = x_top + norm_y * (x_bot - x_top);
+
+  float y_left = cal_data_.screen_y[0] + norm_y * (cal_data_.screen_y[3] - cal_data_.screen_y[0]);
+  float y_right = cal_data_.screen_y[1] + norm_y * (cal_data_.screen_y[2] - cal_data_.screen_y[1]);
+  float y_final = y_left + norm_x * (y_right - y_left);
+
+  *x = (uint16_t)(x_final + 0.5f);
+  *y = (uint16_t)(y_final + 0.5f);
+}
+
 bool TouchScreen::calculateCalibrationMatrix() {
   if (!cal_data_.valid) return false;
 
-  // For a resistive touch panel, we need to calculate the transformation
-  // matrix that converts touch coordinates to screen coordinates.
+  // Calculate the bounding box of raw values
+  cal_data_.raw_min_x = min(min(cal_data_.raw_x[0], cal_data_.raw_x[1]), min(cal_data_.raw_x[2], cal_data_.raw_x[3]));
+  cal_data_.raw_max_x = max(max(cal_data_.raw_x[0], cal_data_.raw_x[1]), max(cal_data_.raw_x[2], cal_data_.raw_x[3]));
+  cal_data_.raw_min_y = min(min(cal_data_.raw_y[0], cal_data_.raw_y[1]), min(cal_data_.raw_y[2], cal_data_.raw_y[3]));
+  cal_data_.raw_max_y = max(max(cal_data_.raw_y[0], cal_data_.raw_y[1]), max(cal_data_.raw_y[2], cal_data_.raw_y[3]));
 
-  // Variables for matrix calculation
-  float x[4], y[4], X[4], Y[4];
+  // Set edge correction factor (0.0 to 0.5, higher = more correction)
+  cal_data_.edge_correction_factor = 0.3f;
 
-  // Copy calibration points to floating point arrays
+  // Still calculate linear matrix as fallback
+  // Using all 4 points with least squares
+  float sum_x = 0, sum_y = 0, sum_X = 0, sum_Y = 0;
+  float sum_xx = 0, sum_xy = 0, sum_yy = 0;
+  float sum_xX = 0, sum_yX = 0, sum_xY = 0, sum_yY = 0;
+
   for (int i = 0; i < 4; i++) {
-    x[i] = cal_data_.raw_x[i];
-    y[i] = cal_data_.raw_y[i];
-    X[i] = cal_data_.screen_x[i];
-    Y[i] = cal_data_.screen_y[i];
+    float x = cal_data_.raw_x[i];
+    float y = cal_data_.raw_y[i];
+    float X = cal_data_.screen_x[i];
+    float Y = cal_data_.screen_y[i];
+
+    sum_x += x;
+    sum_y += y;
+    sum_X += X;
+    sum_Y += Y;
+    sum_xx += x * x;
+    sum_xy += x * y;
+    sum_yy += y * y;
+    sum_xX += x * X;
+    sum_yX += y * X;
+    sum_xY += x * Y;
+    sum_yY += y * Y;
   }
 
-  // Calculate determinant of coefficient matrix
-  float det = (x[0] - x[2]) * (y[1] - y[2]) - (x[1] - x[2]) * (y[0] - y[2]);
+  // Calculate matrix for linear transformation (used as fallback)
+  float n = 4.0f;
+  float det = n * (sum_xx * sum_yy - sum_xy * sum_xy) - sum_x * (sum_x * sum_yy - sum_y * sum_xy) +
+              sum_y * (sum_x * sum_xy - sum_y * sum_xx);
 
-  // If determinant is zero, calibration points are collinear
-  if (fabs(det) < 5.0f) {
-    Serial.println("Determinant too small — calibration invalid.");
+  if (fabs(det) < 1.0f) {
+    Serial.println("Calibration points are invalid!");
     return false;
   }
 
+  // Store linear transformation coefficients
+  cal_data_.matrix[0] = (n * sum_xX - sum_x * sum_X) / (n * sum_xx - sum_x * sum_x);
+  cal_data_.matrix[1] =
+      (n * sum_yX - sum_y * sum_X - cal_data_.matrix[0] * (n * sum_xy - sum_x * sum_y)) / (n * sum_yy - sum_y * sum_y);
+  cal_data_.matrix[2] = (sum_X - cal_data_.matrix[0] * sum_x - cal_data_.matrix[1] * sum_y) / n;
+
+  cal_data_.matrix[3] = (n * sum_xY - sum_x * sum_Y) / (n * sum_xx - sum_x * sum_x);
+  cal_data_.matrix[4] =
+      (n * sum_yY - sum_y * sum_Y - cal_data_.matrix[3] * (n * sum_xy - sum_x * sum_y)) / (n * sum_yy - sum_y * sum_y);
+  cal_data_.matrix[5] = (sum_Y - cal_data_.matrix[3] * sum_x - cal_data_.matrix[4] * sum_y) / n;
+
+  // Debug output
+  Serial.println("Calibration data:");
+  Serial.printf("Raw bounds: X[%d-%d] Y[%d-%d]\n", cal_data_.raw_min_x, cal_data_.raw_max_x, cal_data_.raw_min_y,
+                cal_data_.raw_max_y);
+  Serial.printf("Edge correction: %.2f\n", cal_data_.edge_correction_factor);
+
+  // Test calibration accuracy
+  Serial.println("Testing calibration accuracy:");
   for (int i = 0; i < 4; i++) {
-    Serial.printf("RawX[%d]=%u RawY[%d]=%u -> ScreenX=%u ScreenY=%u\n", i, cal_data_.raw_x[i], i, cal_data_.raw_y[i],
-                  cal_data_.screen_x[i], cal_data_.screen_y[i]);
+    uint16_t test_x, test_y;
+    applyBilinearInterpolation(cal_data_.raw_x[i], cal_data_.raw_y[i], &test_x, &test_y);
+    int error_x = abs((int)test_x - (int)cal_data_.screen_x[i]);
+    int error_y = abs((int)test_y - (int)cal_data_.screen_y[i]);
+    Serial.printf("Point %d: Expected(%d,%d) Got(%d,%d) Error(%d,%d)\n", i, cal_data_.screen_x[i],
+                  cal_data_.screen_y[i], test_x, test_y, error_x, error_y);
   }
-
-  // Calculate matrix coefficients
-  cal_data_.matrix[0] = ((X[0] - X[2]) * (y[1] - y[2]) - (X[1] - X[2]) * (y[0] - y[2])) / det;
-  cal_data_.matrix[1] = ((x[0] - x[2]) * (X[1] - X[2]) - (X[0] - X[2]) * (x[1] - x[2])) / det;
-  cal_data_.matrix[2] =
-      (y[0] * (x[2] * X[1] - x[1] * X[2]) + y[1] * (x[0] * X[2] - x[2] * X[0]) + y[2] * (x[1] * X[0] - x[0] * X[1])) /
-      det;
-  cal_data_.matrix[3] = ((Y[0] - Y[2]) * (y[1] - y[2]) - (Y[1] - Y[2]) * (y[0] - y[2])) / det;
-  cal_data_.matrix[4] = ((x[0] - x[2]) * (Y[1] - Y[2]) - (Y[0] - Y[2]) * (x[1] - x[2])) / det;
-  cal_data_.matrix[5] =
-      (y[0] * (x[2] * Y[1] - x[1] * Y[2]) + y[1] * (x[0] * Y[2] - x[2] * Y[0]) + y[2] * (x[1] * Y[0] - x[0] * Y[1])) /
-      det;
-
-  for (int i = 0; i < 6; i++) {
-    Serial.printf("Matrix[%d]: %.6f\n", i, cal_data_.matrix[i]);
-  }
-  Serial.printf("det: %.6f\n", det);
 
   return true;
 }
-
-// Update your setCalibration method to call calculateCalibrationMatrix
 bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                                  uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
+  // Store calibration points
   memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
   memcpy(cal_data_.raw_y, raw_y, sizeof(uint16_t) * 4);
 
@@ -333,24 +400,15 @@ bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0
   cal_data_.screen_x[3] = x3;
   cal_data_.screen_y[3] = y3;  // BL
 
-  // ✅ Temporarily mark valid so matrix can be calculated
   cal_data_.valid = true;
 
-  // Calculate the transformation matrix
-  Serial.println("Calculating matrix...");
+  // Calculate calibration parameters
   if (!calculateCalibrationMatrix()) {
-    Serial.println("Matrix calculation failed.");
+    cal_data_.valid = false;
     return false;
   }
 
-  Serial.println("Saving calibration...");
-  Serial.println("Calling saveCalibration from setCalibration()");
-  if (!saveCalibration()) {
-    Serial.println("Calibration save failed.");
-    return false;
-  }
-
-  return true;
+  return saveCalibration();
 }
 
 void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
@@ -360,13 +418,13 @@ void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, ui
     return;
   }
 
-  // Apply matrix transformation
-  float tx = cal_data_.matrix[0] * raw_x + cal_data_.matrix[1] * raw_y + cal_data_.matrix[2];
-  float ty = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
+  // Apply transformation matrix
+  float fx = cal_data_.matrix[0] * raw_x + cal_data_.matrix[1] * raw_y + cal_data_.matrix[2];
+  float fy = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
 
-  // Convert to integers and constrain to screen boundaries
-  *x = static_cast<uint16_t>(constrain(tx + 0.5f, 0.0f, 799.0f));
-  *y = static_cast<uint16_t>(constrain(ty + 0.5f, 0.0f, 479.0f));
+  // Round and constrain
+  *x = static_cast<uint16_t>(constrain(fx + 0.5f, 0.0f, 799.0f));
+  *y = static_cast<uint16_t>(constrain(fy + 0.5f, 0.0f, 479.0f));
 }
 
 bool TouchScreen::saveCalibration() {

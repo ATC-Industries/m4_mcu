@@ -29,7 +29,7 @@ void TouchCalibration::showTouchTest(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Draw calibration points
-  const uint16_t margin = 50;
+  const uint16_t margin = 20;
   drawTarget(lcd, margin, margin);                               // Top-left
   drawTarget(lcd, lcd.width() - margin, margin);                 // Top-right
   drawTarget(lcd, lcd.width() - margin, lcd.height() - margin);  // Bottom-right
@@ -144,7 +144,7 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Calibration points in screen coordinates
-  const uint16_t margin = 50;
+  const uint16_t margin = 20;
   const uint16_t screen_width = static_cast<uint16_t>(lcd.width());
   const uint16_t screen_height = static_cast<uint16_t>(lcd.height());
 
@@ -186,10 +186,15 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
   }
 
   // Save calibration data
-  if (!touch.setCalibration(cal_x, cal_y, points[0].x, points[0].y,  // TL
-                            points[1].x, points[1].y,                // TR
-                            points[2].x, points[2].y,                // BR
-                            points[3].x, points[3].y))               // BL
+  // if (!touch.setCalibration(cal_x, cal_y, points[0].x, points[0].y,  // TL
+  //                           points[1].x, points[1].y,                // TR
+  //                           points[2].x, points[2].y,                // BR
+  //                           points[3].x, points[3].y))               // BL
+  // {
+  if (!touch.setCalibration(cal_x, cal_y, margin, margin,                   // TL
+                            screen_width - margin, margin,                  // TR
+                            screen_width - margin, screen_height - margin,  // BR
+                            margin, screen_height - margin))                // BL
   {
     lcd.fillScreen(TFT_BLACK);
     lcd.setCursor(10, lcd.height() / 2);
@@ -298,7 +303,7 @@ uint16_t TouchScreen::readChannel(uint8_t channel) {
 /////////////
 bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   const int kSamples = 10;  // Increased sample count for better averaging
-  const int kPressureThreshold = 1000;
+  const int kPressureThreshold = 200;
   const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
 
   static uint16_t last_x = 0, last_y = 0;
@@ -327,8 +332,8 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   sortArray(samples_z2, kSamples);
 
   // Use median values (more robust than mean)
-  uint16_t med_x = samples_x[kSamples / 2];
-  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_y = samples_x[kSamples / 2];  // vertical axis
+  uint16_t med_x = samples_y[kSamples / 2];  // horizontal axis
   uint16_t med_z1 = samples_z1[kSamples / 2];
   uint16_t med_z2 = samples_z2[kSamples / 2];
 
@@ -352,7 +357,7 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   // int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
 
   uint16_t mapped_x, mapped_y;
-  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);
+  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);  // DO NOT SWAP
 
   // Constrain values to screen boundaries
   mapped_x = constrain(mapped_x, 0, 799);
@@ -407,18 +412,19 @@ bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   sortArray(samples_z1, kSamples);
   sortArray(samples_z2, kSamples);
 
-  uint16_t med_x = samples_x[kSamples / 2];
-  uint16_t med_y = samples_y[kSamples / 2];
+  uint16_t med_y = samples_x[kSamples / 2];
+  uint16_t med_x = samples_y[kSamples / 2];
   uint16_t med_z1 = samples_z1[kSamples / 2];
   uint16_t med_z2 = samples_z2[kSamples / 2];
   uint16_t pressure = med_z1 + 4095 - med_z2;
 
   if (z) *z = pressure;
 
-  if (pressure < 1000) return false;
+  if (pressure < 200) return false;
 
   *x = med_x;
   *y = med_y;
+
   return true;
 }
 
@@ -936,6 +942,48 @@ void setup() {
   Serial.println(__DATE__ " " __TIME__);
 
   init_display_and_touch();
+
+  // // ⬇️ test raw touch points
+  // Serial.println("==== RAW TOUCH TEST START ====");
+  // Serial.println("Touch each corner of the screen...");
+
+  // lcd.fillScreen(TFT_BLACK);
+  // lcd.setTextColor(TFT_WHITE);
+  // lcd.setTextSize(2);
+  // lcd.setCursor(10, 10);
+  // lcd.println("Touch Test Mode");
+
+  // unsigned long startTime = millis();
+  // const uint32_t duration = 15000;
+
+  // while (millis() - startTime < duration) {
+  //   // Show countdown timer (once per second)
+  //   static uint32_t lastSecond = 0;
+  //   uint32_t secondsLeft = (duration - (millis() - startTime)) / 1000;
+  //   if (secondsLeft != lastSecond) {
+  //     lastSecond = secondsLeft;
+  //     lcd.fillRect(10, 40, 200, 30, TFT_BLACK);  // Clear countdown area
+  //     lcd.setCursor(10, 40);
+  //     lcd.printf("Time Left: %2ds", secondsLeft);
+  //   }
+
+  //   uint16_t x, y, z;
+  //   if (touch.readRawTouchPoint(&x, &y, &z)) {
+  //     Serial.printf("Raw Touch: X=%d Y=%d Z=%d\n", x, y, z);
+
+  //     // Clear full coord area
+  //     lcd.fillRect(10, 80, 300, 30, TFT_BLACK);  // Wide enough to clear old text
+
+  //     // Display coordinates
+  //     lcd.setCursor(10, 80);
+  //     lcd.printf("X: %d  Y: %d  Z: %d", x, y, z);
+
+  //     delay(100);
+  //   }
+  // }
+
+  // Serial.println("==== RAW TOUCH TEST END ====");
+
   init_lvgl();
   ui_init();
   PullStateManager::init();
