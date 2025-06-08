@@ -10,7 +10,7 @@ void TouchCalibration::showTouchTest(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Draw calibration points
-  const uint16_t margin = 100;
+  const uint16_t margin = 0;
   drawTarget(lcd, margin, margin);                               // Top-left
   drawTarget(lcd, lcd.width() - margin, margin);                 // Top-right
   drawTarget(lcd, lcd.width() - margin, lcd.height() - margin);  // Bottom-right
@@ -125,7 +125,7 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Calibration points in screen coordinates
-  const uint16_t margin = 100;
+  const uint16_t margin = 0;
   const uint16_t screen_width = static_cast<uint16_t>(lcd.width());
   const uint16_t screen_height = static_cast<uint16_t>(lcd.height());
 
@@ -191,8 +191,93 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
 }
 
 bool TouchCalibration::waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z) {
-  while (true) {
-    if (touch.readRawTouchPoint(raw_x, raw_y, z)) return true;
-    delay(10);
+  // Simply call the new stable touch method
+  waitForStableTouch(touch, raw_x, raw_y, z);
+  return (*raw_x != 0 || *raw_y != 0);
+}
+
+void TouchCalibration::waitForStableTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z) {
+  const int kStableReadings = 10;  // Number of consecutive stable readings needed
+  const int kMaxDeviation = 30;    // Maximum allowed deviation between readings
+  const int kTimeout = 10000;      // Timeout in milliseconds
+
+  uint16_t readings_x[kStableReadings];
+  uint16_t readings_y[kStableReadings];
+  int reading_count = 0;
+
+  uint32_t start_time = millis();
+
+  Serial.println("Waiting for stable touch...");
+
+  while (reading_count < kStableReadings && (millis() - start_time) < kTimeout) {
+    uint16_t x, y, pressure;
+
+    if (touch.readRawTouchPoint(&x, &y, &pressure)) {
+      // For the first reading, just store it
+      if (reading_count == 0) {
+        readings_x[0] = x;
+        readings_y[0] = y;
+        reading_count = 1;
+      } else {
+        // Check if this reading is stable compared to all previous ones
+        bool stable = true;
+
+        for (int i = 0; i < reading_count; i++) {
+          if (abs((int)x - (int)readings_x[i]) > kMaxDeviation || abs((int)y - (int)readings_y[i]) > kMaxDeviation) {
+            stable = false;
+            break;
+          }
+        }
+
+        if (stable) {
+          // Add this stable reading
+          readings_x[reading_count] = x;
+          readings_y[reading_count] = y;
+          reading_count++;
+
+          // Visual feedback - show progress
+          Serial.printf("Stable reading %d/%d: X=%d Y=%d\n", reading_count, kStableReadings, x, y);
+        } else {
+          // Unstable - start over with this new reading
+          Serial.println("Touch moved - restarting stability check");
+          readings_x[0] = x;
+          readings_y[0] = y;
+          reading_count = 1;
+        }
+      }
+    } else {
+      // No touch detected - reset
+      if (reading_count > 0) {
+        Serial.println("Touch released - restarting");
+        reading_count = 0;
+      }
+    }
+
+    delay(20);  // Small delay between readings
+  }
+
+  if (reading_count >= kStableReadings) {
+    // Calculate average of stable readings
+    uint32_t sum_x = 0, sum_y = 0;
+    for (int i = 0; i < kStableReadings; i++) {
+      sum_x += readings_x[i];
+      sum_y += readings_y[i];
+    }
+
+    *raw_x = sum_x / kStableReadings;
+    *raw_y = sum_y / kStableReadings;
+    if (z) *z = 1000;  // Dummy pressure value
+
+    Serial.printf("Final stable reading: X=%d Y=%d\n", *raw_x, *raw_y);
+  } else {
+    Serial.println("Failed to get stable reading!");
+    // Return last reading if we have one
+    if (reading_count > 0) {
+      *raw_x = readings_x[reading_count - 1];
+      *raw_y = readings_y[reading_count - 1];
+    } else {
+      *raw_x = 0;
+      *raw_y = 0;
+    }
   }
 }
