@@ -115,7 +115,7 @@ bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
 
 bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
   const int kSamples = 32;
-  const int kPressureThreshold = 250;
+  const int kPressureThreshold = 150;
   const int kDiscardCount = 6;
   const int kSpikeThreshold = 100;  // Raw units spike threshold
 
