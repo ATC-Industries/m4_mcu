@@ -10,7 +10,7 @@ void TouchCalibration::showTouchTest(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Draw calibration points
-  const uint16_t margin = 0;
+  const uint16_t margin = 1;
   drawTarget(lcd, margin, margin);                               // Top-left
   drawTarget(lcd, lcd.width() - margin, margin);                 // Top-right
   drawTarget(lcd, lcd.width() - margin, lcd.height() - margin);  // Bottom-right
@@ -125,7 +125,7 @@ bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
   lcd.setTextSize(2);
 
   // Calibration points in screen coordinates
-  const uint16_t margin = 0;
+  const uint16_t margin = 1;
   const uint16_t screen_width = static_cast<uint16_t>(lcd.width());
   const uint16_t screen_height = static_cast<uint16_t>(lcd.height());
 
