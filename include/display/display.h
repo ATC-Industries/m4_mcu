@@ -76,6 +76,8 @@ public:
   }
 };
 
+void init_display();
+
 extern LGFX lcd;
 
 #endif  // INCLUDE_DISPLAY_H_

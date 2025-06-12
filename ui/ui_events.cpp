@@ -13,7 +13,6 @@
 #include "custom_ui/custom_keyboard.h"
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
-#include "touch/touch.h"
 #include "ui.h"
 
 const char *VERSION_STRING = VERSION;
@@ -432,7 +431,9 @@ void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
   lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
 }
 
-void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }
+void RecalibrateTouch(lv_event_t *e) {
+  // TouchScreen::setRecalibrationFlag();
+}
 
 void HELPTachAutoConnect(lv_event_t *e) {
   // Your code here

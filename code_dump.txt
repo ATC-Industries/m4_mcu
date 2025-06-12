@@ -1,775 +1,409 @@
 Tree
 
 src/touch/
-├── .DS_Store
+├── XPT2046_Touchscreen.cpp
 ├── calibration.cpp
-└── touch.cpp
+├── calibration_flow.cpp
+├── touch_manager.cpp
+└── touchscreen.cpp
 
 include/touch/
-├── .DS_Store
+├── XPT2046_Touchscreen.h
 ├── calibration.h
-└── touch.h
+├── calibration_flow.h
+├── touch_manager.h
+└── touchscreen.h
 
 src/main.cpp
 
 
-// src/touch/.DS_Store
-// Error reading file src/touch/.DS_Store: 'utf-8' codec can't decode byte 0x80 in position 3131: invalid start byte
-
 // src/touch/calibration.cpp
-#include "touch/calibration.h"
 
-void TouchCalibration::showTouchTest(LGFX& lcd, TouchScreen& touch) {
-  // Constants for the test grid
-  const uint16_t kGridSize = 50;  // Size of grid squares
-  const uint16_t kDotRadius = 3;  // Size of touch indicator
 
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.setTextSize(2);
+// src/touch/calibration_flow.cpp
 
-  // Draw calibration points
-  const uint16_t margin = 20;
-  drawTarget(lcd, margin, margin);                               // Top-left
-  drawTarget(lcd, lcd.width() - margin, margin);                 // Top-right
-  drawTarget(lcd, lcd.width() - margin, lcd.height() - margin);  // Bottom-right
-  drawTarget(lcd, margin, lcd.height() - margin);                // Bottom-left
 
-  // Draw grid
-  lcd.setTextSize(1);
-  for (int x = 0; x < lcd.width(); x += kGridSize) {
-    lcd.drawLine(x, 0, x, lcd.height(), TFT_DARKGREY);
-    if (x % 100 == 0) {  // Label every 100 pixels
-      lcd.setCursor(x + 2, 2);
-      lcd.printf("%d", x);
-    }
-  }
-  for (int y = 0; y < lcd.height(); y += kGridSize) {
-    lcd.drawLine(0, y, lcd.width(), y, TFT_DARKGREY);
-    if (y % 100 == 0) {  // Label every 100 pixels
-      lcd.setCursor(2, y + 2);
-      lcd.printf("%d", y);
-    }
-  }
+// src/touch/XPT2046_Touchscreen.cpp
+/* Touchscreen library for XPT2046 Touch Controller Chip
+ * Copyright (c) 2015, Paul Stoffregen, paul@pjrc.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice, development funding notice, and this permission
+ * notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
-  // Instructions
-  lcd.setTextSize(2);
-  lcd.setCursor(10, 10);
-  lcd.println("Touch Test Mode");
-  lcd.setCursor(10, 30);
-  lcd.println("Touch calibration points to verify");
+#include "XPT2046_Touchscreen.h"
 
-  const int kTrailLength = 10;  // Number of previous points to show
-  uint16_t trail_x[kTrailLength] = {0};
-  uint16_t trail_y[kTrailLength] = {0};
-  int trail_index = 0;
+#define Z_THRESHOLD     300
+#define Z_THRESHOLD_INT	75
+#define MSEC_THRESHOLD  3
+#define SPI_SETTING     SPISettings(2000000, MSBFIRST, SPI_MODE0)
 
-  uint32_t start_time = millis();
-  while (millis() - start_time < 30000) {  // Run for 30 seconds
-    uint16_t x, y, z;
-    if (touch.readTouchPoint(&x, &y, &z)) {
-      // Store point in trail
-      trail_x[trail_index] = x;
-      trail_y[trail_index] = y;
-      trail_index = (trail_index + 1) % kTrailLength;
+static XPT2046_Touchscreen 	*isrPinptr;
+void isrPin(void);
 
-      // Clear coordinate display area
-      lcd.fillRect(10, lcd.height() - 60, lcd.width() - 20, 50, TFT_BLACK);
-
-      // Show coordinates
-      lcd.setTextSize(2);
-      lcd.setCursor(10, lcd.height() - 50);
-      lcd.printf("X: %3d  Y: %3d", x, y);
-      lcd.setCursor(10, lcd.height() - 25);
-      lcd.printf("Pressure: %4d", z);
-
-      // Draw trail with fading
-      for (int i = 0; i < kTrailLength; i++) {
-        if (trail_x[i] != 0 || trail_y[i] != 0) {
-          int age = (kTrailLength + trail_index - i) % kTrailLength;
-          uint16_t color = lcd.color565(255 - (age * 25), 255 - (age * 25), 255 - (age * 25));
-          lcd.fillCircle(trail_x[i], trail_y[i], kDotRadius, color);
-        }
-      }
-    } else {
-      // Clear old points when touch released
-      if (trail_x[trail_index] != 0 || trail_y[trail_index] != 0) {
-        trail_x[trail_index] = 0;
-        trail_y[trail_index] = 0;
-        trail_index = (trail_index + 1) % kTrailLength;
-      }
-    }
-    delay(10);
-  }
-
-  // Clear screen when done
-  lcd.fillScreen(TFT_BLACK);
+bool XPT2046_Touchscreen::begin(SPIClass &wspi)
+{
+	_pspi = &wspi;
+	_pspi->begin();
+	pinMode(csPin, OUTPUT);
+	digitalWrite(csPin, HIGH);
+	if (255 != tirqPin) {
+		pinMode( tirqPin, INPUT );
+		attachInterrupt(digitalPinToInterrupt(tirqPin), isrPin, FALLING);
+		isrPinptr = this;
+	}
+	return true;
 }
 
-bool TouchCalibration::waitForTouch(TouchScreen& touch, uint16_t* x, uint16_t* y, uint16_t* z) {
-  return touch.readTouchPoint(x, y, z);
+#if defined(_FLEXIO_SPI_H_)
+#define FLEXSPI_SETTING     FlexIOSPISettings(2000000, MSBFIRST, SPI_MODE0)
+bool XPT2046_Touchscreen::begin(FlexIOSPI &wflexspi)
+{
+	_pspi = nullptr; // make sure we dont use this one... 
+	_pflexspi = &wflexspi;
+	_pflexspi->begin();
+	pinMode(csPin, OUTPUT);
+	digitalWrite(csPin, HIGH);
+	if (255 != tirqPin) {
+		pinMode( tirqPin, INPUT );
+		attachInterrupt(digitalPinToInterrupt(tirqPin), isrPin, FALLING);
+		isrPinptr = this;
+	}
+	return true;
+}
+#endif
+
+
+ISR_PREFIX
+void isrPin( void )
+{
+	XPT2046_Touchscreen *o = isrPinptr;
+	o->isrWake = true;
 }
 
-bool TouchCalibration::waitForRelease(TouchScreen& touch) {
-  uint16_t x, y, z;
-  while (touch.readTouchPoint(&x, &y, &z)) {
-    delay(10);
-  }
-  return true;
+TS_Point XPT2046_Touchscreen::getPoint()
+{
+	update();
+	return TS_Point(xraw, yraw, zraw);
 }
 
-void TouchCalibration::drawTarget(LGFX& lcd, uint16_t x, uint16_t y) {
-  lcd.drawCircle(x, y, kTargetSize, TFT_RED);
-  lcd.drawCircle(x, y, kTargetSize / 2, TFT_RED);
-  lcd.drawLine(x - kTargetSize, y, x + kTargetSize, y, TFT_RED);
-  lcd.drawLine(x, y - kTargetSize, x, y + kTargetSize, TFT_RED);
+bool XPT2046_Touchscreen::tirqTouched()
+{
+	return (isrWake);
 }
 
-void TouchCalibration::showCalibrationPoint(LGFX& lcd, uint16_t x, uint16_t y, const char* message) {
-  lcd.fillScreen(TFT_BLACK);
-  drawTarget(lcd, x, y);
-
-  clearTextArea(lcd);
-  lcd.setCursor(10, lcd.height() / 2);
-  lcd.print(message);
+bool XPT2046_Touchscreen::touched()
+{
+	update();
+	return (zraw >= Z_THRESHOLD);
 }
 
-void TouchCalibration::clearTextArea(LGFX& lcd) {
-  lcd.fillRect(0, lcd.height() / 2 - kTextHeight / 2, lcd.width(), kTextHeight, TFT_BLACK);
+void XPT2046_Touchscreen::readData(uint16_t *x, uint16_t *y, uint8_t *z)
+{
+	update();
+	*x = xraw;
+	*y = yraw;
+	*z = zraw;
 }
 
-bool TouchCalibration::runCalibration(LGFX& lcd, TouchScreen& touch) {
-  lcd.fillScreen(TFT_BLACK);
-  lcd.setTextColor(TFT_WHITE);
-  lcd.setTextSize(2);
-
-  // Calibration points in screen coordinates
-  const uint16_t margin = 20;
-  const uint16_t screen_width = static_cast<uint16_t>(lcd.width());
-  const uint16_t screen_height = static_cast<uint16_t>(lcd.height());
-
-  struct CalPoint {
-    uint16_t x;
-    uint16_t y;
-    const char* msg;
-  } points[] = {{margin, margin, "Touch the target in top-left"},
-                {static_cast<uint16_t>(screen_width - margin), margin, "Touch the target in top-right"},
-                {static_cast<uint16_t>(screen_width - margin), static_cast<uint16_t>(screen_height - margin),
-                 "Touch the target in bottom-right"},
-                {margin, static_cast<uint16_t>(screen_height - margin), "Touch the target in bottom-left"}};
-
-  // Collect calibration points
-  uint16_t cal_x[4], cal_y[4];  // Raw touch values for each corner
-
-  for (int i = 0; i < 4; i++) {
-    showCalibrationPoint(lcd, points[i].x, points[i].y, points[i].msg);
-
-    // Wait for any previous touch to be released
-    waitForRelease(touch);
-    delay(kDebounceDelay);
-
-    // Get touch point
-    uint16_t raw_x, raw_y, z;
-    waitForRawTouch(touch, &raw_x, &raw_y, &z);
-    cal_x[i] = raw_x;
-    cal_y[i] = raw_y;
-
-    // Show success
-    clearTextArea(lcd);
-    lcd.setCursor(10, lcd.height() / 2);
-    lcd.print("Point recorded!");
-    delay(500);
-
-    // Wait for release before next point
-    waitForRelease(touch);
-    delay(kDebounceDelay);
-  }
-
-  // Save calibration data
-  // if (!touch.setCalibration(cal_x, cal_y, points[0].x, points[0].y,  // TL
-  //                           points[1].x, points[1].y,                // TR
-  //                           points[2].x, points[2].y,                // BR
-  //                           points[3].x, points[3].y))               // BL
-  // {
-  if (!touch.setCalibration(cal_x, cal_y, margin, margin,                   // TL
-                            screen_width - margin, margin,                  // TR
-                            screen_width - margin, screen_height - margin,  // BR
-                            margin, screen_height - margin))                // BL
-  {
-    lcd.fillScreen(TFT_BLACK);
-    lcd.setCursor(10, lcd.height() / 2);
-    lcd.print("Calibration save failed!");
-    delay(2000);
-    return false;
-  }
-
-  // Run touch test to verify calibration
-  showTouchTest(lcd, touch);
-
-  return true;
+bool XPT2046_Touchscreen::bufferEmpty()
+{
+	return ((millis() - msraw) < MSEC_THRESHOLD);
 }
 
-bool TouchCalibration::waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z) {
-  while (true) {
-    if (touch.readRawTouchPoint(raw_x, raw_y, z)) return true;
-    delay(10);
-  }
+static int16_t besttwoavg( int16_t x , int16_t y , int16_t z ) {
+  int16_t da, db, dc;
+  int16_t reta = 0;
+  if ( x > y ) da = x - y; else da = y - x;
+  if ( x > z ) db = x - z; else db = z - x;
+  if ( z > y ) dc = z - y; else dc = y - z;
+
+  if ( da <= db && da <= dc ) reta = (x + y) >> 1;
+  else if ( db <= da && db <= dc ) reta = (x + z) >> 1;
+  else reta = (y + z) >> 1;   //    else if ( dc <= da && dc <= db ) reta = (x + y) >> 1;
+
+  return (reta);
+}
+
+// TODO: perhaps a future version should offer an option for more oversampling,
+//       with the RANSAC algorithm https://en.wikipedia.org/wiki/RANSAC
+
+void XPT2046_Touchscreen::update()
+{
+	int16_t data[6];
+	int z;
+	if (!isrWake) return;
+	uint32_t now = millis();
+	if (now - msraw < MSEC_THRESHOLD) return;
+	if (_pspi) {
+		_pspi->beginTransaction(SPI_SETTING);
+		digitalWrite(csPin, LOW);
+		_pspi->transfer(0xB1 /* Z1 */);
+		int16_t z1 = _pspi->transfer16(0xC1 /* Z2 */) >> 3;
+		z = z1 + 4095;
+		int16_t z2 = _pspi->transfer16(0x91 /* X */) >> 3;
+		z -= z2;
+		if (z >= Z_THRESHOLD) {
+			_pspi->transfer16(0x91 /* X */);  // dummy X measure, 1st is always noisy
+			data[0] = _pspi->transfer16(0xD1 /* Y */) >> 3;
+			data[1] = _pspi->transfer16(0x91 /* X */) >> 3; // make 3 x-y measurements
+			data[2] = _pspi->transfer16(0xD1 /* Y */) >> 3;
+			data[3] = _pspi->transfer16(0x91 /* X */) >> 3;
+		}
+		else data[0] = data[1] = data[2] = data[3] = 0;	// Compiler warns these values may be used unset on early exit.
+		data[4] = _pspi->transfer16(0xD0 /* Y */) >> 3;	// Last Y touch power down
+		data[5] = _pspi->transfer16(0) >> 3;
+		digitalWrite(csPin, HIGH);
+		_pspi->endTransaction();
+	}	
+#if defined(_FLEXIO_SPI_H_)
+	else if (_pflexspi) {
+		_pflexspi->beginTransaction(FLEXSPI_SETTING);
+		digitalWrite(csPin, LOW);
+		_pflexspi->transfer(0xB1 /* Z1 */);
+		int16_t z1 = _pflexspi->transfer16(0xC1 /* Z2 */) >> 3;
+		z = z1 + 4095;
+		int16_t z2 = _pflexspi->transfer16(0x91 /* X */) >> 3;
+		z -= z2;
+		if (z >= Z_THRESHOLD) {
+			_pflexspi->transfer16(0x91 /* X */);  // dummy X measure, 1st is always noisy
+			data[0] = _pflexspi->transfer16(0xD1 /* Y */) >> 3;
+			data[1] = _pflexspi->transfer16(0x91 /* X */) >> 3; // make 3 x-y measurements
+			data[2] = _pflexspi->transfer16(0xD1 /* Y */) >> 3;
+			data[3] = _pflexspi->transfer16(0x91 /* X */) >> 3;
+		}
+		else data[0] = data[1] = data[2] = data[3] = 0;	// Compiler warns these values may be used unset on early exit.
+		data[4] = _pflexspi->transfer16(0xD0 /* Y */) >> 3;	// Last Y touch power down
+		data[5] = _pflexspi->transfer16(0) >> 3;
+		digitalWrite(csPin, HIGH);
+		_pflexspi->endTransaction();
+
+	}
+#endif
+	// If we do not have either _pspi or _pflexspi than bail. 
+	else return;
+
+	//Serial.printf("z=%d  ::  z1=%d,  z2=%d  ", z, z1, z2);
+	if (z < 0) z = 0;
+	if (z < Z_THRESHOLD) { //	if ( !touched ) {
+		// Serial.println();
+		zraw = 0;
+		if (z < Z_THRESHOLD_INT) { //	if ( !touched ) {
+			if (255 != tirqPin) isrWake = false;
+		}
+		return;
+	}
+	zraw = z;
+	
+	// Average pair with least distance between each measured x then y
+	//Serial.printf("    z1=%d,z2=%d  ", z1, z2);
+	//Serial.printf("p=%d,  %d,%d  %d,%d  %d,%d", zraw,
+		//data[0], data[1], data[2], data[3], data[4], data[5]);
+	int16_t x = besttwoavg( data[0], data[2], data[4] );
+	int16_t y = besttwoavg( data[1], data[3], data[5] );
+	
+	//Serial.printf("    %d,%d", x, y);
+	//Serial.println();
+	if (z >= Z_THRESHOLD) {
+		msraw = now;	// good read completed, set wait
+		switch (rotation) {
+		  case 0:
+			xraw = 4095 - y;
+			yraw = x;
+			break;
+		  case 1:
+			xraw = x;
+			yraw = y;
+			break;
+		  case 2:
+			xraw = y;
+			yraw = 4095 - x;
+			break;
+		  default: // 3
+			xraw = 4095 - x;
+			yraw = 4095 - y;
+		}
+	}
 }
 
 
-// src/touch/touch.cpp
-#include "touch/touch.h"
 
-// Create the global instance
-TouchScreen touch(38, 11, 13, 12);  // CS, MOSI, MISO, SCK
-static Preferences touchPrefs;
 
-TouchScreen::TouchScreen(uint8_t cs_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t sck_pin)
-    : kCsPin_(cs_pin),
-      kMosiPin_(mosi_pin),
-      kMisoPin_(miso_pin),
-      kSckPin_(sck_pin),
-      spi_settings_(kSpiFreq_, MSBFIRST, SPI_MODE0) {
-  cal_data_.valid = false;  // Initialize calibration as invalid
-}
 
-bool TouchScreen::begin() {
-  Serial.println("Initializing TouchScreen...");
+// src/touch/touchscreen.cpp
+#include "touch/touchscreen.h"
 
-  pinMode(kCsPin_, OUTPUT);
-  digitalWrite(kCsPin_, HIGH);
-
-  Serial.printf("Touch pins - CS:%d MOSI:%d MISO:%d SCK:%d\n", kCsPin_, kMosiPin_, kMisoPin_, kSckPin_);
-
-  SPI.begin(kSckPin_, kMisoPin_, kMosiPin_);
-  return true;
-}
-
-uint16_t TouchScreen::readChannel(uint8_t channel) {
-  SPI.beginTransaction(spi_settings_);
-  digitalWrite(kCsPin_, LOW);
-  delayMicroseconds(100);
-
-  SPI.transfer(channel);
-  delayMicroseconds(100);
-  uint16_t data = SPI.transfer16(0x00);
-
-  digitalWrite(kCsPin_, HIGH);
-  SPI.endTransaction();
-
-  return data >> 3;  // 12-bit resolution
-}
-
-// bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-//   const int kSamples = 3;
-//   uint32_t avg_x = 0, avg_y = 0, avg_z1 = 0, avg_z2 = 0;
-
-//   for (int i = 0; i < kSamples; i++) {
-//     avg_z1 += readChannel(kCmdZ1_);
-//     avg_z2 += readChannel(kCmdZ2_);
-//     avg_x += readChannel(kCmdX_);
-//     avg_y += readChannel(kCmdY_);
-//   }
-
-//   avg_x /= kSamples;
-//   avg_y /= kSamples;
-//   avg_z1 /= kSamples;
-//   avg_z2 /= kSamples;
-
-//   uint16_t pressure = avg_z1 + 4095 - avg_z2;
-//   if (z != nullptr) {
-//     *z = pressure;
-//   }
-
-//   if (pressure > 500) {  // Minimum pressure for valid touch
-//     // SWAP X and Y axes and map to screen coordinates with constraints
-//     int32_t mapped_x = map(avg_y, 200, 3800, 0, 800);
-//     int32_t mapped_y = map(avg_x, 350, 3700, 0, 480);
-
-//     // Constrain values to screen boundaries
-//     *x = constrain(mapped_x, 0, 799);
-//     *y = constrain(mapped_y, 0, 479);
-
-//     // Debug output
-//     Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d (P=%d)\n", avg_x, avg_y, *x, *y, pressure);
-
-//     return true;
-//   }
-
-//   *x = 0;
-//   *y = 0;
-//   return false;
-// }
-/////////////
-bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 10;  // Increased sample count for better averaging
-  const int kPressureThreshold = 200;
-  const int kJitterThreshold = 100;  // Maximum allowed point movement to be considered the same point
-
-  static uint16_t last_x = 0, last_y = 0;
-  static uint16_t stable_x = 0, stable_y = 0;
-  static uint8_t stable_count = 0;
-
-  // Arrays to store samples
-  uint16_t samples_x[kSamples];
-  uint16_t samples_y[kSamples];
-  uint16_t samples_z1[kSamples];
-  uint16_t samples_z2[kSamples];
-
-  // Take multiple samples
-  for (int i = 0; i < kSamples; i++) {
-    samples_z1[i] = readChannel(kCmdZ1_);
-    samples_z2[i] = readChannel(kCmdZ2_);
-    samples_x[i] = readChannel(kCmdX_);
-    samples_y[i] = readChannel(kCmdY_);
-    delayMicroseconds(100);  // Small delay between samples
-  }
-
-  // Sort samples to remove outliers
-  sortArray(samples_x, kSamples);
-  sortArray(samples_y, kSamples);
-  sortArray(samples_z1, kSamples);
-  sortArray(samples_z2, kSamples);
-
-  // Use median values (more robust than mean)
-  uint16_t med_y = samples_x[kSamples / 2];  // vertical axis
-  uint16_t med_x = samples_y[kSamples / 2];  // horizontal axis
-  uint16_t med_z1 = samples_z1[kSamples / 2];
-  uint16_t med_z2 = samples_z2[kSamples / 2];
-
-  // Calculate pressure
-  uint16_t pressure = med_z1 + 4095 - med_z2;
-  if (z != nullptr) {
-    *z = pressure;
-  }
-
-  // Check pressure threshold
-  if (pressure <= kPressureThreshold) {
-    *x = 0;
-    *y = 0;
-    stable_count = 0;
-    return false;
-  }
-
-  // Apply coordinate transformations (swap X/Y and map to screen)
-  // Adjust these map ranges based on your actual touchscreen characteristics
-  // int32_t mapped_x = map(med_y, 200, 3800, 0, 800);
-  // int32_t mapped_y = map(med_x, 350, 3700, 0, 480);
-
-  uint16_t mapped_x, mapped_y;
-  mapRawToScreen(med_x, med_y, &mapped_x, &mapped_y);  // DO NOT SWAP
-
-  // Constrain values to screen boundaries
-  mapped_x = constrain(mapped_x, 0, 799);
-  mapped_y = constrain(mapped_y, 0, 479);
-
-  // Apply stability checking - if point hasn't moved much, keep previous stable point
-  if (stable_count > 0 && abs(mapped_x - last_x) < kJitterThreshold && abs(mapped_y - last_y) < kJitterThreshold) {
-    // Slowly adjust stable point toward current position (dampening)
-    stable_x = (stable_x * 3 + mapped_x) / 4;
-    stable_y = (stable_y * 3 + mapped_y) / 4;
-
-    if (stable_count < 255) stable_count++;
-  } else {
-    // Point moved significantly, reset stability
-    stable_x = mapped_x;
-    stable_y = mapped_y;
-    stable_count = 1;
-  }
-
-  // Save last position
-  last_x = mapped_x;
-  last_y = mapped_y;
-
-  // Return the stable point instead of raw point
-  *x = stable_x;
-  *y = stable_y;
-
-  // Debug output
-  Serial.printf("Raw: X=%d Y=%d -> Mapped: X=%d Y=%d -> Stable: X=%d Y=%d (P=%d)\n", med_x, med_y, mapped_x, mapped_y,
-                stable_x, stable_y, pressure);
-
-  return true;
-}
-
-bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 10;
-  uint16_t samples_x[kSamples];
-  uint16_t samples_y[kSamples];
-  uint16_t samples_z1[kSamples];
-  uint16_t samples_z2[kSamples];
-
-  for (int i = 0; i < kSamples; i++) {
-    samples_z1[i] = readChannel(kCmdZ1_);
-    samples_z2[i] = readChannel(kCmdZ2_);
-    samples_x[i] = readChannel(kCmdX_);
-    samples_y[i] = readChannel(kCmdY_);
-    delayMicroseconds(100);
-  }
-
-  sortArray(samples_x, kSamples);
-  sortArray(samples_y, kSamples);
-  sortArray(samples_z1, kSamples);
-  sortArray(samples_z2, kSamples);
-
-  uint16_t med_y = samples_x[kSamples / 2];
-  uint16_t med_x = samples_y[kSamples / 2];
-  uint16_t med_z1 = samples_z1[kSamples / 2];
-  uint16_t med_z2 = samples_z2[kSamples / 2];
-  uint16_t pressure = med_z1 + 4095 - med_z2;
-
-  if (z) *z = pressure;
-
-  if (pressure < 200) return false;
-
-  *x = med_x;
-  *y = med_y;
-
-  return true;
-}
-
-// Helper function to sort an array (insertion sort)
-void TouchScreen::sortArray(uint16_t array[], int size) {
-  for (int i = 1; i < size; i++) {
-    uint16_t key = array[i];
-    int j = i - 1;
-
-    while (j >= 0 && array[j] > key) {
-      array[j + 1] = array[j];
-      j--;
-    }
-
-    array[j + 1] = key;
-  }
-}
-
-/////////////
-
-bool TouchScreen::isTouched() {
-  uint16_t x, y, z;
-  return readTouchPoint(&x, &y, &z);
-}
-
-uint16_t TouchScreen::interpolate(uint16_t val, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max) {
-  if (in_min == in_max) return (out_min + out_max) / 2;
-  long dividend = (long)(val - in_min) * (out_max - out_min);
-  return out_min + dividend / (in_max - in_min);
-}
-
-// void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
-//   if (!cal_data_.valid) {
-//     *x = raw_x;
-//     *y = raw_y;
-//     return;
-//   }
-
-//   // Simple linear interpolation between calibration points
-//   *y = interpolate(raw_x, cal_data_.raw_x[0], cal_data_.raw_x[1], cal_data_.screen_y[0], cal_data_.screen_y[1]);
-//   *x = interpolate(raw_y, cal_data_.raw_y[0], cal_data_.raw_y[2], cal_data_.screen_x[0], cal_data_.screen_x[2]);
-// }
-
-// bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t
-// y1,
-//                                  uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
-//   memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
-//   memcpy(cal_data_.raw_y, raw_y, sizeof(uint16_t) * 4);
-
-//   cal_data_.screen_x[0] = x0;
-//   cal_data_.screen_y[0] = y0;  // TL
-//   cal_data_.screen_x[1] = x1;
-//   cal_data_.screen_y[1] = y1;  // TR
-//   cal_data_.screen_x[2] = x2;
-//   cal_data_.screen_y[2] = y2;  // BR
-//   cal_data_.screen_x[3] = x3;
-//   cal_data_.screen_y[3] = y3;  // BL
-
-//   cal_data_.valid = true;
-//   return saveCalibration();
-// }
-
-bool TouchScreen::calculateCalibrationMatrix() {
-  if (!cal_data_.valid) return false;
-
-  // For a resistive touch panel, we need to calculate the transformation
-  // matrix that converts touch coordinates to screen coordinates.
-
-  // Variables for matrix calculation
-  float x[4], y[4], X[4], Y[4];
-
-  // Copy calibration points to floating point arrays
-  for (int i = 0; i < 4; i++) {
-    x[i] = cal_data_.raw_x[i];
-    y[i] = cal_data_.raw_y[i];
-    X[i] = cal_data_.screen_x[i];
-    Y[i] = cal_data_.screen_y[i];
-  }
-
-  // Calculate determinant of coefficient matrix
-  float det = (x[0] - x[2]) * (y[1] - y[2]) - (x[1] - x[2]) * (y[0] - y[2]);
-
-  // If determinant is zero, calibration points are collinear
-  if (fabs(det) < 5.0f) {
-    Serial.println("Determinant too small — calibration invalid.");
-    return false;
-  }
-
-  for (int i = 0; i < 4; i++) {
-    Serial.printf("RawX[%d]=%u RawY[%d]=%u -> ScreenX=%u ScreenY=%u\n", i, cal_data_.raw_x[i], i, cal_data_.raw_y[i],
-                  cal_data_.screen_x[i], cal_data_.screen_y[i]);
-  }
-
-  // Calculate matrix coefficients
-  cal_data_.matrix[0] = ((X[0] - X[2]) * (y[1] - y[2]) - (X[1] - X[2]) * (y[0] - y[2])) / det;
-  cal_data_.matrix[1] = ((x[0] - x[2]) * (X[1] - X[2]) - (X[0] - X[2]) * (x[1] - x[2])) / det;
-  cal_data_.matrix[2] =
-      (y[0] * (x[2] * X[1] - x[1] * X[2]) + y[1] * (x[0] * X[2] - x[2] * X[0]) + y[2] * (x[1] * X[0] - x[0] * X[1])) /
-      det;
-  cal_data_.matrix[3] = ((Y[0] - Y[2]) * (y[1] - y[2]) - (Y[1] - Y[2]) * (y[0] - y[2])) / det;
-  cal_data_.matrix[4] = ((x[0] - x[2]) * (Y[1] - Y[2]) - (Y[0] - Y[2]) * (x[1] - x[2])) / det;
-  cal_data_.matrix[5] =
-      (y[0] * (x[2] * Y[1] - x[1] * Y[2]) + y[1] * (x[0] * Y[2] - x[2] * Y[0]) + y[2] * (x[1] * Y[0] - x[0] * Y[1])) /
-      det;
-
-  for (int i = 0; i < 6; i++) {
-    Serial.printf("Matrix[%d]: %.6f\n", i, cal_data_.matrix[i]);
-  }
-  Serial.printf("det: %.6f\n", det);
-
-  return true;
-}
-
-// Update your setCalibration method to call calculateCalibrationMatrix
-bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
-                                 uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
-  memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
-  memcpy(cal_data_.raw_y, raw_y, sizeof(uint16_t) * 4);
-
-  cal_data_.screen_x[0] = x0;
-  cal_data_.screen_y[0] = y0;  // TL
-  cal_data_.screen_x[1] = x1;
-  cal_data_.screen_y[1] = y1;  // TR
-  cal_data_.screen_x[2] = x2;
-  cal_data_.screen_y[2] = y2;  // BR
-  cal_data_.screen_x[3] = x3;
-  cal_data_.screen_y[3] = y3;  // BL
-
-  // ✅ Temporarily mark valid so matrix can be calculated
-  cal_data_.valid = true;
-
-  // Calculate the transformation matrix
-  Serial.println("Calculating matrix...");
-  if (!calculateCalibrationMatrix()) {
-    Serial.println("Matrix calculation failed.");
-    return false;
-  }
-
-  Serial.println("Saving calibration...");
-  Serial.println("Calling saveCalibration from setCalibration()");
-  if (!saveCalibration()) {
-    Serial.println("Calibration save failed.");
-    return false;
-  }
-
-  return true;
-}
-
-void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
-  if (!cal_data_.valid) {
-    *x = raw_x;
-    *y = raw_y;
-    return;
-  }
-
-  // Apply matrix transformation
-  float tx = cal_data_.matrix[0] * raw_x + cal_data_.matrix[1] * raw_y + cal_data_.matrix[2];
-  float ty = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
-
-  // Convert to integers and constrain to screen boundaries
-  *x = static_cast<uint16_t>(constrain(tx + 0.5f, 0.0f, 799.0f));
-  *y = static_cast<uint16_t>(constrain(ty + 0.5f, 0.0f, 479.0f));
-}
-
-bool TouchScreen::saveCalibration() {
-  Serial.println("Entered saveCalibration()");
-
-  if (!touchPrefs.begin("touch_cal", false)) {
-    Serial.println("Failed to open prefs for saving");
-    return false;
-  }
-
-  size_t written = touchPrefs.putBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  touchPrefs.end();
-
-  if (written != sizeof(CalibrationData)) {
-    Serial.printf("Failed to save all calibration bytes (%u of %u)\n", written, sizeof(CalibrationData));
-    return false;
-  }
-  Serial.printf("Wrote %u of %u bytes\n", written, sizeof(CalibrationData));
-
-  Serial.println("Calibration data saved successfully");
-  return true;
-}
-
-bool TouchScreen::loadCalibration() {
-  if (!touchPrefs.begin("touch_cal", true)) {
-    return false;
-  }
-
-  size_t size = touchPrefs.getBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  touchPrefs.end();
-
-  return (size == sizeof(CalibrationData) && cal_data_.valid);
-}
-
-bool TouchScreen::setRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", false)) {
-    return false;
-  }
-  bool success = touchPrefs.putBool("need_cal", true);
-  touchPrefs.end();
-  return success;
-}
-
-bool TouchScreen::clearRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", false)) {
-    return false;
-  }
-  bool success = touchPrefs.putBool("need_cal", false);
-  touchPrefs.end();
-  return success;
-}
-
-bool TouchScreen::checkRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", true)) {
-    return false;
-  }
-  bool need_cal = touchPrefs.getBool("need_cal", false);
-  touchPrefs.end();
-  return need_cal;
-}
-
-// include/touch/.DS_Store
-// Error reading file include/touch/.DS_Store: 'utf-8' codec can't decode byte 0x80 in position 3131: invalid start byte
-
-// include/touch/calibration.h
-// calibration.h
-#ifndef INCLUDE_TOUCH_CALIBRATION_H_
-#define INCLUDE_TOUCH_CALIBRATION_H_
-
-#include <Arduino.h>
-
-#include "display/display.h"
-#include "touch/touch.h"
-
-class TouchCalibration {
-public:
-  // Run full calibration procedure
-  static bool runCalibration(LGFX& lcd, TouchScreen& touch);
-
-private:
-  static const int kTargetSize = 20;
-  static const int kTextHeight = 40;
-  static const int kDebounceDelay = 250;
-
-  // Helper methods
-  static void drawTarget(LGFX& lcd, uint16_t x, uint16_t y);
-  static void showCalibrationPoint(LGFX& lcd, uint16_t x, uint16_t y, const char* message);
-  static void showTouchTest(LGFX& lcd, TouchScreen& touch);
-  static void clearTextArea(LGFX& lcd);
-  static bool waitForTouch(TouchScreen& touch, uint16_t* x, uint16_t* y, uint16_t* z);
-  static bool waitForRawTouch(TouchScreen& touch, uint16_t* raw_x, uint16_t* raw_y, uint16_t* z);
-  static bool waitForRelease(TouchScreen& touch);
-};
-
-#endif  // INCLUDE_TOUCH_CALIBRATION_H_
-
-// include/touch/touch.h
-#ifndef INCLUDE_TOUCH_H_
-#define INCLUDE_TOUCH_H_
-
-#include <Arduino.h>
-#include <Preferences.h>
 #include <SPI.h>
 
-class TouchScreen {
+#include "Config.h"  // for TOUCH_CS_PIN and SPI pins
+#include "touch/XPT2046_Touchscreen.h"
+
+// Create SPI instance for touchscreen
+SPIClass touchSPI(TOUCH_SPI_BUS);
+
+// Create touchscreen instance
+XPT2046_Touchscreen ts(TOUCH_CS_PIN);  // CS pin only
+
+void init_touch() {
+  // Start SPI with custom pins
+  touchSPI.begin(TOUCH_SCK_PIN, TOUCH_MISO_PIN, TOUCH_MOSI_PIN, TOUCH_CS_PIN);
+
+  // Initialize touchscreen
+  ts.begin(touchSPI);
+  ts.setRotation(SCREEN_ROTATION);  // optional; match LCD rotation
+
+  Serial.println("[touchscreen] Touch initialized.");
+}
+
+bool is_touching() { return ts.touched(); }
+
+bool read_touch_raw(uint16_t& x, uint16_t& y) {
+  if (!ts.touched()) return false;
+
+  TS_Point p = ts.getPoint();
+  x = p.x;
+  y = p.y;
+
+  return true;
+}
+
+
+// src/touch/touch_manager.cpp
+
+
+// include/touch/touchscreen.h
+#ifndef TOUCH_TOUCHSCREEN_H
+#define TOUCH_TOUCHSCREEN_H
+
+#include <Arduino.h>
+
+// Initializes the touchscreen hardware (SPI + XPT2046)
+void init_touch();
+
+// Returns true if screen is being touched
+bool is_touching();
+
+// Gets the raw touch data (x, y). Returns true if valid
+bool read_touch_raw(uint16_t& x, uint16_t& y);
+
+#endif  // TOUCH_TOUCHSCREEN_H
+
+
+// include/touch/calibration.h
+
+
+// include/touch/calibration_flow.h
+
+
+// include/touch/touch_manager.h
+
+
+// include/touch/XPT2046_Touchscreen.h
+/* Touchscreen library for XPT2046 Touch Controller Chip
+ * Copyright (c) 2015, Paul Stoffregen, paul@pjrc.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice, development funding notice, and this permission
+ * notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#ifndef _XPT2046_Touchscreen_h_
+#define _XPT2046_Touchscreen_h_
+
+#include "Arduino.h"
+#include <SPI.h>
+
+#if defined(__IMXRT1062__)
+#if __has_include(<FlexIOSPI.h>)
+	#include <FlexIOSPI.h>
+#endif
+#endif
+
+#if ARDUINO < 10600
+#error "Arduino 1.6.0 or later (SPI library) is required"
+#endif
+
+class TS_Point {
 public:
-  // Constructor takes pin definitions
-  TouchScreen(uint8_t cs_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t sck_pin);
-
-  // Initialize the touch controller
-  bool begin();
-
-  // Read touch coordinates
-  bool readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z = nullptr);
-  bool readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z);
-  
-  // Check if screen is being touched
-  bool isTouched();
-
-  // Calibration methods
-  bool setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0,  // TL
-                      uint16_t x1, uint16_t y1,                                      // TR
-                      uint16_t x2, uint16_t y2,                                      // BR
-                      uint16_t x3, uint16_t y3);                                     // BL
-  bool saveCalibration();
-  bool loadCalibration();
-
-  // Recalibration flag
-  static bool setRecalibrationFlag();
-  static bool clearRecalibrationFlag();
-  static bool checkRecalibrationFlag();
-
-private:
-  // Helper method to sort an array (for median filtering)
-  void sortArray(uint16_t array[], int size);
-  bool calculateCalibrationMatrix();
-
-  // Pin definitions
-  const uint8_t kCsPin_;
-  const uint8_t kMosiPin_;
-  const uint8_t kMisoPin_;
-  const uint8_t kSckPin_;
-
-  // SPI settings
-  static const uint32_t kSpiFreq_ = 1000000;  // 1MHz SPI clock
-  SPISettings spi_settings_;
-
-  // Command bytes for XPT2046
-  static const uint8_t kCmdX_ = 0x90;   // X position  (0b10010000)
-  static const uint8_t kCmdY_ = 0xD0;   // Y position  (0b11010000)
-  static const uint8_t kCmdZ1_ = 0xB0;  // Z1 position (0b10110000)
-  static const uint8_t kCmdZ2_ = 0xC0;  // Z2 position (0b11000000)
-
-  // struct CalibrationData {
-  //   uint16_t raw_x[4];     // Raw X values for corners
-  //   uint16_t raw_y[4];     // Raw Y values for corners
-  //   uint16_t screen_x[4];  // Screen X coordinates
-  //   uint16_t screen_y[4];  // Screen Y coordinates
-  //   bool valid;
-  // } cal_data_;
-
-  struct CalibrationData {
-    bool valid;
-    // Raw values from touch sensor
-    uint16_t raw_x[4];
-    uint16_t raw_y[4];
-    // Screen coordinates
-    uint16_t screen_x[4];
-    uint16_t screen_y[4];
-    // Calibration matrix (computed from points)
-    float matrix[6];
-  } cal_data_;
-
-  // Private helper functions
-  uint16_t readChannel(uint8_t channel);
-  uint16_t interpolate(uint16_t val, uint16_t in_min, uint16_t in_max, uint16_t out_min, uint16_t out_max);
-  void mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y);
+	TS_Point(void) : x(0), y(0), z(0) {}
+	TS_Point(int16_t x, int16_t y, int16_t z) : x(x), y(y), z(z) {}
+	bool operator==(TS_Point p) { return ((p.x == x) && (p.y == y) && (p.z == z)); }
+	bool operator!=(TS_Point p) { return ((p.x != x) || (p.y != y) || (p.z != z)); }
+	int16_t x, y, z;
 };
 
-// Declare the external global instance
-extern TouchScreen touch;
+class XPT2046_Touchscreen {
+public:
+	constexpr XPT2046_Touchscreen(uint8_t cspin, uint8_t tirq=255)
+		: csPin(cspin), tirqPin(tirq) { }
+	bool begin(SPIClass &wspi = SPI);
+#if defined(_FLEXIO_SPI_H_)
+	bool begin(FlexIOSPI &wflexspi);
+#endif
 
-#endif  // INCLUDE_TOUCH_H_
+	TS_Point getPoint();
+	bool tirqTouched();
+	bool touched();
+	void readData(uint16_t *x, uint16_t *y, uint8_t *z);
+	bool bufferEmpty();
+	uint8_t bufferSize() { return 1; }
+	void setRotation(uint8_t n) { rotation = n % 4; }
+// protected:
+	volatile bool isrWake=true;
+
+private:
+	void update();
+	uint8_t csPin, tirqPin, rotation=1;
+	int16_t xraw=0, yraw=0, zraw=0;
+	uint32_t msraw=0x80000000;
+	SPIClass *_pspi = nullptr;
+#if defined(_FLEXIO_SPI_H_)
+	FlexIOSPI *_pflexspi = nullptr;
+#endif
+};
+
+#ifndef ISR_PREFIX
+  #if defined(ESP8266)
+    #define ISR_PREFIX ICACHE_RAM_ATTR
+  #elif defined(ESP32)
+    // TODO: should this also be ICACHE_RAM_ATTR ??
+    #define ISR_PREFIX IRAM_ATTR
+  #else
+    #define ISR_PREFIX
+  #endif
+#endif
+
+#endif
+
 
 // src/main.cpp
 #include <Arduino.h>
@@ -785,7 +419,7 @@ extern TouchScreen touch;
 #include "display/backlight.h"
 #include "display/display.h"
 #include "touch/calibration.h"
-#include "touch/touch.h"
+#include "touch/touchscreen.h"
 
 #ifdef DEVELOPMENT_MODE
 #include "dev_utils/DevSimulator.h"
@@ -819,16 +453,16 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
 // Touchpad reading callback for LVGL
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-  uint16_t touchX, touchY, touchZ;
-  bool touched = touch.readTouchPoint(&touchX, &touchY, &touchZ);
+  // uint16_t touchX, touchY, touchZ;
+  // bool touched = touch.readTouchPoint(&touchX, &touchY, &touchZ);
 
-  if (touched) {
-    data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
-  } else {
-    data->state = LV_INDEV_STATE_REL;
-  }
+  // if (touched) {
+  //   data->state = LV_INDEV_STATE_PR;
+  //   data->point.x = touchX;
+  //   data->point.y = touchY;
+  // } else {
+  //   data->state = LV_INDEV_STATE_REL;
+  // }
 }
 
 //========================================================================
@@ -840,61 +474,6 @@ void lvgl_task(void *parameter) {
   while (1) {
     lv_timer_handler();
     delay(5);
-  }
-}
-
-// Initialize the display and touch
-void init_display_and_touch() {
-  // Initialize backlight
-  ledcSetup(LCD_BL_CHANNEL, LCD_BL_FREQ, LCD_BL_RESOLUTION);
-  ledcAttachPin(LCD_BL_PIN, LCD_BL_CHANNEL);
-  setBacklight(0);  // Start with backlight off
-
-  // Initialize display
-  if (!lcd.begin()) {
-    Serial.println("Display initialization failed!");
-    while (1) delay(100);
-  }
-
-  // Configure display
-  lcd.setRotation(0);  // Note: This will be adjusted based on Squareline Studio settings
-  setBacklight(192);   // Set to ~75% brightness
-
-  // Initialize touch
-  if (!touch.begin()) {
-    Serial.println("Touch initialization failed!");
-    while (1) delay(100);
-  }
-
-  // Load touch calibration data
-  bool calibration_loaded = touch.loadCalibration();
-  bool recalibration_needed = touch.checkRecalibrationFlag();
-
-  // Perform calibration if needed
-  if (!calibration_loaded || recalibration_needed) {
-    Serial.println("Touch calibration required...");
-
-    const int max_attempts = 3;
-    bool cal_success = false;
-
-    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
-      Serial.printf("Calibration attempt %d...\n", attempt);
-      cal_success = TouchCalibration::runCalibration(lcd, touch);
-      if (cal_success) {
-        Serial.println("Calibration successful");
-        touch.clearRecalibrationFlag();
-        break;
-      } else {
-        Serial.println("Calibration failed!");
-      }
-    }
-
-    if (!cal_success) {
-      Serial.println("Calibration ultimately failed after multiple attempts.");
-      // Optionally: show a warning on screen or enter fallback mode
-    }
-  } else {
-    Serial.println("Touch calibration loaded successfully");
   }
 }
 
@@ -941,7 +520,8 @@ void setup() {
   Serial.print("Build Date: ");
   Serial.println(__DATE__ " " __TIME__);
 
-  init_display_and_touch();
+  init_display();
+  init_touch();
 
   // // ⬇️ test raw touch points
   // Serial.println("==== RAW TOUCH TEST START ====");

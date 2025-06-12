@@ -11,6 +11,9 @@ EXTRA_FILES = ["src/main.cpp"]
 def generate_tree(base_path, prefix=""):
     tree_lines = []
     entries = sorted(os.listdir(base_path))
+    # Filter out .DS_Store files
+    entries = [entry for entry in entries if entry != ".DS_Store"]
+    
     for idx, entry in enumerate(entries):
         full_path = os.path.join(base_path, entry)
         connector = "└── " if idx == len(entries) - 1 else "├── "
@@ -35,7 +38,9 @@ def collect_all_files():
     for target in TARGET_DIRS:
         for root, _, files in os.walk(target):
             for file in files:
-                file_paths.append(os.path.join(root, file))
+                # Skip .DS_Store files
+                if file != ".DS_Store":
+                    file_paths.append(os.path.join(root, file))
 
     for extra in EXTRA_FILES:
         if os.path.isfile(extra):

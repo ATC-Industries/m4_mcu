@@ -7,3 +7,4 @@
 build/
 .pioenvs/
 .piolibdeps/
+**/.DS_Store

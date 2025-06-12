@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <SPI.h>
 #include <lvgl/lvgl.h>
 
 #include "Config.h"
@@ -10,8 +11,7 @@
 #include "dev_utils/benchmark.h"
 #include "display/backlight.h"
 #include "display/display.h"
-#include "touch/calibration.h"
-#include "touch/touch.h"
+#include "touch/touchscreen.h"
 
 #ifdef DEVELOPMENT_MODE
 #include "dev_utils/DevSimulator.h"
@@ -45,16 +45,16 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
 // Touchpad reading callback for LVGL
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-  uint16_t touchX, touchY, touchZ;
-  bool touched = touch.readTouchPoint(&touchX, &touchY, &touchZ);
+  // uint16_t touchX, touchY, touchZ;
+  // bool touched = touch.readTouchPoint(&touchX, &touchY, &touchZ);
 
-  if (touched) {
-    data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
-  } else {
-    data->state = LV_INDEV_STATE_REL;
-  }
+  // if (touched) {
+  //   data->state = LV_INDEV_STATE_PR;
+  //   data->point.x = touchX;
+  //   data->point.y = touchY;
+  // } else {
+  //   data->state = LV_INDEV_STATE_REL;
+  // }
 }
 
 //========================================================================
@@ -66,61 +66,6 @@ void lvgl_task(void *parameter) {
   while (1) {
     lv_timer_handler();
     delay(5);
-  }
-}
-
-// Initialize the display and touch
-void init_display_and_touch() {
-  // Initialize backlight
-  ledcSetup(LCD_BL_CHANNEL, LCD_BL_FREQ, LCD_BL_RESOLUTION);
-  ledcAttachPin(LCD_BL_PIN, LCD_BL_CHANNEL);
-  setBacklight(0);  // Start with backlight off
-
-  // Initialize display
-  if (!lcd.begin()) {
-    Serial.println("Display initialization failed!");
-    while (1) delay(100);
-  }
-
-  // Configure display
-  lcd.setRotation(0);  // Note: This will be adjusted based on Squareline Studio settings
-  setBacklight(192);   // Set to ~75% brightness
-
-  // Initialize touch
-  if (!touch.begin()) {
-    Serial.println("Touch initialization failed!");
-    while (1) delay(100);
-  }
-
-  // Load touch calibration data
-  bool calibration_loaded = touch.loadCalibration();
-  bool recalibration_needed = touch.checkRecalibrationFlag();
-
-  // Perform calibration if needed
-  if (!calibration_loaded || recalibration_needed) {
-    Serial.println("Touch calibration required...");
-
-    const int max_attempts = 3;
-    bool cal_success = false;
-
-    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
-      Serial.printf("Calibration attempt %d...\n", attempt);
-      cal_success = TouchCalibration::runCalibration(lcd, touch);
-      if (cal_success) {
-        Serial.println("Calibration successful");
-        touch.clearRecalibrationFlag();
-        break;
-      } else {
-        Serial.println("Calibration failed!");
-      }
-    }
-
-    if (!cal_success) {
-      Serial.println("Calibration ultimately failed after multiple attempts.");
-      // Optionally: show a warning on screen or enter fallback mode
-    }
-  } else {
-    Serial.println("Touch calibration loaded successfully");
   }
 }
 
@@ -167,48 +112,8 @@ void setup() {
   Serial.print("Build Date: ");
   Serial.println(__DATE__ " " __TIME__);
 
-  init_display_and_touch();
-
-  // // ⬇️ test raw touch points
-  // Serial.println("==== RAW TOUCH TEST START ====");
-  // Serial.println("Touch each corner of the screen...");
-
-  // lcd.fillScreen(TFT_BLACK);
-  // lcd.setTextColor(TFT_WHITE);
-  // lcd.setTextSize(2);
-  // lcd.setCursor(10, 10);
-  // lcd.println("Touch Test Mode");
-
-  // unsigned long startTime = millis();
-  // const uint32_t duration = 15000;
-
-  // while (millis() - startTime < duration) {
-  //   // Show countdown timer (once per second)
-  //   static uint32_t lastSecond = 0;
-  //   uint32_t secondsLeft = (duration - (millis() - startTime)) / 1000;
-  //   if (secondsLeft != lastSecond) {
-  //     lastSecond = secondsLeft;
-  //     lcd.fillRect(10, 40, 200, 30, TFT_BLACK);  // Clear countdown area
-  //     lcd.setCursor(10, 40);
-  //     lcd.printf("Time Left: %2ds", secondsLeft);
-  //   }
-
-  //   uint16_t x, y, z;
-  //   if (touch.readRawTouchPoint(&x, &y, &z)) {
-  //     Serial.printf("Raw Touch: X=%d Y=%d Z=%d\n", x, y, z);
-
-  //     // Clear full coord area
-  //     lcd.fillRect(10, 80, 300, 30, TFT_BLACK);  // Wide enough to clear old text
-
-  //     // Display coordinates
-  //     lcd.setCursor(10, 80);
-  //     lcd.printf("X: %d  Y: %d  Z: %d", x, y, z);
-
-  //     delay(100);
-  //   }
-  // }
-
-  // Serial.println("==== RAW TOUCH TEST END ====");
+  init_display();
+  touch::init_touch();
 
   init_lvgl();
   ui_init();
@@ -245,7 +150,19 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  TouchScreen::setRecalibrationFlag();
+
+  // TouchScreen::setRecalibrationFlag();
 
   delay(5);
+  uint16_t x, y, z;
+  if (touch::readRaw(x, y, z)) {
+    Serial.print("Touch: ");
+    Serial.print("x = ");
+    Serial.print(x);
+    Serial.print(", y = ");
+    Serial.print(y);
+    Serial.print(", z = ");
+    Serial.println(z);
+    delay(30);
+  }
 }

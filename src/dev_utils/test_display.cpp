@@ -1,9 +1,9 @@
 #include "dev_utils/test_display.h"
 
 #include "display/backlight.h"
-#include "touch/touch.h"
+// #include "touch/touch.h"
 
-extern TouchScreen touch;
+// extern TouchScreen touch;
 
 static uint8_t brightness = 128;  // Starting brightness level
 
