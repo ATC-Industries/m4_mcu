@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.0.3-alpha] - 2025-06-12
+
+### In Progress
+
+- Reworking calibration matrix calculation to fix screen offset bug
+- Rebuilding transform logic to correctly handle known target positions during calibration
+- Adding robust debug logging to aid touch mapping validation
+
+### Notes
+
+- This version is a cleanup/groundwork release for fixing long-standing touch calibration issues
+- Tagged `v0.0.2-alpha` as baseline before rewrite began
+
+
 ## [0.0.2-alpha] - 2025-06-12
 
 ### Known Issues

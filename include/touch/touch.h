@@ -5,6 +5,8 @@
 #include <Preferences.h>
 #include <SPI.h>
 
+void init_touch();
+
 class TouchScreen {
 public:
   TouchScreen(uint8_t cs_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t sck_pin);
