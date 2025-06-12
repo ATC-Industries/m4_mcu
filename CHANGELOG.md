@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.0.2-alpha] - 2025-06-06
+## [0.0.2-alpha] - 2025-06-12
+
+### Known Issues
+
+- Calibration mapping is offset from screen edges (0,0 appears at ~50,50)
+- Touch input noisy; needs filtering or better scaling logic
 
 ### Fixed
 
