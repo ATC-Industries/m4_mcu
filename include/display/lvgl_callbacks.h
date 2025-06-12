@@ -5,7 +5,6 @@
 #include <lvgl/lvgl.h>
 
 #include "display/display.h"
-#include "touch/calibration.h"
 #include "touch/touch.h"
 
 // LVGL buffers and drivers

@@ -432,7 +432,7 @@ void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
   lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
 }
 
-void RecalibrateTouch(lv_event_t *e) { TouchScreen::setRecalibrationFlag(); }
+void RecalibrateTouch(lv_event_t *e) { setRecalibrationFlag(); }
 
 void HELPTachAutoConnect(lv_event_t *e) {
   // Your code here

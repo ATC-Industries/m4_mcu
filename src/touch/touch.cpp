@@ -1,450 +1,415 @@
 #include "touch/touch.h"
+#define HRES SCREEN_WIDTH
+#define VRES SCREEN_HEIGHT
 
-#include <math.h>
+// Call up the TFT driver library
+#include "display/display.h"
+// Call up touch screen library
+#include <TFT_Touch.h>
 
-#include "touch/calibration.h"
+bool recalibrateTouch = false;
 
-// Create the global instance
-TouchScreen touch(38, 11, 13, 12);  // CS, MOSI, MISO, SCK
-static Preferences touchPrefs;
+// TFT_Touch touch = TFT_Touch(DCS, DCLK, DIN, DOUT);
+TFT_Touch touch = TFT_Touch(TOUCH_CS_PIN, TOUCH_SCK_PIN, TOUCH_MOSI_PIN, TOUCH_MISO_PIN);
+extern LGFX lcd;
 
-TouchScreen::TouchScreen(uint8_t cs_pin, uint8_t mosi_pin, uint8_t miso_pin, uint8_t sck_pin)
-    : kCsPin_(cs_pin),
-      kMosiPin_(mosi_pin),
-      kMisoPin_(miso_pin),
-      kSckPin_(sck_pin),
-      spi_settings_(kSpiFreq_, MSBFIRST, SPI_MODE0) {
-  cal_data_.valid = false;  // Initialize calibration as invalid
-}
+int X_Raw = 0, Y_Raw = 0;
 
-bool TouchScreen::begin() {
-  Serial.println("Initializing TouchScreen...");
-
-  pinMode(kCsPin_, OUTPUT);
-  digitalWrite(kCsPin_, HIGH);
-
-  Serial.printf("Touch pins - CS:%d MOSI:%d MISO:%d SCK:%d\n", kCsPin_, kMosiPin_, kMisoPin_, kSckPin_);
-
-  SPI.begin(kSckPin_, kMisoPin_, kMosiPin_);
-  return true;
-}
-
-// Initialize the display and touch
 void init_touch() {
-  // Initialize touch
-  if (!touch.begin()) {
-    Serial.println("Touch initialization failed!");
-    while (1) delay(100);
-  }
+  if (!load_touch_calibration()) {
+    Serial.println("Touch calibration not found - running calibration...");
+    Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
 
-  // Load touch calibration data
-  bool calibration_loaded = touch.loadCalibration();
-  bool recalibration_needed = touch.checkRecalibrationFlag();
-
-  // Perform calibration if needed
-  if (!calibration_loaded || recalibration_needed) {
-    Serial.println("Touch calibration required...");
-
-    const int max_attempts = 3;
-    bool cal_success = false;
-
-    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
-      Serial.printf("Calibration attempt %d...\n", attempt);
-      cal_success = TouchCalibration::runCalibration(lcd, touch);
-      if (cal_success) {
-        Serial.println("Calibration successful");
-        touch.clearRecalibrationFlag();
-        break;
-      } else {
-        Serial.println("Calibration failed!");
-      }
+    while (!calibrate_touch()) {
+      Serial.println("Touch calibration failed - trying again...");
+      Serial.println("Please follow the TFT screen prompts carefully.");
+      delay(2000);  // Brief delay before retrying
     }
+    Serial.println("Touch calibration completed successfully");
+  } else if (recalibrateTouch) {
+    Serial.println("Recalibration requested - running calibration...");
+    Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
 
-    if (!cal_success) {
-      Serial.println("Calibration ultimately failed after multiple attempts.");
-      // Optionally: show a warning on screen or enter fallback mode
+    while (!calibrate_touch()) {
+      Serial.println("Touch calibration failed - trying again...");
+      Serial.println("Please follow the TFT screen prompts carefully.");
+      delay(2000);  // Brief delay before retrying
     }
+    Serial.println("Touch calibration completed successfully");
   } else {
-    Serial.println("Touch calibration loaded successfully");
-  }
-}
-
-uint16_t TouchScreen::readChannel(uint8_t channel) {
-  SPI.beginTransaction(spi_settings_);
-  digitalWrite(kCsPin_, LOW);
-
-  // Send command byte
-  SPI.transfer(channel);
-  // Read 16-bit result
-  uint16_t data = SPI.transfer16(0x00);
-
-  digitalWrite(kCsPin_, HIGH);
-  SPI.endTransaction();
-
-  // XPT2046 returns 12-bit data in bits 14-3
-  return data >> 3;
-}
-
-bool TouchScreen::readTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  uint16_t raw_x, raw_y, raw_z;
-
-  if (!readRawTouchPoint(&raw_x, &raw_y, &raw_z)) {
-    *x = 0;
-    *y = 0;
-    if (z) *z = 0;
-    return false;
+    Serial.println("Touch calibration loaded successfully.");
   }
 
-  if (z) *z = raw_z;
-
-  // Apply calibration
-  if (cal_data_.valid) {
-    // Use bilinear interpolation for better corner accuracy
-    applyBilinearInterpolation(raw_x, raw_y, x, y);
-  } else {
-    // Simple linear mapping as fallback
-    *x = map(raw_x, 200, 3800, 0, 800);
-    *y = map(raw_y, 350, 3700, 0, 480);
-  }
-
-  // Constrain to screen boundaries
-  *x = constrain(*x, 0, 799);
-  *y = constrain(*y, 0, 479);
-
-  return true;
+  // Set Touch screen to the same landscape orientation
+  touch.setRotation(1);
 }
 
-bool TouchScreen::readRawTouchPoint(uint16_t* x, uint16_t* y, uint16_t* z) {
-  const int kSamples = 32;
-  const int kPressureThreshold = 150;
-  const int kDiscardCount = 6;
-  const int kSpikeThreshold = 100;  // Raw units spike threshold
+bool calibrate_touch() {
+  Serial.println("Running touch calibration...");
+  lcd.setTextDatum(TC_DATUM);              // Set text plotting reference datum to Top Centre (TC)
+  lcd.setTextColor(TFT_WHITE, TFT_BLACK);  // Set text to white on black
 
-  uint16_t samples_x[kSamples];
-  uint16_t samples_y[kSamples];
-  uint16_t samples_z1[kSamples];
-  uint16_t samples_z2[kSamples];
-  int valid_samples = 0;
+  int x1, y1;
+  int x2, y2;
+  int x3, y3;
+  bool xyswap = 0, xflip = 0, yflip = 0;
 
-  // First pass: collect samples and detect spikes
-  uint16_t first_x = 0, first_y = 0;
-  bool has_reference = false;
+  Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
 
-  for (int i = 0; i < kSamples; i++) {
-    // Read pressure first
-    uint16_t z1 = readChannel(kCmdZ1_);
-    uint16_t z2 = readChannel(kCmdZ2_);
-    uint16_t pressure = z1 + 4095 - z2;
+  // Reset the calibration values
+  touch.setCal(0, 4095, 0, 4095, 320, 240, 0);  //, 0, 0);
 
-    if (pressure > 100) {  // Basic pressure check
-      uint16_t curr_x = readChannel(kCmdX_);
-      uint16_t curr_y = readChannel(kCmdY_);
+  // Set TFT the screen to landscape orientation
+  lcd.setRotation(SCREEN_ROTATION);
 
-      // Spike detection
-      bool is_spike = false;
-      if (has_reference) {
-        int dx = abs((int)curr_x - (int)first_x);
-        int dy = abs((int)curr_y - (int)first_y);
-        if (dx > kSpikeThreshold || dy > kSpikeThreshold) {
-          is_spike = true;
-          Serial.printf("Raw spike filtered: X:%d->%d Y:%d->%d\n", first_x, curr_x, first_y, curr_y);
-        }
-      } else {
-        // First valid reading becomes reference
-        first_x = curr_x;
-        first_y = curr_y;
-        has_reference = true;
-      }
+  // Set Touch the screen to the same landscape orientation
+  touch.setRotation(SCREEN_ROTATION);
 
-      // Only store non-spike samples
-      if (!is_spike && valid_samples < kSamples) {
-        samples_x[valid_samples] = curr_x;
-        samples_y[valid_samples] = curr_y;
-        samples_z1[valid_samples] = z1;
-        samples_z2[valid_samples] = z2;
-        valid_samples++;
-      }
+  // Clear the screen
+  lcd.fillScreen(TFT_BLACK);
+
+  // Show the screen prompt
+  drawPrompt();
+
+  drawCross(30, 30, TFT_RED);
+  while (!touch.Pressed());
+  delay(100);
+
+  getCoord();  // This function assigns values to X_Raw and Y_Raw
+
+  drawCross(30, 30, TFT_BLACK);
+  Serial.print("First point : Raw x,y = ");
+  Serial.print(X_Raw);
+  Serial.print(",");
+  Serial.println(Y_Raw);
+
+  x1 = X_Raw;
+  y1 = Y_Raw;
+
+  drawCross(HRES / 2, VRES / 2, TFT_RED);
+  delay(10);
+
+  while (getCoord());  // This waits for the centre area to be touched
+
+  drawCross(HRES / 2, VRES / 2, TFT_BLACK);
+  Serial.print("Second point : Raw x,y = ");
+  Serial.print(X_Raw);
+  Serial.print(",");
+  Serial.println(Y_Raw);
+
+  drawCross(HRES - 30, VRES - 30, TFT_RED);
+
+  while (!getCoord());  // This waits until the centre area is no longer pressed
+  delay(10);            // Wait a little for touch bounces to stop after release
+
+  getCoord();
+  drawCross(HRES - 30, VRES - 30, TFT_BLACK);
+  Serial.print("Third point : Raw x,y = ");
+  Serial.print(X_Raw);
+  Serial.print(",");
+  Serial.println(Y_Raw);
+
+  x2 = X_Raw;
+  y2 = Y_Raw;
+
+  drawCross(HRES / 2, VRES / 2, TFT_RED);
+  delay(10);
+
+  while (getCoord());  // This waits for the centre area to be touched
+
+  drawCross(HRES / 2, VRES / 2, TFT_BLACK);
+  Serial.print("Fourth point : Raw x,y = ");
+  Serial.print(X_Raw);
+  Serial.print(",");
+  Serial.println(Y_Raw);
+
+  drawCross(30, VRES - 30, TFT_RED);
+
+  while (!getCoord());  // This waits until the centre area is no longer pressed
+  delay(10);            // Wait a little for touch bounces to stop after release
+
+  getCoord();
+  drawCross(30, VRES - 30, TFT_BLACK);
+  Serial.print("Fifth point : Raw x,y = ");
+  Serial.print(X_Raw);
+  Serial.print(",");
+  Serial.println(Y_Raw);
+
+  x3 = X_Raw;
+  y3 = Y_Raw;
+
+  int temp;
+  if (abs(x1 - x3) > 1000) {
+    xyswap = 1;
+    temp = x1;
+    x1 = y1;
+    y1 = temp;
+    temp = x2;
+    x2 = y2;
+    y2 = temp;
+    temp = x3;
+    x3 = y3;
+    y3 = temp;
+  } else
+    xyswap = 0;
+
+  // if (x2 < x1) {
+  //   temp = x2; x2 = x1; x1 = temp;
+  //   xflip = 1;
+  // }
+
+  // if (y2 < y1) {
+  //   temp = y2; y2 = y1; y1 = temp;
+  //   yflip = 1;
+  // }
+
+  int hmin = x1;  // - (x2 - x1) * 3 / (HRES/10 - 6);
+  int hmax = x2;  // + (x2 - x1) * 3 / (HRES/10 - 6);
+
+  int vmin = y1;  // - (y2 - y1) * 3 / (VRES/10 - 6);
+  int vmax = y2;  // + (y2 - y1) * 3 / (VRES/10 - 6);
+
+  Serial.println();
+  Serial.println("  //This is the calibration line to use");
+  Serial.print("  touch.setCal(");
+  Serial.print(hmin);
+  Serial.print(", ");
+  Serial.print(hmax);
+  Serial.print(", ");
+  Serial.print(vmin);
+  Serial.print(", ");
+  Serial.print(vmax);
+  Serial.print(", ");
+  Serial.print(HRES);
+  Serial.print(", ");
+  Serial.print(VRES);
+  Serial.print(", ");
+  Serial.print(xyswap);  // Serial.print(", ");
+  // Serial.print(xflip); Serial.print(", ");
+  // Serial.print(yflip);
+  Serial.println(");");
+  // Save the calibration data
+  if (!save_touch_calibration(hmin, hmax, vmin, vmax)) {
+    return false;  // Save failed
+  }
+
+  // Simple 15-second test
+  Serial.println("Touch test - 15 seconds remaining...");
+  touch.setRotation(1);
+  lcd.fillScreen(TFT_BLACK);
+  lcd.setFont(&fonts::Font2);
+  lcd.drawString("Touch test - touch anywhere", lcd.width() / 2, 50);
+  lcd.drawString("15 seconds remaining", lcd.width() / 2, 70);
+
+  unsigned long testStart = millis();
+  while (millis() - testStart < 15000) {  // 15 seconds
+    if (touch.Pressed()) {
+      int X_Coord = touch.X();
+      int Y_Coord = touch.Y();
+      drawCross(X_Coord, Y_Coord, TFT_GREEN);
+
+      // Show coordinates
+      lcd.setCursor(lcd.width() / 2, 90);
+      lcd.print("X=");
+      lcd.print(X_Coord);
+      lcd.print(" Y=");
+      lcd.print(Y_Coord);
+      lcd.print("   ");
     }
 
-    delayMicroseconds(100);
+    // Update countdown
+    int remaining = (15000 - (millis() - testStart)) / 1000;
+    lcd.setCursor(lcd.width() / 2, 110);
+    lcd.print(remaining);
+    lcd.print(" seconds left   ");
+
+    delay(100);
   }
-
-  // Need minimum valid samples
-  if (valid_samples < (kDiscardCount * 2 + 1)) {
-    return false;
-  }
-
-  // Sort valid samples
-  sortArray(samples_x, valid_samples);
-  sortArray(samples_y, valid_samples);
-  sortArray(samples_z1, valid_samples);
-  sortArray(samples_z2, valid_samples);
-
-  // Calculate average excluding outliers
-  int start_idx = min(kDiscardCount, valid_samples / 4);
-  int end_idx = max(valid_samples - kDiscardCount, valid_samples * 3 / 4);
-  int count = end_idx - start_idx;
-
-  if (count <= 0) {
-    return false;
-  }
-
-  uint32_t sum_x = 0, sum_y = 0, sum_z1 = 0, sum_z2 = 0;
-  for (int i = start_idx; i < end_idx; i++) {
-    sum_x += samples_x[i];
-    sum_y += samples_y[i];
-    sum_z1 += samples_z1[i];
-    sum_z2 += samples_z2[i];
-  }
-
-  uint16_t avg_x = sum_x / count;
-  uint16_t avg_y = sum_y / count;
-  uint16_t avg_z1 = sum_z1 / count;
-  uint16_t avg_z2 = sum_z2 / count;
-
-  uint16_t pressure = avg_z1 + 4095 - avg_z2;
-  if (z) *z = pressure;
-
-  if (pressure < kPressureThreshold) {
-    return false;
-  }
-
-  *x = avg_x;
-  *y = avg_y;
-
-  return true;
+  recalibrateTouch = false;  // Reset recalibration flag after successful calibration
+  return true;               // Success
 }
 
-// Helper function to sort an array (insertion sort)
-void TouchScreen::sortArray(uint16_t array[], int size) {
-  for (int i = 1; i < size; i++) {
-    uint16_t key = array[i];
-    int j = i - 1;
+bool load_touch_calibration() {
+  Preferences prefs;
+  if (!prefs.begin("touch_cal", true)) {  // true = read-only mode
+    Serial.println("Failed to open preferences for touch calibration");
+    return false;  // Failed to open preferences
+  }
 
-    while (j >= 0 && array[j] > key) {
-      array[j + 1] = array[j];
-      j--;
+  // Check if calibration data exists by trying to get one key
+  if (!prefs.isKey("x_min")) {
+    prefs.end();
+    Serial.println("No touch calibration data found");
+    return false;  // Calibration data doesn't exist
+  }
+
+  // Load calibration values
+  int hmin = prefs.getInt("x_min", 0);
+  int hmax = prefs.getInt("x_max", 0);
+  int vmin = prefs.getInt("y_min", 0);
+  int vmax = prefs.getInt("y_max", 0);
+  int h_res = prefs.getInt("h_res", HRES);
+  int v_res = prefs.getInt("v_res", VRES);
+  recalibrateTouch = prefs.getBool("recalibrate");
+
+  prefs.end();
+
+  // Validate that we got reasonable values (not all zeros)
+  if (hmin == 0 && hmax == 0 && vmin == 0 && vmax == 0) {
+    Serial.println("Invalid touch calibration data found");
+    return false;  // Invalid calibration data
+  }
+
+  // Apply calibration to touch object
+  touch.setCal(hmin, hmax, vmin, vmax, h_res, v_res, false);
+  Serial.println("Touch calibration loaded successfully");
+  return true;  // Success
+}
+
+bool save_touch_calibration(int hmin, int hmax, int vmin, int vmax) {
+  Preferences prefs;
+  if (!prefs.begin("touch_cal", false)) {
+    return false;  // Failed to open preferences
+  }
+
+  // Store calibration values
+  prefs.putInt("x_min", hmin);
+  prefs.putInt("x_max", hmax);
+  prefs.putInt("y_min", vmin);
+  prefs.putInt("y_max", vmax);
+  prefs.putInt("h_res", HRES);
+  prefs.putInt("v_res", VRES);
+  prefs.putBool("recalibrate", recalibrateTouch);  // Store recalibration flag
+  prefs.end();
+
+  // Apply calibration to touch object
+  touch.setCal(hmin, hmax, vmin, vmax, HRES, VRES, false);
+
+  return true;  // Success
+}
+
+// void test(void) {
+//   lcd.fillScreen(TFT_BLACK);
+//   lcd.setFont(&fonts::Font2);
+
+//   drawCross(30, 30, TFT_WHITE);
+
+//   drawCross(lcd.width() - 30, lcd.height() - 30, TFT_WHITE);
+
+//   int centre = lcd.width() / 2;  // Get and work out x coord of screen centre
+
+//   String text;
+//   text += "Screen rotation = ";
+//   text += lcd.getRotation();
+//   char buffer[30];
+//   text.toCharArray(buffer, 30);
+
+//   lcd.drawString(buffer, centre, 50);
+
+//   lcd.drawString("Touch anywhere on screen", centre, 70);
+//   lcd.drawString("to test settings", centre, 90);
+
+//   lcd.drawString("Send a character from the", centre, 120);
+//   lcd.drawString("IDE Serial Monitor to", centre, 140);
+//   lcd.drawString("continue!", centre, 160);
+
+//   while (Serial.available()) Serial.read();  // Empty the serial buffer before we start
+
+//   while (!Serial.available()) {
+//     if (touch.Pressed())  // Note this function updates coordinates stored within library variables
+//     {
+//       /* Read the current X and Y axis as co-ordinates at the last touch time*/
+//       // The values returned were captured when Pressed() was called!
+//       int X_Coord = touch.X();
+//       int Y_Coord = touch.Y();
+
+//       drawCross(X_Coord, Y_Coord, TFT_GREEN);
+
+//       // delay(20);
+//       lcd.setCursor(centre, 0);
+//       lcd.print("X = ");
+//       lcd.print(X_Coord);
+//       lcd.print("   ");
+//       lcd.setCursor(centre, 20);
+//       lcd.print("Y = ");
+//       lcd.print(Y_Coord);
+//       lcd.print("   ");
+//     }
+//   }
+// }
+
+void drawPrompt(void) {
+  lcd.setFont(&fonts::Font2);
+  lcd.setTextColor(TFT_WHITE, TFT_BLACK);
+
+  int centre = lcd.width() / 2;  // Get and work out x coord of screen centre
+
+  lcd.drawString("CALIBRATION", centre, 20);
+
+  lcd.drawString("Touch the green cross accurately", centre, 61);
+  lcd.drawString("( using a cocktail stick works well! )", centre, 81);
+}
+
+void drawCross(int x, int y, unsigned int color) {
+  lcd.drawLine(x - 5, y, x + 5, y, color);
+  lcd.drawLine(x, y - 5, x, y + 5, color);
+}
+
+bool getCoord() {
+  bool Xwait = 1, Ywait = 1;
+  int X_Temp1 = 9999, Y_Temp1 = 9999;
+  int X_Temp2 = -1, Y_Temp2 = -1;
+  X_Raw = -1;
+  Y_Raw = -1;
+
+  while (Xwait || Ywait) {
+    if (touch.Pressed())  // Note this function updates coordinates stored within library variables
+    {
+      /* Read the current X and Y axis as co-ordinates at the last touch time*/
+      // The values returned were captured when Pressed() was called!
+      X_Temp1 = touch.RawX();
+      Y_Temp1 = touch.RawY();
+    }
+    delay(5);
+    if (touch.Pressed())  // Note this function updates coordinates stored within library variables
+    {
+      /* Read the current X and Y axis as co-ordinates at the last touch time*/
+      // The values returned were captured when Pressed() was called!
+      X_Temp2 = touch.RawX();
+      Y_Temp2 = touch.RawY();
     }
 
-    array[j + 1] = key;
+#define RAW_ERROR 10
+
+    if ((abs(X_Temp1 - X_Temp2) < RAW_ERROR) && Xwait) {
+      X_Raw = (X_Temp1 + X_Temp2) / 2;
+      Xwait = 0;
+    }
+    if ((abs(Y_Temp1 - Y_Temp2) < RAW_ERROR) && Ywait) {
+      Y_Raw = (Y_Temp1 + Y_Temp2) / 2;
+      Ywait = 0;
+    }
   }
+
+  // Check if press is near middle third of screen
+  if ((X_Raw > 1365) && (X_Raw < 2731) && (Y_Raw > 1365) && (Y_Raw < 2371)) return 0;
+
+  // otherwise it is near edge for calibration points
+  else
+    return 1;
 }
 
-/////////////
-
-bool TouchScreen::isTouched() {
-  uint16_t x, y, z;
-  return readTouchPoint(&x, &y, &z);
-}
-
-void TouchScreen::applyBilinearInterpolation(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
-  // Bilinear interpolation using the 4 calibration points
-  // This handles non-linear behavior near corners much better
-
-  // Find normalized position (0-1) within the calibration rectangle
-  float norm_x = (float)(raw_x - cal_data_.raw_min_x) / (cal_data_.raw_max_x - cal_data_.raw_min_x);
-  float norm_y = (float)(raw_y - cal_data_.raw_min_y) / (cal_data_.raw_max_y - cal_data_.raw_min_y);
-
-  // Clamp to 0-1 range
-  norm_x = constrain(norm_x, 0.0f, 1.0f);
-  norm_y = constrain(norm_y, 0.0f, 1.0f);
-
-  // Apply edge correction factor (reduces sensitivity near edges)
-  if (cal_data_.edge_correction_factor > 0) {
-    // Apply non-linear transformation to reduce edge effects
-    float edge_factor = cal_data_.edge_correction_factor;
-    norm_x = 0.5f + (norm_x - 0.5f) * (1.0f - edge_factor * (0.5f - fabs(norm_x - 0.5f)));
-    norm_y = 0.5f + (norm_y - 0.5f) * (1.0f - edge_factor * (0.5f - fabs(norm_y - 0.5f)));
+bool setRecalibrationFlag() {
+  recalibrateTouch = true;  // Set to true to force recalibration
+  Preferences prefs;
+  if (!prefs.begin("touch_cal", false)) {
+    Serial.println("Failed to open preferences for recalibration flag");
+    return false;  // Failed to open preferences
   }
 
-  // Bilinear interpolation
-  // Order: TL(0), TR(1), BR(2), BL(3)
-  float x_top = cal_data_.screen_x[0] + norm_x * (cal_data_.screen_x[1] - cal_data_.screen_x[0]);
-  float x_bot = cal_data_.screen_x[3] + norm_x * (cal_data_.screen_x[2] - cal_data_.screen_x[3]);
-  float x_final = x_top + norm_y * (x_bot - x_top);
-
-  float y_left = cal_data_.screen_y[0] + norm_y * (cal_data_.screen_y[3] - cal_data_.screen_y[0]);
-  float y_right = cal_data_.screen_y[1] + norm_y * (cal_data_.screen_y[2] - cal_data_.screen_y[1]);
-  float y_final = y_left + norm_x * (y_right - y_left);
-
-  *x = (uint16_t)(x_final + 0.5f);
-  *y = (uint16_t)(y_final + 0.5f);
-}
-
-bool TouchScreen::calculateCalibrationMatrix() {
-  if (!cal_data_.valid) return false;
-
-  // Calculate the bounding box of raw values
-  cal_data_.raw_min_x = min(min(cal_data_.raw_x[0], cal_data_.raw_x[1]), min(cal_data_.raw_x[2], cal_data_.raw_x[3]));
-  cal_data_.raw_max_x = max(max(cal_data_.raw_x[0], cal_data_.raw_x[1]), max(cal_data_.raw_x[2], cal_data_.raw_x[3]));
-  cal_data_.raw_min_y = min(min(cal_data_.raw_y[0], cal_data_.raw_y[1]), min(cal_data_.raw_y[2], cal_data_.raw_y[3]));
-  cal_data_.raw_max_y = max(max(cal_data_.raw_y[0], cal_data_.raw_y[1]), max(cal_data_.raw_y[2], cal_data_.raw_y[3]));
-
-  // Set edge correction factor (0.0 to 0.5, higher = more correction)
-  cal_data_.edge_correction_factor = 0.3f;
-
-  // Still calculate linear matrix as fallback
-  // Using all 4 points with least squares
-  float sum_x = 0, sum_y = 0, sum_X = 0, sum_Y = 0;
-  float sum_xx = 0, sum_xy = 0, sum_yy = 0;
-  float sum_xX = 0, sum_yX = 0, sum_xY = 0, sum_yY = 0;
-
-  for (int i = 0; i < 4; i++) {
-    float x = cal_data_.raw_x[i];
-    float y = cal_data_.raw_y[i];
-    float X = cal_data_.screen_x[i];
-    float Y = cal_data_.screen_y[i];
-
-    sum_x += x;
-    sum_y += y;
-    sum_X += X;
-    sum_Y += Y;
-    sum_xx += x * x;
-    sum_xy += x * y;
-    sum_yy += y * y;
-    sum_xX += x * X;
-    sum_yX += y * X;
-    sum_xY += x * Y;
-    sum_yY += y * Y;
-  }
-
-  // Calculate matrix for linear transformation (used as fallback)
-  float n = 4.0f;
-  float det = n * (sum_xx * sum_yy - sum_xy * sum_xy) - sum_x * (sum_x * sum_yy - sum_y * sum_xy) +
-              sum_y * (sum_x * sum_xy - sum_y * sum_xx);
-
-  if (fabs(det) < 1.0f) {
-    Serial.println("Calibration points are invalid!");
-    return false;
-  }
-
-  // Store linear transformation coefficients
-  cal_data_.matrix[0] = (n * sum_xX - sum_x * sum_X) / (n * sum_xx - sum_x * sum_x);
-  cal_data_.matrix[1] =
-      (n * sum_yX - sum_y * sum_X - cal_data_.matrix[0] * (n * sum_xy - sum_x * sum_y)) / (n * sum_yy - sum_y * sum_y);
-  cal_data_.matrix[2] = (sum_X - cal_data_.matrix[0] * sum_x - cal_data_.matrix[1] * sum_y) / n;
-
-  cal_data_.matrix[3] = (n * sum_xY - sum_x * sum_Y) / (n * sum_xx - sum_x * sum_x);
-  cal_data_.matrix[4] =
-      (n * sum_yY - sum_y * sum_Y - cal_data_.matrix[3] * (n * sum_xy - sum_x * sum_y)) / (n * sum_yy - sum_y * sum_y);
-  cal_data_.matrix[5] = (sum_Y - cal_data_.matrix[3] * sum_x - cal_data_.matrix[4] * sum_y) / n;
-
-  // Debug output
-  Serial.println("Calibration data:");
-  Serial.printf("Raw bounds: X[%d-%d] Y[%d-%d]\n", cal_data_.raw_min_x, cal_data_.raw_max_x, cal_data_.raw_min_y,
-                cal_data_.raw_max_y);
-  Serial.printf("Edge correction: %.2f\n", cal_data_.edge_correction_factor);
-
-  // Test calibration accuracy
-  Serial.println("Testing calibration accuracy:");
-  for (int i = 0; i < 4; i++) {
-    uint16_t test_x, test_y;
-    applyBilinearInterpolation(cal_data_.raw_x[i], cal_data_.raw_y[i], &test_x, &test_y);
-    int error_x = abs((int)test_x - (int)cal_data_.screen_x[i]);
-    int error_y = abs((int)test_y - (int)cal_data_.screen_y[i]);
-    Serial.printf("Point %d: Expected(%d,%d) Got(%d,%d) Error(%d,%d)\n", i, cal_data_.screen_x[i],
-                  cal_data_.screen_y[i], test_x, test_y, error_x, error_y);
-  }
-
-  return true;
-}
-bool TouchScreen::setCalibration(uint16_t raw_x[], uint16_t raw_y[], uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
-                                 uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3) {
-  // Store calibration points
-  memcpy(cal_data_.raw_x, raw_x, sizeof(uint16_t) * 4);
-  memcpy(cal_data_.raw_y, raw_y, sizeof(uint16_t) * 4);
-
-  cal_data_.screen_x[0] = x0;
-  cal_data_.screen_y[0] = y0;  // TL
-  cal_data_.screen_x[1] = x1;
-  cal_data_.screen_y[1] = y1;  // TR
-  cal_data_.screen_x[2] = x2;
-  cal_data_.screen_y[2] = y2;  // BR
-  cal_data_.screen_x[3] = x3;
-  cal_data_.screen_y[3] = y3;  // BL
-
-  cal_data_.valid = true;
-
-  // Calculate calibration parameters
-  if (!calculateCalibrationMatrix()) {
-    cal_data_.valid = false;
-    return false;
-  }
-
-  return saveCalibration();
-}
-
-void TouchScreen::mapRawToScreen(uint16_t raw_x, uint16_t raw_y, uint16_t* x, uint16_t* y) {
-  if (!cal_data_.valid) {
-    *x = raw_x;
-    *y = raw_y;
-    return;
-  }
-
-  // Apply transformation matrix
-  float fx = cal_data_.matrix[0] * raw_x + cal_data_.matrix[1] * raw_y + cal_data_.matrix[2];
-  float fy = cal_data_.matrix[3] * raw_x + cal_data_.matrix[4] * raw_y + cal_data_.matrix[5];
-
-  // Round and constrain
-  *x = static_cast<uint16_t>(constrain(fx + 0.5f, 0.0f, 799.0f));
-  *y = static_cast<uint16_t>(constrain(fy + 0.5f, 0.0f, 479.0f));
-}
-
-bool TouchScreen::saveCalibration() {
-  Serial.println("Entered saveCalibration()");
-
-  if (!touchPrefs.begin("touch_cal", false)) {
-    Serial.println("Failed to open prefs for saving");
-    return false;
-  }
-
-  size_t written = touchPrefs.putBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  touchPrefs.end();
-
-  if (written != sizeof(CalibrationData)) {
-    Serial.printf("Failed to save all calibration bytes (%u of %u)\n", written, sizeof(CalibrationData));
-    return false;
-  }
-  Serial.printf("Wrote %u of %u bytes\n", written, sizeof(CalibrationData));
-
-  Serial.println("Calibration data saved successfully");
-  return true;
-}
-
-bool TouchScreen::loadCalibration() {
-  if (!touchPrefs.begin("touch_cal", true)) {
-    return false;
-  }
-
-  size_t size = touchPrefs.getBytes("cal_data", &cal_data_, sizeof(CalibrationData));
-  touchPrefs.end();
-
-  return (size == sizeof(CalibrationData) && cal_data_.valid);
-}
-
-bool TouchScreen::setRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", false)) {
-    return false;
-  }
-  bool success = touchPrefs.putBool("need_cal", true);
-  touchPrefs.end();
-  return success;
-}
-
-bool TouchScreen::clearRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", false)) {
-    return false;
-  }
-  bool success = touchPrefs.putBool("need_cal", false);
-  touchPrefs.end();
-  return success;
-}
-
-bool TouchScreen::checkRecalibrationFlag() {
-  if (!touchPrefs.begin("touch_cal", true)) {
-    return false;
-  }
-  bool need_cal = touchPrefs.getBool("need_cal", false);
-  touchPrefs.end();
-  return need_cal;
+  // Store calibration values
+  prefs.putBool("recalibrate", true);  // Store recalibration flag
+  prefs.end();
+  Serial.println("Recalibration flag set to true");
+  return true;  // Success
 }

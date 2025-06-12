@@ -1,5 +1,11 @@
 #include "display/lvgl_callbacks.h"
+
+#include <TFT_Touch.h>
+
 #include "Config.h"
+#include "touch/touch.h"
+
+extern TFT_Touch touch;
 
 //========================================================================
 // LVGL Callbacks
@@ -20,15 +26,36 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
 // Touchpad reading callback for LVGL
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-  uint16_t touchX, touchY, touchZ;
-  bool touched = touch.readTouchPoint(&touchX, &touchY, &touchZ);
+  static unsigned long lastTouchTime = 0;
+  static bool lastTouchState = false;
+  const unsigned long DEBOUNCE_MS = 30;  // Adjust as needed
 
-  if (touched) {
-    data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
+  bool currentlyPressed = touch.Pressed();
+  unsigned long now = millis();
+
+  // Only process touch changes after debounce period
+  if (now - lastTouchTime > DEBOUNCE_MS) {
+    if (currentlyPressed) {
+      data->state = LV_INDEV_STATE_PR;
+      data->point.x = touch.X();
+      data->point.y = touch.Y();
+      if (!lastTouchState) {
+        lastTouchTime = now;  // Reset timer on new press
+      }
+    } else {
+      data->state = LV_INDEV_STATE_REL;
+      if (lastTouchState) {
+        lastTouchTime = now;  // Reset timer on release
+      }
+    }
+    lastTouchState = currentlyPressed;
   } else {
-    data->state = LV_INDEV_STATE_REL;
+    // During debounce period, maintain last state
+    data->state = lastTouchState ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
+    if (lastTouchState) {
+      data->point.x = touch.X();
+      data->point.y = touch.Y();
+    }
   }
 }
 

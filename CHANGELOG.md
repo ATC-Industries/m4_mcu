@@ -9,17 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.3-alpha] - 2025-06-12
 
-### In Progress
+### Added
 
-- Reworking calibration matrix calculation to fix screen offset bug
-- Rebuilding transform logic to correctly handle known target positions during calibration
-- Adding robust debug logging to aid touch mapping validation
+- Implemented TFT_Touch library for touch screen calibration
+- Added persistent touch calibration storage using ESP32 Preferences
+- Created modular touch handling system with proper separation of concerns
+- Added 15-second touch test after calibration (no serial input required)
+- Implemented touch debouncing for LVGL input handling
+- Added recalibration flag system for development and troubleshooting
+
+### Changed
+
+- Migrated from previous touch system to Bodmer's TFT_Touch library
+- Restructured touch code into separate touch.h/touch.cpp modules
+- Improved calibration workflow with automatic save/load functionality
+- Replaced orientation testing with fixed LCD rotation 0, touch rotation 1
+- Enhanced error handling and debug output for calibration process
+
+### Fixed
+
+- Resolved multiple definition linker errors with proper extern declarations
+- Fixed touch pin configuration (MOSI/MISO pin assignment)
+- Corrected touch coordinate mapping for LVGL integration
+- Improved calibration stability and phantom touch detection
+
+### Technical
+
+- Touch calibration data stored in ESP32 NVS under "touch_cal" namespace
+- Calibration uses 5-point system for accurate screen mapping
+- Touch coordinates properly transformed for 800x480 display resolution
 
 ### Notes
 
-- This version is a cleanup/groundwork release for fixing long-standing touch calibration issues
-- Tagged `v0.0.2-alpha` as baseline before rewrite began
-
+- Touch debouncing may need fine-tuning based on hardware characteristics
+- This version establishes foundation for reliable touch input handling
 
 ## [0.0.2-alpha] - 2025-06-12
 
