@@ -78,4 +78,7 @@ public:
 
 extern LGFX lcd;
 
+// Initialize the display and touch
+void init_display();
+
 #endif  // INCLUDE_DISPLAY_H_

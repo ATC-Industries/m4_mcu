@@ -1,7 +1,6 @@
 #include "display/backlight.h"
 
 // Constants
-#define LCD_BL_FREQUENCY 10000            // 10KHz - higher frequency reduces flickering
 static uint8_t current_brightness = 200;  // Default brightness (0-255)
 static uint8_t target_brightness = 200;   // Target brightness for smooth transitions
 static bool transition_active = false;    // Flag to indicate transition in progress
@@ -12,7 +11,7 @@ static const uint8_t STEP_SIZE = 5;              // Larger steps for faster tran
 // Setup function - call this in your main setup()
 void setupBacklight(uint8_t pin, uint8_t channel, uint8_t initial_brightness) {
   // Configure PWM with higher frequency for smoother operation
-  ledcSetup(channel, LCD_BL_FREQUENCY, 8);  // 10kHz frequency, 8-bit resolution
+  ledcSetup(channel, LCD_BL_FREQ, 8);  // 10kHz frequency, 8-bit resolution
   ledcAttachPin(pin, channel);
 
   // Set initial brightness

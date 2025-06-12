@@ -5,7 +5,7 @@ import os
 OUTPUT_FILE = "code_dump.txt"
 TARGET_DIRS = ["src/touch", "include/touch"]
 # EXTRA_FILES = ["ui/ui_events.cpp", "ui/ui_events.h"]
-EXTRA_FILES = ["src/main.cpp"]
+EXTRA_FILES = ["src/main.cpp", "include/Config.h"]
 
 
 def generate_tree(base_path, prefix=""):

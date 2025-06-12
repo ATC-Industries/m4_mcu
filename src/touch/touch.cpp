@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include "touch/calibration.h"
+
 // Create the global instance
 TouchScreen touch(38, 11, 13, 12);  // CS, MOSI, MISO, SCK
 static Preferences touchPrefs;
@@ -25,6 +27,46 @@ bool TouchScreen::begin() {
 
   SPI.begin(kSckPin_, kMisoPin_, kMosiPin_);
   return true;
+}
+
+// Initialize the display and touch
+void init_touch() {
+  // Initialize touch
+  if (!touch.begin()) {
+    Serial.println("Touch initialization failed!");
+    while (1) delay(100);
+  }
+
+  // Load touch calibration data
+  bool calibration_loaded = touch.loadCalibration();
+  bool recalibration_needed = touch.checkRecalibrationFlag();
+
+  // Perform calibration if needed
+  if (!calibration_loaded || recalibration_needed) {
+    Serial.println("Touch calibration required...");
+
+    const int max_attempts = 3;
+    bool cal_success = false;
+
+    for (int attempt = 1; attempt <= max_attempts; ++attempt) {
+      Serial.printf("Calibration attempt %d...\n", attempt);
+      cal_success = TouchCalibration::runCalibration(lcd, touch);
+      if (cal_success) {
+        Serial.println("Calibration successful");
+        touch.clearRecalibrationFlag();
+        break;
+      } else {
+        Serial.println("Calibration failed!");
+      }
+    }
+
+    if (!cal_success) {
+      Serial.println("Calibration ultimately failed after multiple attempts.");
+      // Optionally: show a warning on screen or enter fallback mode
+    }
+  } else {
+    Serial.println("Touch calibration loaded successfully");
+  }
 }
 
 uint16_t TouchScreen::readChannel(uint8_t channel) {
