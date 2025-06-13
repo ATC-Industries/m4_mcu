@@ -1024,7 +1024,6 @@ lv_obj_set_height( ui_MainContainerStateSTAGED, lv_pct(100));
 lv_obj_set_align( ui_MainContainerStateSTAGED, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_MainContainerStateSTAGED,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_MainContainerStateSTAGED, LV_FLEX_ALIGN_SPACE_EVENLY, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-lv_obj_add_flag( ui_MainContainerStateSTAGED, LV_OBJ_FLAG_HIDDEN );   /// Flags
 lv_obj_clear_flag( ui_MainContainerStateSTAGED, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
 ui_MainButtonSTAGEDCancel = lv_btn_create(ui_MainContainerStateSTAGED);

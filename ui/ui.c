@@ -559,7 +559,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonREADYStage( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_PRESS_LOST) {
+if ( event_code == LV_EVENT_RELEASED) {
       READYStageBtnPressed( e );
 }
 }
@@ -567,7 +567,7 @@ if ( event_code == LV_EVENT_PRESS_LOST) {
 void ui_event_MainButtonSTAGEDCancel( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_PRESSED) {
+if ( event_code == LV_EVENT_CLICKED) {
       STAGEDCancelBtnPressed( e );
 }
 }

@@ -50,14 +50,14 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
   static uint16_t last_x = 0, last_y = 0;
   static bool was_pressed = false;
-  static uint8_t debounce_counter = 0;
-  const uint8_t DEBOUNCE_THRESHOLD = 3;  // Require 3 consecutive samples
+  static uint8_t no_touch_counter = 0;
+  const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
 
   bool currently_pressed = touch.Pressed();
 
   if (currently_pressed) {
-    // Touch detected - reset debounce counter
-    debounce_counter = 0;
+    // Touch detected - reset counter
+    no_touch_counter = 0;
     last_x = touch.X();
     last_y = touch.Y();
     data->point.x = last_x;
@@ -77,15 +77,15 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
     data->point.y = last_y;
 
     if (was_pressed) {
-      debounce_counter++;
-      if (debounce_counter >= DEBOUNCE_THRESHOLD) {
-        // Confirmed release after debounce period
+      no_touch_counter++;
+      if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
+        // Confirmed release
         data->state = LV_INDEV_STATE_RELEASED;
         Serial.println("Touch released");
         was_pressed = false;
-        debounce_counter = 0;
+        no_touch_counter = 0;
       } else {
-        // Still in debounce period - maintain pressed state
+        // Still counting - maintain pressed state
         data->state = LV_INDEV_STATE_PRESSED;
       }
     } else {
