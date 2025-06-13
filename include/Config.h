@@ -3,7 +3,7 @@
 
 // SYSTEM SETTINGS
 #define SERIAL_BAUD_RATE 115200
-#define VERSION "0.0.3-alpha"
+#define VERSION "0.0.4-alpha"
 
 // DISPLAY SETTINGS
 #define SCREEN_UPDATE_INTERVAL_MS 200  // Interval for screen updates in milliseconds
