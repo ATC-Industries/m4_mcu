@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.0.3-alpha] - 2025-06-12
+## [0.0.3-alpha] - 2025-06-13
 
 ### Added
 
@@ -15,8 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added persistent touch calibration storage using ESP32 Preferences
 - Created modular touch handling system with proper separation of concerns
 - Added 15-second touch test after calibration (no serial input required)
-- Implemented touch debouncing for LVGL input handling
+- Implemented touch debouncing for LVGL input handling with timeout-based approach
 - Added recalibration flag system for development and troubleshooting
+- Enhanced touch state management to prevent false press/release cycles
 
 ### Changed
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved calibration workflow with automatic save/load functionality
 - Replaced orientation testing with fixed LCD rotation 0, touch rotation 1
 - Enhanced error handling and debug output for calibration process
+- Optimized touch input driver to handle "fat finger" detection with hysteresis
 
 ### Fixed
 
@@ -32,17 +34,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed touch pin configuration (MOSI/MISO pin assignment)
 - Corrected touch coordinate mapping for LVGL integration
 - Improved calibration stability and phantom touch detection
+- Eliminated erratic press/release behavior during continuous touch input
+- Reduced false touch releases caused by momentary touch controller polling gaps
 
 ### Technical
 
 - Touch calibration data stored in ESP32 NVS under "touch_cal" namespace
 - Calibration uses 5-point system for accurate screen mapping
 - Touch coordinates properly transformed for 800x480 display resolution
+- Touch debouncing uses 100ms timeout to maintain pressed state during brief interruptions
+- LVGL input driver now properly tracks state transitions vs. polling artifacts
 
 ### Notes
 
-- Touch debouncing may need fine-tuning based on hardware characteristics
-- This version establishes foundation for reliable touch input handling
+- Touch responsiveness prioritizes accuracy over speed to prevent false inputs
+- Touch debouncing parameters may need adjustment for different hardware configurations
+- This version establishes stable foundation for reliable touch input handling
+- Ready for MPH and distance calculation implementation in next version
 
 ## [0.0.2-alpha] - 2025-06-12
 
