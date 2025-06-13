@@ -559,7 +559,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonREADYStage( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_CLICKED) {
+if ( event_code == LV_EVENT_PRESS_LOST) {
       READYStageBtnPressed( e );
 }
 }
@@ -567,7 +567,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonSTAGEDCancel( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_CLICKED) {
+if ( event_code == LV_EVENT_PRESSED) {
       STAGEDCancelBtnPressed( e );
 }
 }
@@ -575,7 +575,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonPULLINGStop( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_CLICKED) {
+if ( event_code == LV_EVENT_PRESSED) {
       PULLINGStopBtnPressed( e );
 }
 }
@@ -583,7 +583,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonPULLENDDiscard( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_CLICKED) {
+if ( event_code == LV_EVENT_PRESSED) {
       PULLENDDiscardBtnPressed( e );
 }
 }
@@ -591,7 +591,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 void ui_event_MainButtonPULLENDSave( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
-if ( event_code == LV_EVENT_CLICKED) {
+if ( event_code == LV_EVENT_PRESSED) {
       PULLENDSaveBtnPressed( e );
 }
 }

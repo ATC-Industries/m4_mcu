@@ -26,6 +26,7 @@ void init_touch() {
       delay(2000);  // Brief delay before retrying
     }
     Serial.println("Touch calibration completed successfully");
+    setRecalibrationFlag(false);  // Reset recalibration flag
   } else if (recalibrateTouch) {
     Serial.println("Recalibration requested - running calibration...");
     Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
@@ -36,8 +37,10 @@ void init_touch() {
       delay(2000);  // Brief delay before retrying
     }
     Serial.println("Touch calibration completed successfully");
+    setRecalibrationFlag(false);  // Reset recalibration flag
   } else {
     Serial.println("Touch calibration loaded successfully.");
+    setRecalibrationFlag(false);  // Ensure recalibration flag is reset
   }
 
   // Set Touch screen to the same landscape orientation
@@ -399,8 +402,8 @@ bool getCoord() {
     return 1;
 }
 
-bool setRecalibrationFlag() {
-  recalibrateTouch = true;  // Set to true to force recalibration
+bool setRecalibrationFlag(bool force) {
+  recalibrateTouch = force;  // Set to true to force recalibration
   Preferences prefs;
   if (!prefs.begin("touch_cal", false)) {
     Serial.println("Failed to open preferences for recalibration flag");
@@ -408,8 +411,9 @@ bool setRecalibrationFlag() {
   }
 
   // Store calibration values
-  prefs.putBool("recalibrate", true);  // Store recalibration flag
+  prefs.putBool("recalibrate", force);  // Store recalibration flag
   prefs.end();
-  Serial.println("Recalibration flag set to true");
+  Serial.print("Recalibration flag set to ");
+  Serial.println(force ? "true" : "false");
   return true;  // Success
 }

@@ -47,7 +47,7 @@ void setup() {
   StateManager::savePreferences();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
-  setRecalibrationFlag();
+  // setRecalibrationFlag();
   Serial.println("Setup complete");
 }
 

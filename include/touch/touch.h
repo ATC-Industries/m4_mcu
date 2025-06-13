@@ -20,6 +20,6 @@ void test(void);
 void drawPrompt(void);
 void drawCross(int x, int y, unsigned int color);
 bool getCoord();
-bool setRecalibrationFlag();
+bool setRecalibrationFlag(bool force = true);
 
 #endif
