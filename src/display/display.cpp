@@ -19,6 +19,6 @@ void init_display() {
   }
 
   // Configure display
-  lcd.setRotation(0);  // Note: This will be adjusted based on Squareline Studio settings
+  lcd.setRotation(SCREEN_ROTATION);  // Note: This will be adjusted based on Squareline Studio settings
   setBacklight(192);   // Set to ~75% brightness
 }
