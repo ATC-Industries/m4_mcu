@@ -155,6 +155,12 @@ void init_lvgl() {
   disp_drv.draw_buf = &draw_buf;
   disp_drv.hor_res = SCREEN_WIDTH;
   disp_drv.ver_res = SCREEN_HEIGHT;
+
+  // Enable software rotation
+  disp_drv.sw_rotate = 1;
+  disp_drv.rotated = LV_DISP_ROT_180;
+  disp_drv.full_refresh = 1;
+
   lv_disp_drv_register(&disp_drv);
 
   // Initialize input device driver

@@ -7,7 +7,7 @@
 
 // DISPLAY SETTINGS
 #define SCREEN_UPDATE_INTERVAL_MS 200  // Interval for screen updates in milliseconds
-#define SCREEN_ROTATION 2              // Display rotation (0 = no rotation, 1 = 90 degrees, etc.)
+#define SCREEN_ROTATION 0U             // Display rotation (0 = no rotation, 1 = 90 degrees, etc.)
 #define SCREEN_WIDTH 800               // Display width in pixels
 #define SCREEN_HEIGHT 480              // Display height in pixels
 // For Display Pin Settings see include/display/display.h
