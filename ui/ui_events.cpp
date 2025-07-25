@@ -590,3 +590,13 @@ void DriverButton(lv_event_t *e) {
 
   StateManager::savePreferences();
 }
+
+void PullHistoryScreenLoaded(lv_event_t * e)
+{
+	// Your code here
+}
+
+void deletePullHistoryButtonClicked(lv_event_t * e)
+{
+	// Your code here
+}

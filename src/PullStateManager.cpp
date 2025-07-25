@@ -2,6 +2,7 @@
 
 #include "../ui/ui.h"
 #include "SpeedModule.h"
+#include "StateManager.h"
 
 static unsigned long lastDebugPrint = 0;
 static const unsigned long debugInterval = 2000;  // Every 2 seconds
@@ -90,7 +91,12 @@ void PullStateManager::handleDiscardPressed() {
 }
 
 void PullStateManager::handleSavePressed() {
-  // Save values (maybe call a logger or persist?)
+  StateManager::savePullResult();
+  
+  // Increment to next driver
+  StateManager::prefs().driverNumber += 1;
+  StateManager::savePreferences();
+  
   enterState(PullState::READY);
 }
 

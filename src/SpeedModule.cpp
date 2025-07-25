@@ -12,6 +12,11 @@ static float currentSpeedMPH = 0.0f;
 static volatile int pendingPulses = 0;
 static volatile bool pulseReceived = false;
 
+static const int SPEED_BUFFER_SIZE = 10;
+static float deltaSecHistory[SPEED_BUFFER_SIZE];
+static volatile int timingIndex = 0;
+static volatile bool bufferFull = false;
+
 // UI Elements (externs from UI event screen)
 extern lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
 extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
@@ -34,12 +39,75 @@ static void IRAM_ATTR onSpeedSensorPulseISR() {
 void SpeedModule::begin() {
   pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
   attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
+
+  timingIndex = 0;
+  bufferFull = false;
+  lastPulseMicros = 0;
+  pulseCount = 0;
+  currentSpeedMPH = 0.0f;
+
+  for (int i = 0; i < SPEED_BUFFER_SIZE; i++) {
+    deltaSecHistory[i] = 0.0f;
+  }
 }
 
+// void SpeedModule::tick() {
+//   unsigned long now = micros();
+
+//   if (driveOffMode) {
+//     handlePulseDuringDriveOff();
+//     return;
+//   }
+
+//   // Handle pulse updates
+//   if (pulseReceived) {
+//     noInterrupts();
+//     int pulses = pendingPulses;
+//     pendingPulses = 0;
+//     pulseReceived = false;
+//     interrupts();
+
+//     if (currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) {
+//       if (pulses > 0) {
+//         pulseCount += pulses;
+
+//         if (lastPulseMicros > 0 && pulses == 1) {
+//           float deltaSec = (now - lastPulseMicros) / 1e6f;
+//           if (deltaSec > 0.0f && calibrationPulses > 0) {
+//             float feetPerPulse = 300.0f / calibrationPulses;
+//             float feetPerSecond = feetPerPulse / deltaSec;
+//             currentSpeedMPH = feetPerSecond * 0.681818f;
+//           }
+//         }
+
+//         lastPulseMicros = now;
+//       }
+
+//       updateSpeedAndDistance();
+//       if (currentPullState == PullState::STAGED) {
+//         resetDistance();
+//         //lastPulseMicros = 0;
+//       }
+//     }
+//     return;
+//   }
+
+//   // Handle speed decay if no new pulse
+//   if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+//     if (currentSpeedMPH > 0.01f) {
+//       currentSpeedMPH = 0.0f;
+//       updateSpeedAndDistance();
+//     }
+//   }
+// }
 void SpeedModule::tick() {
   unsigned long now = micros();
 
-  // Handle pulse updates
+  if (driveOffMode) {
+    handlePulseDuringDriveOff();
+    return;
+  }
+
   if (pulseReceived) {
     noInterrupts();
     int pulses = pendingPulses;
@@ -47,32 +115,55 @@ void SpeedModule::tick() {
     pulseReceived = false;
     interrupts();
 
-    if (pulses > 0) {
+    if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
       pulseCount += pulses;
 
-      if (lastPulseMicros > 0 && pulses == 1) {
-        float deltaSec = (now - lastPulseMicros) / 1e6f;
-        if (deltaSec > 0.0f && calibrationPulses > 0) {
-          float feetPerPulse = 300.0f / calibrationPulses;
-          float feetPerSecond = feetPerPulse / deltaSec;
-          currentSpeedMPH = feetPerSecond * 0.681818f;
+      for (int i = 0; i < pulses; i++) {
+        unsigned long thisPulseMicros = now;  // could add per-pulse micro timing here if needed
+        if (lastPulseMicros > 0) {
+          float deltaSec = (thisPulseMicros - lastPulseMicros) / 1e6f;
+
+          // Skip obviously bad values
+          if (deltaSec >= 0.001f && deltaSec <= 2.0f && calibrationPulses > 0) {
+            deltaSecHistory[timingIndex] = deltaSec;
+            timingIndex = (timingIndex + 1) % SPEED_BUFFER_SIZE;
+            if (timingIndex == 0) bufferFull = true;
+
+            float avgDelta = getAverageDeltaSec();
+            float feetPerPulse = 300.0f / calibrationPulses;
+            currentSpeedMPH = (feetPerPulse / avgDelta) * 0.681818f;
+          }
         }
+
+        lastPulseMicros = thisPulseMicros;
       }
 
-      lastPulseMicros = now;
+      updateSpeedAndDistance();
+      if (currentPullState == PullState::STAGED) {
+        resetDistance();
+      }
     }
-
-    updateSpeedAndDistance();
     return;
   }
 
-  // Handle speed decay if no new pulse
+  // Speed decay
   if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
     if (currentSpeedMPH > 0.01f) {
       currentSpeedMPH = 0.0f;
       updateSpeedAndDistance();
     }
   }
+}
+
+float SpeedModule::getAverageDeltaSec() {
+  int count = bufferFull ? SPEED_BUFFER_SIZE : timingIndex;
+  if (count == 0) return 1.0f;  // prevent div/0 on boot
+
+  float sum = 0.0f;
+  for (int i = 0; i < count; i++) {
+    sum += deltaSecHistory[i];
+  }
+  return sum / count;
 }
 
 // ---- Validation ----

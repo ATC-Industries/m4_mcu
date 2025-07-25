@@ -55,6 +55,7 @@ extern lv_obj_t *ui_MainLabelClassName;
 extern lv_obj_t *ui_MainContainerSettingsButton;
 extern void ui_event_MainButtonSettings( lv_event_t * e);
 extern lv_obj_t *ui_MainButtonSettings;
+extern void ui_event_MainContainerDriver( lv_event_t * e);
 extern lv_obj_t *ui_MainContainerDriver;
 extern lv_obj_t *ui_MainContainerDriverTitleLabel;
 extern lv_obj_t *ui_MainLabelDriverTitle;

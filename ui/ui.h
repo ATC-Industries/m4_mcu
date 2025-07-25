@@ -20,6 +20,7 @@ extern "C" {
 ///////////////////// SCREENS ////////////////////
 #include "screens/ui_ScreenMain.h"
 #include "screens/ui_ScreenSettings.h"
+#include "screens/ui_ScreenPullHistoryScreen.h"
 
 ///////////////////// VARIABLES ////////////////////
 

@@ -86,6 +86,67 @@ void StateManager::setSpeedCalibrationNumber(int pulses) {
   savePreferences();
 }
 
+void StateManager::savePullResult() {
+  PullResult newPull;
+  newPull.driverName = preferences.driverName;
+  newPull.driverNumber = preferences.driverNumber;
+  newPull.className = preferences.pullingClassName;
+  newPull.classWeight = preferences.pullingClassWeight;
+  newPull.maxSpeedMPH = systemState.maxSpeedInMPH;
+  newPull.maxDistanceFeet = systemState.maxDistanceInFeet;
+  newPull.maxRPM = systemState.maxRpm;
+  newPull.timestamp = millis() / 1000;  // Convert to seconds
+
+  // Shift existing pulls down if at capacity
+  if (preferences.pullHistoryCount >= SystemPreferences::MAX_PULL_HISTORY) {
+    for (int i = 1; i < SystemPreferences::MAX_PULL_HISTORY; i++) {
+      preferences.pullHistory[i - 1] = preferences.pullHistory[i];
+    }
+    preferences.pullHistory[SystemPreferences::MAX_PULL_HISTORY - 1] = newPull;
+  } else {
+    // Add to end
+    preferences.pullHistory[preferences.pullHistoryCount] = newPull;
+    preferences.pullHistoryCount++;
+  }
+
+  savePreferences();
+  Serial.printf("[StateManager] Pull saved: Driver: %s (#%d), Max Speed: %.2f MPH, Max Distance: %.2f ft, Max RPM: %.1f\n", 
+                newPull.driverName.c_str(), newPull.driverNumber, newPull.maxSpeedMPH, newPull.maxDistanceFeet, newPull.maxRPM);
+}
+
+int StateManager::getPullHistoryCount() {
+  return preferences.pullHistoryCount;
+}
+
+const PullResult* StateManager::getPullHistory() {
+  return preferences.pullHistory;
+}
+
+const PullResult* StateManager::getPullResult(int index) {
+  if (index < 0 || index >= preferences.pullHistoryCount) {
+    return nullptr;
+  }
+  return &preferences.pullHistory[index];
+}
+
+void StateManager::clearPullHistory() {
+  // Reset pull history count to 0
+  preferences.pullHistoryCount = 0;
+  
+  // Reset driver number to 1
+  preferences.driverNumber = 1;
+  
+  // Clear all pull history entries (optional, but good practice)
+  for (int i = 0; i < SystemPreferences::MAX_PULL_HISTORY; i++) {
+    preferences.pullHistory[i] = PullResult{};
+  }
+  
+  // Save preferences to persist changes
+  savePreferences();
+  
+  Serial.println("[StateManager] Pull history cleared and driver number reset to 1");
+}
+
 RelayState StateManager::getRelayState(int index) {
   if (index < 0 || index >= 4) return RelayState::DISENGAGED;
   return systemState.relayStates[index];
@@ -153,9 +214,36 @@ void StateManager::loadPreferences() {
 
   preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
 
+  // Load pull history
+  preferences.pullHistoryCount = storage.getInt("pullCount", 0);
+  if (preferences.pullHistoryCount > SystemPreferences::MAX_PULL_HISTORY) {
+    preferences.pullHistoryCount = SystemPreferences::MAX_PULL_HISTORY;
+  }
+  
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    String keyPrefix = "pull" + String(i) + "_";
+    preferences.pullHistory[i].driverName = storage.getString((keyPrefix + "driver").c_str(), "");
+    preferences.pullHistory[i].driverNumber = storage.getInt((keyPrefix + "driverNum").c_str(), 0);
+    preferences.pullHistory[i].className = storage.getString((keyPrefix + "class").c_str(), "");
+    preferences.pullHistory[i].classWeight = storage.getInt((keyPrefix + "weight").c_str(), 0);
+    preferences.pullHistory[i].maxSpeedMPH = storage.getFloat((keyPrefix + "speed").c_str(), 0.0f);
+    preferences.pullHistory[i].maxDistanceFeet = storage.getFloat((keyPrefix + "distance").c_str(), 0.0f);
+    preferences.pullHistory[i].maxRPM = storage.getFloat((keyPrefix + "rpm").c_str(), 0.0f);
+    preferences.pullHistory[i].timestamp = storage.getULong((keyPrefix + "time").c_str(), 0);
+  }
+
   storage.end();
   Serial.printf("[Prefs] LimitSwitchEnabled: LS1 = %d, LS2 = %d\n", preferences.limitSwitchEnabled[0],
                 preferences.limitSwitchEnabled[1]);
+
+  // Print pull history
+  Serial.printf("[Prefs] Pull History (%d pulls):\n", preferences.pullHistoryCount);
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    const PullResult& pull = preferences.pullHistory[i];
+    Serial.printf("  %d: Driver %s (#%d), Speed: %.2f MPH, Distance: %.2f ft, RPM: %.1f, Time: %lu\n", 
+                  i, pull.driverName.c_str(), pull.driverNumber, pull.maxSpeedMPH, 
+                  pull.maxDistanceFeet, pull.maxRPM, pull.timestamp);
+  }
 
   Serial.println("Preferences loaded successfully.");
 }
@@ -190,6 +278,20 @@ void StateManager::savePreferences() {
   storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
   storage.putBool("relaysEnabled", preferences.relaysEnabled);
   storage.putInt("speedCal", preferences.speedCalibrationPulses);
+
+  // Save pull history
+  storage.putInt("pullCount", preferences.pullHistoryCount);
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    String keyPrefix = "pull" + String(i) + "_";
+    storage.putString((keyPrefix + "driver").c_str(), preferences.pullHistory[i].driverName);
+    storage.putInt((keyPrefix + "driverNum").c_str(), preferences.pullHistory[i].driverNumber);
+    storage.putString((keyPrefix + "class").c_str(), preferences.pullHistory[i].className);
+    storage.putInt((keyPrefix + "weight").c_str(), preferences.pullHistory[i].classWeight);
+    storage.putFloat((keyPrefix + "speed").c_str(), preferences.pullHistory[i].maxSpeedMPH);
+    storage.putFloat((keyPrefix + "distance").c_str(), preferences.pullHistory[i].maxDistanceFeet);
+    storage.putFloat((keyPrefix + "rpm").c_str(), preferences.pullHistory[i].maxRPM);
+    storage.putULong((keyPrefix + "time").c_str(), preferences.pullHistory[i].timestamp);
+  }
 
   storage.end();
 }

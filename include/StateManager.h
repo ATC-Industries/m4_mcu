@@ -18,6 +18,17 @@ enum class RelayState { ENGAGED, DISENGAGED };
 // STRUCTS
 //
 
+struct PullResult {
+  String driverName;
+  int driverNumber;
+  String className;
+  int classWeight;
+  float maxSpeedMPH;
+  float maxDistanceFeet;
+  float maxRPM;
+  unsigned long timestamp;  // Unix timestamp when pull was saved
+};
+
 struct SystemPreferences {
   UnitSystem unitSystem = UnitSystem::IMPERIAL;
 
@@ -46,6 +57,11 @@ struct SystemPreferences {
   bool relaysEnabled = true;
 
   int speedCalibrationPulses = 1000;
+
+  // Pull history - store last 10 pulls
+  static const int MAX_PULL_HISTORY = 10;
+  PullResult pullHistory[MAX_PULL_HISTORY];
+  int pullHistoryCount = 0;  // Number of saved pulls (0 to MAX_PULL_HISTORY)
 };
 
 struct SystemState {
@@ -111,6 +127,13 @@ public:
 
   static int getSpeedCalibrationNumber();
   static void setSpeedCalibrationNumber(int pulses);
+
+  // Pull result management
+  static void savePullResult();
+  static int getPullHistoryCount();
+  static const PullResult* getPullHistory();
+  static const PullResult* getPullResult(int index);
+  static void clearPullHistory();
 
   // Persistence
   static void loadPreferences();

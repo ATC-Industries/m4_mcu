@@ -24,29 +24,6 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
   lv_disp_flush_ready(disp);
 }
 
-// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-//   static uint16_t last_x = 0, last_y = 0;
-
-//   if (touch.Pressed()) {
-//     last_x = touch.X();
-//     last_y = touch.Y();
-//     data->point.x = last_x;
-//     data->point.y = last_y;
-//     data->state = LV_INDEV_STATE_PRESSED;
-//     Serial.print("Touch at: ");
-//     Serial.print(last_x);
-//     Serial.print(", ");
-//     Serial.println(last_y);
-//     return;
-//   }
-
-//   data->point.x = last_x;
-//   data->point.y = last_y;
-//   data->state = LV_INDEV_STATE_RELEASED;
-//   Serial.println("Touch released");
-//   return;
-// }
-
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
   static uint16_t last_x = 0, last_y = 0;
   static bool was_pressed = false;
@@ -94,41 +71,6 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
   }
 }
 
-// // Touchpad reading callback for LVGL
-// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-//   static unsigned long lastTouchTime = 0;
-//   static bool lastTouchState = false;
-//   const unsigned long DEBOUNCE_MS = 30;  // Adjust as needed
-
-//   bool currentlyPressed = touch.Pressed();
-//   unsigned long now = millis();
-
-//   // Only process touch changes after debounce period
-//   if (now - lastTouchTime > DEBOUNCE_MS) {
-//     if (currentlyPressed) {
-//       data->state = LV_INDEV_STATE_PR;
-//       data->point.x = touch.X();
-//       data->point.y = touch.Y();
-//       if (!lastTouchState) {
-//         lastTouchTime = now;  // Reset timer on new press
-//       }
-//     } else {
-//       data->state = LV_INDEV_STATE_REL;
-//       if (lastTouchState) {
-//         lastTouchTime = now;  // Reset timer on release
-//       }
-//     }
-//     lastTouchState = currentlyPressed;
-//   } else {
-//     // During debounce period, maintain last state
-//     data->state = lastTouchState ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-//     if (lastTouchState) {
-//       data->point.x = touch.X();
-//       data->point.y = touch.Y();
-//     }
-//   }
-// }
-
 //========================================================================
 // Core System Functions
 //========================================================================
@@ -158,7 +100,7 @@ void init_lvgl() {
 
   // Enable software rotation
   disp_drv.sw_rotate = 1;
-  disp_drv.rotated = LV_DISP_ROT_180;
+  disp_drv.rotated = SW_SCREEN_ROTATION;
   disp_drv.full_refresh = 1;
 
   lv_disp_drv_register(&disp_drv);

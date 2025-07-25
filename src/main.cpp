@@ -43,8 +43,6 @@ void setup() {
   PullStateManager::init();
   SpeedModule::begin();
 
-  StateManager::prefs().driverNumber = 1;
-  StateManager::savePreferences();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   // setRecalibrationFlag();
@@ -70,6 +68,8 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-
+  // TODO: look into removing this delay, if we need to slow down a task we should slow down the specific task.
+  // This is just to prevent the loop from running too fast and hogging CPU time.
+  // lv_timer_handler() should be enough to throttle the loop.
   delay(5);
 }
