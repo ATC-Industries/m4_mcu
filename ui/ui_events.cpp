@@ -188,6 +188,9 @@ void SettingsScreenLoaded(lv_event_t *e) {
     StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED)
                                         : lv_obj_clear_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
 
+    StateManager::prefs().screenRotation180 ? lv_obj_add_state(ui_SettingsSwitchRotateScreenToggle, LV_STATE_CHECKED)
+                                            : lv_obj_clear_state(ui_SettingsSwitchRotateScreenToggle, LV_STATE_CHECKED);
+
     // Brightness
     lv_slider_set_value(uic_SettingsSliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
 
@@ -762,4 +765,13 @@ void deletePullHistoryButtonClicked(lv_event_t * e)
 
   // Attach the custom event handler
   lv_obj_add_event_cb(mbox, DeletePullHistoryConfirmationHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void SettingsSwitchRotateScreen(lv_event_t * e)
+{
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool rotation180 = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  // Apply the screen rotation setting
+  StateManager::setScreenRotation(rotation180);
 }

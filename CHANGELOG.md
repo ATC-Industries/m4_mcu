@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Pull history table with clear routine
 - Pull data now saved to EEPROM (up to 255 pulls; space limitations TBD)
+- Screen rotation toggle in settings
 
 ### Changed
 

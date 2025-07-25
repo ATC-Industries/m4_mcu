@@ -4,6 +4,7 @@
 
 #include "Config.h"
 #include "touch/touch.h"
+#include "StateManager.h"
 
 extern TFT_Touch touch;
 
@@ -100,7 +101,8 @@ void init_lvgl() {
 
   // Enable software rotation
   disp_drv.sw_rotate = 1;
-  disp_drv.rotated = SW_SCREEN_ROTATION;
+  bool rotation180 = StateManager::getScreenRotation();
+  disp_drv.rotated = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;;
   disp_drv.full_refresh = 1;
 
   lv_disp_drv_register(&disp_drv);
