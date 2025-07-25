@@ -40,6 +40,10 @@ void setup() {
 
   init_lvgl();
   ui_init();
+  
+  // Apply saved screen rotation
+  StateManager::setScreenRotation(StateManager::prefs().screenRotation180);
+  
   PullStateManager::init();
   SpeedModule::begin();
 

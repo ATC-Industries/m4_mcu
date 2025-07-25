@@ -86,6 +86,26 @@ void StateManager::setSpeedCalibrationNumber(int pulses) {
   savePreferences();
 }
 
+void StateManager::setScreenRotation(bool rotation180) {
+  preferences.screenRotation180 = rotation180;
+  
+  // // Apply rotation immediately using LVGL's runtime rotation
+  // lv_disp_t* disp = lv_disp_get_default();
+  // if (disp != nullptr) {
+  //   lv_disp_rot_t rotation = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
+  //   lv_disp_set_rotation(disp, rotation);
+  // }
+  
+  savePreferences();
+  Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
+}
+
+bool StateManager::getScreenRotation() {
+  bool rotation180 = preferences.screenRotation180;
+  Serial.printf("[StateManager] Current screen rotation is %s\n", rotation180 ? "180°" : "0°");
+  return rotation180;
+}
+
 void StateManager::savePullResult() {
   PullResult newPull;
   newPull.driverName = preferences.driverName;
@@ -208,6 +228,7 @@ void StateManager::loadPreferences() {
 
   preferences.benchmarkMode = storage.getBool("benchmark", false);
   preferences.screenBrightness = storage.getUChar("brightness", 100);
+  preferences.screenRotation180 = storage.getBool("screenRot180", false);
   preferences.tachEnabled = storage.getBool("tachEnabled", true);
   preferences.limitSwitchesEnabled = storage.getBool("limitsEnabled", true);
   preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
@@ -223,7 +244,7 @@ void StateManager::loadPreferences() {
   for (int i = 0; i < preferences.pullHistoryCount; i++) {
     String keyPrefix = "pull" + String(i) + "_";
     preferences.pullHistory[i].driverName = storage.getString((keyPrefix + "driver").c_str(), "");
-    preferences.pullHistory[i].driverNumber = storage.getInt((keyPrefix + "driverNum").c_str(), 0);
+    preferences.pullHistory[i].driverNumber = storage.getInt((keyPrefix + "drivNum").c_str(), 0);
     preferences.pullHistory[i].className = storage.getString((keyPrefix + "class").c_str(), "");
     preferences.pullHistory[i].classWeight = storage.getInt((keyPrefix + "weight").c_str(), 0);
     preferences.pullHistory[i].maxSpeedMPH = storage.getFloat((keyPrefix + "speed").c_str(), 0.0f);
@@ -274,6 +295,7 @@ void StateManager::savePreferences() {
   storage.putFloat("trackLength", preferences.trackLengthFeet);
   storage.putBool("benchmark", preferences.benchmarkMode);
   storage.putUChar("brightness", preferences.screenBrightness);
+  storage.putBool("screenRot180", preferences.screenRotation180);
   storage.putBool("tachEnabled", preferences.tachEnabled);
   storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
   storage.putBool("relaysEnabled", preferences.relaysEnabled);

@@ -52,6 +52,7 @@ struct SystemPreferences {
 
   bool benchmarkMode = false;
   uint8_t screenBrightness = 100;
+  bool screenRotation180 = false;  // false = 0°, true = 180°
   bool tachEnabled = true;
   bool limitSwitchesEnabled = true;
   bool relaysEnabled = true;
@@ -99,6 +100,7 @@ public:
   static float getMaxRPM();       // Returns max RPM
   static float getMaxSpeed();     // Converts to km/h if metric
   static float getMaxDistance();  // Converts to meters if metric
+  static bool getScreenRotation();  // Returns current screen rotation state 
 
   // State accessors
   static void setUnitSystem(UnitSystem system);
@@ -126,6 +128,8 @@ public:
 
   static int getSpeedCalibrationNumber();
   static void setSpeedCalibrationNumber(int pulses);
+  
+  static void setScreenRotation(bool rotation180);
 
   // Pull result management
   static void savePullResult();
