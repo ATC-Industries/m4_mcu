@@ -89,13 +89,6 @@ void StateManager::setSpeedCalibrationNumber(int pulses) {
 void StateManager::setScreenRotation(bool rotation180) {
   preferences.screenRotation180 = rotation180;
   
-  // // Apply rotation immediately using LVGL's runtime rotation
-  // lv_disp_t* disp = lv_disp_get_default();
-  // if (disp != nullptr) {
-  //   lv_disp_rot_t rotation = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
-  //   lv_disp_set_rotation(disp, rotation);
-  // }
-  
   savePreferences();
   Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
 }
@@ -306,7 +299,7 @@ void StateManager::savePreferences() {
   for (int i = 0; i < preferences.pullHistoryCount; i++) {
     String keyPrefix = "pull" + String(i) + "_";
     storage.putString((keyPrefix + "driver").c_str(), preferences.pullHistory[i].driverName);
-    storage.putInt((keyPrefix + "driverNum").c_str(), preferences.pullHistory[i].driverNumber);
+    storage.putInt((keyPrefix + "drivNum").c_str(), preferences.pullHistory[i].driverNumber);
     storage.putString((keyPrefix + "class").c_str(), preferences.pullHistory[i].className);
     storage.putInt((keyPrefix + "weight").c_str(), preferences.pullHistory[i].classWeight);
     storage.putFloat((keyPrefix + "speed").c_str(), preferences.pullHistory[i].maxSpeedMPH);
