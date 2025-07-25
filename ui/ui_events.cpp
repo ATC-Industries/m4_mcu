@@ -591,6 +591,24 @@ void DriverButton(lv_event_t *e) {
   StateManager::savePreferences();
 }
 
+static void draw_part_event_cb(lv_event_t * e)
+{
+    lv_obj_t * obj = lv_event_get_target(e);
+    lv_obj_draw_part_dsc_t * dsc = lv_event_get_draw_part_dsc(e);
+    
+    if(dsc->part == LV_PART_ITEMS) {
+        uint32_t row = dsc->id / lv_table_get_col_cnt(obj);
+        uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
+
+        // Style the header row (row 0) with dark background
+        if(row == 0) {
+            dsc->rect_dsc->bg_color = lv_color_hex(0x404040);
+            dsc->rect_dsc->bg_opa = LV_OPA_COVER;
+            dsc->label_dsc->color = lv_color_hex(0xFFFFFF);
+        }
+    }
+}
+
 void PullHistoryScreenLoaded(lv_event_t * e)
 {
   // Clear any existing content in the table panel
@@ -614,6 +632,7 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   // Create scrollable table
   lv_coord_t table_width = 780;
   lv_obj_t *table = lv_table_create(uic_PullHistoryScreenPanelTablePanel);
+
   lv_obj_set_size(table, table_width, lv_pct(100));
   lv_obj_center(table);
   
@@ -645,10 +664,11 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   
   // Style header row specifically - dark background
   for (int col = 0; col < 4; col++) {
-    lv_table_add_cell_ctrl(table, 0, col, LV_TABLE_CELL_CTRL_CUSTOM_1);
+      lv_table_add_cell_ctrl(table, 0, col, LV_TABLE_CELL_CTRL_CUSTOM_1);
   }
   lv_obj_set_style_bg_color(table, lv_color_hex(0x404040), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
   lv_obj_set_style_text_color(table, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
+
   
   // Populate data rows (newest first - reverse order)
   for (int i = 0; i < pullCount; i++) {
@@ -678,6 +698,9 @@ void PullHistoryScreenLoaded(lv_event_t * e)
     snprintf(rpmStr, sizeof(rpmStr), "%.0f", pull.maxRPM);
     lv_table_set_cell_value(table, row, 3, rpmStr);
   }
+
+  lv_obj_add_event_cb(table, draw_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+
   
   Serial.printf("[UI] Pull history table loaded with %d pulls\n", pullCount);
 }

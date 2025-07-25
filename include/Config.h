@@ -40,6 +40,9 @@
 // Speed input pin
 #define SPEED_SENSOR_PIN GPIO_NUM_44  // TODO: Where is 44 coming from? I don't see it on the schematic
 
+// PULL HISTORY SETTINGS
+#define MAX_PULL_HISTORY 255  // Maximum number of pull results to store
+
 // OTHER PIN DEFINITIONS
 #define NO_CONNECTION_1 GPIO_NUM_35
 #define NO_CONNECTION_2 GPIO_NUM_36

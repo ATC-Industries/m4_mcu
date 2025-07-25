@@ -98,11 +98,11 @@ void StateManager::savePullResult() {
   newPull.timestamp = millis() / 1000;  // Convert to seconds
 
   // Shift existing pulls down if at capacity
-  if (preferences.pullHistoryCount >= SystemPreferences::MAX_PULL_HISTORY) {
-    for (int i = 1; i < SystemPreferences::MAX_PULL_HISTORY; i++) {
+  if (preferences.pullHistoryCount >= MAX_PULL_HISTORY) {
+    for (int i = 1; i < MAX_PULL_HISTORY; i++) {
       preferences.pullHistory[i - 1] = preferences.pullHistory[i];
     }
-    preferences.pullHistory[SystemPreferences::MAX_PULL_HISTORY - 1] = newPull;
+    preferences.pullHistory[MAX_PULL_HISTORY - 1] = newPull;
   } else {
     // Add to end
     preferences.pullHistory[preferences.pullHistoryCount] = newPull;
@@ -137,7 +137,7 @@ void StateManager::clearPullHistory() {
   preferences.driverNumber = 1;
   
   // Clear all pull history entries (optional, but good practice)
-  for (int i = 0; i < SystemPreferences::MAX_PULL_HISTORY; i++) {
+  for (int i = 0; i < MAX_PULL_HISTORY; i++) {
     preferences.pullHistory[i] = PullResult{};
   }
   
@@ -216,8 +216,8 @@ void StateManager::loadPreferences() {
 
   // Load pull history
   preferences.pullHistoryCount = storage.getInt("pullCount", 0);
-  if (preferences.pullHistoryCount > SystemPreferences::MAX_PULL_HISTORY) {
-    preferences.pullHistoryCount = SystemPreferences::MAX_PULL_HISTORY;
+  if (preferences.pullHistoryCount > MAX_PULL_HISTORY) {
+    preferences.pullHistoryCount = MAX_PULL_HISTORY;
   }
   
   for (int i = 0; i < preferences.pullHistoryCount; i++) {

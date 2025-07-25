@@ -58,8 +58,7 @@ struct SystemPreferences {
 
   int speedCalibrationPulses = 1000;
 
-  // Pull history - store last 10 pulls
-  static const int MAX_PULL_HISTORY = 10;
+  // Pull history
   PullResult pullHistory[MAX_PULL_HISTORY];
   int pullHistoryCount = 0;  // Number of saved pulls (0 to MAX_PULL_HISTORY)
 };
