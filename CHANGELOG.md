@@ -7,27 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - v0.0.4-alpha
+## [0.0.4-alpha] - v0.0.4-alpha
 
 ### Added
 
-- 
+- Pull history table with clear routine
+- Pull data now saved to EEPROM (up to 255 pulls; space limitations TBD)
 
 ### Changed
 
--
-
-### Fixed
-
--
-
-### Technical
-
--
+- Improved speed calculator to reduce spikes/noise
+- Driver number now auto-increments on pull save
 
 ### Notes
 
-- Work in progress - not ready for release
+- Work in progress – not ready for release
 
 ## [0.0.3-alpha] - 2025-06-13
 

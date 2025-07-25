@@ -602,9 +602,15 @@ static void draw_part_event_cb(lv_event_t * e)
 
         // Style the header row (row 0) with dark background
         if(row == 0) {
+            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
             dsc->rect_dsc->bg_color = lv_color_hex(0x404040);
             dsc->rect_dsc->bg_opa = LV_OPA_COVER;
             dsc->label_dsc->color = lv_color_hex(0xFFFFFF);
+        } else if(col == 1 || col == 2 || col == 3) {
+            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
+        } /*In the first column align the texts to the right*/
+        else if(col == 0) {
+            dsc->label_dsc->align = LV_TEXT_ALIGN_LEFT;
         }
     }
 }
@@ -645,10 +651,16 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   lv_table_set_row_cnt(table, pullCount + 1); // +1 for header row
   
   // Get table width and calculate proportional column widths
-  lv_table_set_col_width(table, 0, table_width * 0.15); // Driver# - 15%
-  lv_table_set_col_width(table, 1, table_width * 0.28); // Max Speed - 28%
-  lv_table_set_col_width(table, 2, table_width * 0.28); // Max Distance - 28%
-  lv_table_set_col_width(table, 3, table_width * 0.28); // Max RPM - 28%
+  int col_1_width = table_width * 0.28;
+  int col_2_width = table_width * 0.28;
+  int col_3_width = table_width * 0.28;
+  // Let the first column absorb any remainder (off-by-one, rounding, etc)
+  int col_0_width = table_width - (col_1_width + col_2_width + col_3_width);
+
+  lv_table_set_col_width(table, 0, col_0_width); // Driver#
+  lv_table_set_col_width(table, 1, col_1_width); // Max Speed
+  lv_table_set_col_width(table, 2, col_2_width); // Max Distance
+  lv_table_set_col_width(table, 3, col_3_width); // Max RPM
   
   // Set header row
   lv_table_set_cell_value(table, 0, 0, "Driver #");
