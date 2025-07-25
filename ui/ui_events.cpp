@@ -705,7 +705,7 @@ void PullHistoryScreenLoaded(lv_event_t * e)
     // Max Distance (convert to metric if needed)
     float distance = isMetric ? pull.maxDistanceFeet * 0.3048f : pull.maxDistanceFeet;
     char distanceStr[16];
-    snprintf(distanceStr, sizeof(distanceStr), "%.1f", distance);
+    snprintf(distanceStr, sizeof(distanceStr), "%.2f", distance);
     lv_table_set_cell_value(table, row, 2, distanceStr);
     
     // Max RPM
