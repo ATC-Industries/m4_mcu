@@ -26,7 +26,7 @@ struct PullResult {
   float maxSpeedMPH;
   float maxDistanceFeet;
   float maxRPM;
-  unsigned long timestamp;  // Unix timestamp when pull was saved
+  unsigned long timestamp;  // ticks since last boot.  not great but we dont have an RTC clock on the MCU
 };
 
 struct SystemPreferences {
