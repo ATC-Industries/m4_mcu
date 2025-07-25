@@ -29,6 +29,7 @@ extern lv_obj_t *ui_Startevents___initial_actions0;
 
 // IMAGES AND IMAGE SETS
 LV_IMG_DECLARE( ui_img_iconsettings44px_png);   // assets/iconSettings44px.png
+LV_IMG_DECLARE( ui_img_table_png);   // assets/table.png
 LV_IMG_DECLARE( ui_img_iconchangedriver44px_png);   // assets/iconChangeDriver44px.png
 
 // FONTS

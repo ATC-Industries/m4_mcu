@@ -593,10 +593,138 @@ void DriverButton(lv_event_t *e) {
 
 void PullHistoryScreenLoaded(lv_event_t * e)
 {
-	// Your code here
+  // Clear any existing content in the table panel
+  lv_obj_clean(uic_PullHistoryScreenPanelTablePanel);
+  
+  // Get pull history data
+  int pullCount = StateManager::getPullHistoryCount();
+  const PullResult* pullHistory = StateManager::getPullHistory();
+  bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
+  
+  if (pullCount == 0) {
+    // No pull history - show message
+    lv_obj_t *noDataLabel = lv_label_create(uic_PullHistoryScreenPanelTablePanel);
+    lv_label_set_text(noDataLabel, "No pull history available.\nStart some pulls to see data here!");
+    lv_obj_center(noDataLabel);
+    lv_obj_set_style_text_align(noDataLabel, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_text_color(noDataLabel, lv_color_hex(0x808080), 0);
+    return;
+  }
+  
+  // Create scrollable table
+  lv_coord_t table_width = 780;
+  lv_obj_t *table = lv_table_create(uic_PullHistoryScreenPanelTablePanel);
+  lv_obj_set_size(table, table_width, lv_pct(100));
+  lv_obj_center(table);
+  
+  // Enable scrolling on the table
+  lv_obj_add_flag(table, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scroll_dir(table, LV_DIR_VER);
+  
+  // Set table dimensions (columns: Driver#, Max Speed, Max Distance, Max RPM)
+  lv_table_set_col_cnt(table, 4);
+  lv_table_set_row_cnt(table, pullCount + 1); // +1 for header row
+  
+  // Get table width and calculate proportional column widths
+  lv_table_set_col_width(table, 0, table_width * 0.15); // Driver# - 15%
+  lv_table_set_col_width(table, 1, table_width * 0.28); // Max Speed - 28%
+  lv_table_set_col_width(table, 2, table_width * 0.28); // Max Distance - 28%
+  lv_table_set_col_width(table, 3, table_width * 0.28); // Max RPM - 28%
+  
+  // Set header row
+  lv_table_set_cell_value(table, 0, 0, "Driver #");
+  lv_table_set_cell_value(table, 0, 1, isMetric ? "Speed (km/h)" : "Speed (mph)");
+  lv_table_set_cell_value(table, 0, 2, isMetric ? "Distance (m)" : "Distance (ft)");
+  lv_table_set_cell_value(table, 0, 3, "RPM");
+  
+  // Style the table - default light background for data cells
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(table, 1, LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  
+  // Style header row specifically - dark background
+  for (int col = 0; col < 4; col++) {
+    lv_table_add_cell_ctrl(table, 0, col, LV_TABLE_CELL_CTRL_CUSTOM_1);
+  }
+  lv_obj_set_style_bg_color(table, lv_color_hex(0x404040), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
+  lv_obj_set_style_text_color(table, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
+  
+  // Populate data rows (newest first - reverse order)
+  for (int i = 0; i < pullCount; i++) {
+    int pullIndex = pullCount - 1 - i; // Reverse order for newest first
+    const PullResult& pull = pullHistory[pullIndex];
+    int row = i + 1; // +1 to skip header row
+    
+    // Driver Number
+    char driverStr[16];
+    snprintf(driverStr, sizeof(driverStr), "#%d", pull.driverNumber);
+    lv_table_set_cell_value(table, row, 0, driverStr);
+    
+    // Max Speed (convert to metric if needed)
+    float speed = isMetric ? pull.maxSpeedMPH * 1.60934f : pull.maxSpeedMPH;
+    char speedStr[16];
+    snprintf(speedStr, sizeof(speedStr), "%.1f", speed);
+    lv_table_set_cell_value(table, row, 1, speedStr);
+    
+    // Max Distance (convert to metric if needed)
+    float distance = isMetric ? pull.maxDistanceFeet * 0.3048f : pull.maxDistanceFeet;
+    char distanceStr[16];
+    snprintf(distanceStr, sizeof(distanceStr), "%.1f", distance);
+    lv_table_set_cell_value(table, row, 2, distanceStr);
+    
+    // Max RPM
+    char rpmStr[16];
+    snprintf(rpmStr, sizeof(rpmStr), "%.0f", pull.maxRPM);
+    lv_table_set_cell_value(table, row, 3, rpmStr);
+  }
+  
+  Serial.printf("[UI] Pull history table loaded with %d pulls\n", pullCount);
+}
+
+void DeletePullHistoryConfirmationHandler(lv_event_t *e) {
+  lv_obj_t *mbox = lv_event_get_current_target(e);
+  
+  // Get which button was pressed
+  const char *btn_txt = lv_msgbox_get_active_btn_text(mbox);
+  
+  if (strcmp(btn_txt, "Yes") == 0) {
+    // Clear pull history and reset driver number
+    StateManager::clearPullHistory();
+    
+    // Close the modal
+    lv_msgbox_close(mbox);
+    
+    // Refresh the pull history screen by triggering a screen reload
+    lv_event_send(ui_ScreenPullHistoryScreen, LV_EVENT_SCREEN_LOADED, NULL);
+    
+    Serial.println("[UI] Pull history deleted and screen refreshed");
+  } else if (strcmp(btn_txt, "No") == 0) {
+    // Just close the modal
+    lv_msgbox_close(mbox);
+  }
 }
 
 void deletePullHistoryButtonClicked(lv_event_t * e)
 {
-	// Your code here
+  // Define the button options
+  static const char *btn_txts[] = {"Yes", "No", NULL};
+
+  // Confirmation message
+  const char *confirmation_text =
+      "Are you sure you want to delete the pull history?\n\n"
+      "This action CANNOT be undone and will:\n"
+      "• Delete all saved pull records\n"
+      "• Reset the driver number back to 1\n\n"
+      "Do you want to continue?";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "DELETE PULL HISTORY", confirmation_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);
+  lv_obj_center(mbox);
+
+  // Attach the custom event handler
+  lv_obj_add_event_cb(mbox, DeletePullHistoryConfirmationHandler, LV_EVENT_VALUE_CHANGED, NULL);
 }
