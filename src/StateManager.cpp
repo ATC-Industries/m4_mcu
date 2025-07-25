@@ -32,9 +32,14 @@ float StateManager::getRPM() { return systemState.rpm; }
 
 float StateManager::getMaxRPM() { return systemState.maxRpm; }
 
-float StateManager::getMaxSpeed() { return systemState.maxSpeedInMPH; }
+float StateManager::getMaxSpeed() { 
+  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxSpeedInMPH : systemState.maxSpeedInMPH * 1.60934f; 
+}
 
-float StateManager::getMaxDistance() { return systemState.maxDistanceInFeet; }
+float StateManager::getMaxDistance() { 
+      return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet : systemState.maxDistanceInFeet *
+  0.3048f;
+}
 
 // ----- Setters -----
 
