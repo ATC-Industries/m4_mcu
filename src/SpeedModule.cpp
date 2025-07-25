@@ -103,10 +103,7 @@ void SpeedModule::begin() {
 void SpeedModule::tick() {
   unsigned long now = micros();
 
-  if (driveOffMode) {
-    handlePulseDuringDriveOff();
-    return;
-  }
+
 
   if (pulseReceived) {
     noInterrupts();
@@ -114,6 +111,11 @@ void SpeedModule::tick() {
     pendingPulses = 0;
     pulseReceived = false;
     interrupts();
+
+    if (driveOffMode) {
+      handlePulseDuringDriveOff();
+      return;
+    }
 
     if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
       pulseCount += pulses;

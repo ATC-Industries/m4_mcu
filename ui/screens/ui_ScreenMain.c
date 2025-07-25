@@ -679,9 +679,9 @@ lv_obj_set_align( ui_MainButtonButton6, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_MainButtonButton6, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_clear_flag( ui_MainButtonButton6, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_radius(ui_MainButtonButton6, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_bg_color(ui_MainButtonButton6, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_color(ui_MainButtonButton6, lv_color_hex(0x4D4D4D), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_MainButtonButton6, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_bg_img_src( ui_MainButtonButton6, &ui_img_table38x38_png, LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_img_src( ui_MainButtonButton6, &ui_img_table_helemet_42x42_png, LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_img_recolor(ui_MainButtonButton6, lv_color_hex(0xFFFFFF), LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_bg_img_recolor_opa(ui_MainButtonButton6, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_color(ui_MainButtonButton6, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
