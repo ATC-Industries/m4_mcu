@@ -3,7 +3,16 @@
 
 // SYSTEM SETTINGS
 #define SERIAL_BAUD_RATE 115200
-#define VERSION "0.0.4-alpha"
+#define VERSION_MAJOR "0"
+#define VERSION_MINOR "0"
+#define VERSION_PATCH "4"
+#define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
+
+#ifdef VERSION_PRERELEASE
+    #define VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE
+#else
+    #define VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+#endif
 
 // DISPLAY SETTINGS
 #define SCREEN_UPDATE_INTERVAL_MS 200        // Interval for screen updates in milliseconds
