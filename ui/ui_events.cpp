@@ -16,7 +16,7 @@
 #include "touch/touch.h"
 #include "ui.h"
 
-const char *VERSION_STRING = VERSION;
+const char *VERSION_STRING = DEVICE_VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
 inline void setObjectVisible(lv_obj_t *obj, bool visible) {
@@ -586,7 +586,7 @@ void CreateDeviceTable(lv_event_t *e) {
 }
 
 void DriverButton(lv_event_t *e) {
-  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(DEVICE_VERSION);
   StateManager::prefs().pullingClassWeight = 0;
   StateManager::prefs().driverName = "Driver";
   StateManager::prefs().driverNumber += 1;

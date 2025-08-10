@@ -1,6 +1,20 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Forcefully undefine the library's defaults
+#undef DEVICE_TYPE
+#undef DEFAULT_DEVICE_NAME
+
+#define DEVICE_TYPE M4_MAIN_CONTROLLER
+#define DEFAULT_DEVICE_NAME "M4 Sled Monitor"
+
+// Include Dependencies
+#include "M4Device.h"  // Include the M4Device header for the device_type enum
+#include "M4Callbacks.h"
+#include "M4CommProtocol.h"
+#include "M4OTAServer.h"
+#include "M4PairingControl.h"
+
 // SYSTEM SETTINGS
 #define SERIAL_BAUD_RATE 115200
 #define VERSION_MAJOR "0"
@@ -9,9 +23,9 @@
 #define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
 
 #ifdef VERSION_PRERELEASE
-    #define VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE
 #else
-    #define VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
 #endif
 
 // DISPLAY SETTINGS
@@ -46,10 +60,10 @@
 #define GPS_CALIBRATION_PULSES 3780
 
 // Speed input pin
-#define SPEED_SENSOR_PIN GPIO_NUM_44  // TODO: Where is 44 coming from? I don't see it on the schematic
+#define SPEED_SENSOR_PIN GPIO_NUM_44  // This is one of the RX TX pins and the speed sensor needs to be disconeected before burning.
 
 // PULL HISTORY SETTINGS
-#define MAX_PULL_HISTORY 255  // Maximum number of pull results to store
+#define MAX_PULL_HISTORY 50  // Maximum number of pull results to store
 
 // OTHER PIN DEFINITIONS
 #define NO_CONNECTION_1 GPIO_NUM_35

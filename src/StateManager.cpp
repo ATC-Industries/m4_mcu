@@ -1,6 +1,7 @@
 #include "StateManager.h"
 
 #include <Preferences.h>
+// #include <cstring>
 
 static ::Preferences storage;
 
@@ -104,6 +105,34 @@ bool StateManager::getScreenRotation() {
   return rotation180;
 }
 
+// M4 Communication methods
+const uint8_t* StateManager::getPairedTractorAddress() {
+  return preferences.pairedTractorAddress;
+}
+
+void StateManager::setPairedTractorAddress(const uint8_t* address) {
+  memcpy(preferences.pairedTractorAddress, address, 6);
+  savePreferences();
+}
+
+const uint8_t* StateManager::getPairedRemoteDisplayAddress() {
+  return preferences.pairedRemoteDisplayAddress;
+}
+
+void StateManager::setPairedRemoteDisplayAddress(const uint8_t* address) {
+  memcpy(preferences.pairedRemoteDisplayAddress, address, 6);
+  savePreferences();
+}
+
+unsigned long StateManager::getPairingDelay() {
+  return preferences.pairingDelay;
+}
+
+void StateManager::setPairingDelay(unsigned long delay) {
+  preferences.pairingDelay = delay;
+  savePreferences();
+}
+
 void StateManager::savePullResult() {
   PullResult newPull;
   newPull.driverName = preferences.driverName;
@@ -203,7 +232,7 @@ void StateManager::loadPreferences() {
   preferences.unitSystem =
       static_cast<UnitSystem>(storage.getUChar("unitSystem", static_cast<uint8_t>(UnitSystem::IMPERIAL)));
 
-  preferences.pullingClassName = storage.getString("className", "M4 Sled Monitor - " + String(VERSION));
+  preferences.pullingClassName = storage.getString("className", "M4 Sled Monitor - " + String(DEVICE_VERSION));
   preferences.pullingClassWeight = storage.getInt("classWeight", 0);
   preferences.driverName = storage.getString("driverName", "Driver");
   preferences.driverNumber = storage.getInt("driverNumber", 1);
@@ -232,6 +261,11 @@ void StateManager::loadPreferences() {
   preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
 
   preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
+
+  // Load M4 communication settings
+  storage.getBytes("tractorAddr", preferences.pairedTractorAddress, 6);
+  storage.getBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
+  preferences.pairingDelay = storage.getULong("pairingDelay", 10000);
 
   // Load pull history
   preferences.pullHistoryCount = storage.getInt("pullCount", 0);
@@ -298,6 +332,11 @@ void StateManager::savePreferences() {
   storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
   storage.putBool("relaysEnabled", preferences.relaysEnabled);
   storage.putInt("speedCal", preferences.speedCalibrationPulses);
+
+  // Save M4 communication settings
+  storage.putBytes("tractorAddr", preferences.pairedTractorAddress, 6);
+  storage.putBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
+  storage.putULong("pairingDelay", preferences.pairingDelay);
 
   // Save pull history
   storage.putInt("pullCount", preferences.pullHistoryCount);

@@ -32,7 +32,7 @@ struct PullResult {
 struct SystemPreferences {
   UnitSystem unitSystem = UnitSystem::IMPERIAL;
 
-  String pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  String pullingClassName = "M4 Sled Monitor - " + String(DEVICE_VERSION);
   int pullingClassWeight = 0;
   String driverName = "Driver";
   int driverNumber = 1;
@@ -62,6 +62,11 @@ struct SystemPreferences {
   // Pull history
   PullResult pullHistory[MAX_PULL_HISTORY];
   int pullHistoryCount = 0;  // Number of saved pulls (0 to MAX_PULL_HISTORY)
+
+  // M4 Communication Settings
+  uint8_t pairedTractorAddress[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t pairedRemoteDisplayAddress[6] = {0, 0, 0, 0, 0, 0};
+  unsigned long pairingDelay = 10000;  // Default 10 second pairing delay
 };
 
 struct SystemState {
@@ -130,6 +135,14 @@ public:
   static void setSpeedCalibrationNumber(int pulses);
   
   static void setScreenRotation(bool rotation180);
+
+  // M4 Communication methods
+  static const uint8_t* getPairedTractorAddress();
+  static void setPairedTractorAddress(const uint8_t* address);
+  static const uint8_t* getPairedRemoteDisplayAddress();
+  static void setPairedRemoteDisplayAddress(const uint8_t* address);
+  static unsigned long getPairingDelay();
+  static void setPairingDelay(unsigned long delay);
 
   // Pull result management
   static void savePullResult();
