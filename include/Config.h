@@ -40,13 +40,13 @@
 #define LCD_BL_CHANNEL 0                  // PWM channel for backlight control
 #define LCD_BL_RESOLUTION 8               // 8-bit resolution (0-255)
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192  // Default backlight brightness (0-255)
-#define LCD_BL_PIN GPIO_NUM_2             // Backlight control pin
+#define LCD_BL_PIN IO_LCD_BL_CTR             // Backlight control pin
 
 // TOUCH SETTINGS
-#define TOUCH_CS_PIN GPIO_NUM_38    // Touch CS pin
-#define TOUCH_MOSI_PIN GPIO_NUM_11  // Touch MOSI pin
-#define TOUCH_MISO_PIN GPIO_NUM_13  // Touch MISO pin
-#define TOUCH_SCK_PIN GPIO_NUM_12   // Touch SCK pin
+#define TOUCH_CS_PIN IO_TP_CS    // Touch CS pin
+#define TOUCH_MOSI_PIN IO_TP_IN  // Touch MOSI pin
+#define TOUCH_MISO_PIN IO_TP_OUT  // Touch MISO pin
+#define TOUCH_SCK_PIN IO_TP_CLK   // Touch SCK pin
 
 // Enable this for development-only features like fake pulls
 // #define DEVELOPMENT_MODE
@@ -65,6 +65,40 @@
 // PULL HISTORY SETTINGS
 #define MAX_PULL_HISTORY 50  // Maximum number of pull results to store
 
+// Pin configuration for 800x480 RGB display
+#define IO_LCD_BL_CTR  GPIO_NUM_4
+#define IO_INTA        GPIO_NUM_5
+#define IO_INTB        GPIO_NUM_6
+#define IO_SENSOR      GPIO_NUM_7
+#define IO_BUTTON      GPIO_NUM_15
+#define IO_TP_OUT      GPIO_NUM_16
+#define IO_TP_IN       GPIO_NUM_17
+#define IO_TP_CS       GPIO_NUM_18
+#define IO_TP_CLK      GPIO_NUM_8
+#define IO_I2C_SDA     GPIO_NUM_19
+#define IO_I2C_SCL     GPIO_NUM_20
+#define IO_VSYNC       GPIO_NUM_3
+#define IO_HSYNC       GPIO_NUM_46
+#define IO_PCLK        GPIO_NUM_9
+#define IO_B7          GPIO_NUM_10
+#define IO_B6          GPIO_NUM_11
+#define IO_B5          GPIO_NUM_12
+#define IO_B4          GPIO_NUM_13
+#define IO_B3          GPIO_NUM_14
+#define IO_G7          GPIO_NUM_21
+#define IO_G6          GPIO_NUM_47
+#define IO_G5          GPIO_NUM_48
+#define IO_G4          GPIO_NUM_45
+#define IO_DE_BOOT     GPIO_NUM_0
+#define IO_G3          GPIO_NUM_38
+#define IO_G2          GPIO_NUM_39
+#define IO_R7          GPIO_NUM_40
+#define IO_R6          GPIO_NUM_41
+#define IO_R5          GPIO_NUM_42
+#define IO_R4          GPIO_NUM_2
+#define IO_R3          GPIO_NUM_1
+
+
 // OTHER PIN DEFINITIONS
 #define NO_CONNECTION_1 GPIO_NUM_35
 #define NO_CONNECTION_2 GPIO_NUM_36
@@ -73,7 +107,12 @@
 #define IO17 GPIO_NUM_17
 #define IO18 GPIO_NUM_18
 #define TF_CS GPIO_NUM_10
-#define I2C_SDA GPIO_NUM_19
-#define I2C_SCL GPIO_NUM_20
+#define I2C_SDA IO_I2C_SDA
+#define I2C_SCL IO_I2C_SCL
+
+
+
+
+
 
 #endif  // CONFIG_H

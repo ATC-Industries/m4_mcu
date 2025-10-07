@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved speed calculator to reduce spikes/noise
 - Driver number now auto-increments on pull save
+- Updated RGB display pin mappings to match new PCB (Rev B) IO definitions
 
 ### Notes
 
