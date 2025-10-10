@@ -60,7 +60,7 @@
 #define GPS_CALIBRATION_PULSES 3780
 
 // Speed input pin
-#define SPEED_SENSOR_PIN GPIO_NUM_44  // This is one of the RX TX pins and the speed sensor needs to be disconeected before burning.
+#define SPEED_SENSOR_PIN IO_SENSOR  // This is one of the RX TX pins and the speed sensor needs to be disconeected before burning.
 
 // PULL HISTORY SETTINGS
 #define MAX_PULL_HISTORY 50  // Maximum number of pull results to store
@@ -100,19 +100,29 @@
 
 
 // OTHER PIN DEFINITIONS
-#define NO_CONNECTION_1 GPIO_NUM_35
-#define NO_CONNECTION_2 GPIO_NUM_36
-#define NO_CONNECTION_3 GPIO_NUM_37
-#define IO42 GPIO_NUM_42
-#define IO17 GPIO_NUM_17
-#define IO18 GPIO_NUM_18
-#define TF_CS GPIO_NUM_10
-#define I2C_SDA IO_I2C_SDA
-#define I2C_SCL IO_I2C_SCL
+// #define NO_CONNECTION_1 GPIO_NUM_35
+// #define NO_CONNECTION_2 GPIO_NUM_36
+// #define NO_CONNECTION_3 GPIO_NUM_37
+// #define IO42 GPIO_NUM_42
+// #define IO17 GPIO_NUM_17
+// #define IO18 GPIO_NUM_18
+// #define TF_CS IO_TP_CS
+// #define I2C_SDA IO_I2C_SDA
+// #define I2C_SCL IO_I2C_SCL
 
+// I2C
+#define I2C_SDA_PIN IO_I2C_SDA   // from your new pin map
+#define I2C_SCL_PIN IO_I2C_SCL
 
+// MCP23017 address from A2 A1 A0 straps (base 0x20)
+#define MCP23017_ADDR 0x20       // update if A0..A2 not 000
 
+// Horn on MCP23017 GPA7
+#define MCP_HORN_PORTA_PIN 7     // 0..7 map to GPA0..GPA7
+#define MCP_HORN_ACTIVE_HIGH 1   
 
+// Main Button
+#define BUTTON_ACTIVE_LOW 1
 
 
 #endif  // CONFIG_H

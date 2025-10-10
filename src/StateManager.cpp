@@ -1,4 +1,6 @@
 #include "StateManager.h"
+#include "peripherals/PeripheralsInit.h"
+
 
 #include <Preferences.h>
 // #include <cstring>

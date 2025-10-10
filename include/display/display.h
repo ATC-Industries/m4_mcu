@@ -7,6 +7,20 @@
 #include <LovyanGFX.hpp>
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
+#include "driver/gpio.h"
+
+static const gpio_num_t rgb_sync_pins[] = {
+  IO_B3,IO_B4,IO_B5,IO_B6,IO_B7,
+  IO_G2,IO_G3,IO_G4,IO_G5,IO_G6,IO_G7,
+  IO_R3,IO_R4,IO_R5,IO_R6,IO_R7,
+  IO_HSYNC,IO_VSYNC,IO_PCLK,IO_DE_BOOT
+};
+
+static void boost_rgb_drive() {
+  for (auto p : rgb_sync_pins) gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3);
+}
+// call boost_rgb_drive(); before lcd.begin()
+
 
 class LGFX : public lgfx::LGFX_Device {
 public:
@@ -17,6 +31,8 @@ public:
     {
       auto cfg = _bus_instance.config();
       cfg.panel = &_panel_instance;
+
+      _panel_instance.setPsram(true);
 
       // // Pin configuration for 800x480 RGB display (OLD BOARD)
       // cfg.pin_d0 = GPIO_NUM_15;       // B3
@@ -69,21 +85,56 @@ public:
       cfg.pin_pclk    = IO_PCLK;    // PCLK
 
 
-      cfg.freq_write = 15000000;
+      // cfg.freq_write = 15000000;
 
-      cfg.hsync_polarity = 0;
-      cfg.hsync_front_porch = 40;
-      cfg.hsync_pulse_width = 48;
-      cfg.hsync_back_porch = 40;
+      // cfg.hsync_polarity = 0;
+      // cfg.hsync_front_porch = 40;
+      // cfg.hsync_pulse_width = 48; //48
+      // cfg.hsync_back_porch = 40;
 
-      cfg.vsync_polarity = 0;
-      cfg.vsync_front_porch = 1;
-      cfg.vsync_pulse_width = 31;
-      cfg.vsync_back_porch = 13;
+      // cfg.vsync_polarity = 0;
+      // cfg.vsync_front_porch = 1;
+      // cfg.vsync_pulse_width = 31;
+      // cfg.vsync_back_porch = 13;
 
-      cfg.pclk_active_neg = 1;
-      cfg.de_idle_high = 0;
-      cfg.pclk_idle_high = 0;
+      // cfg.pclk_active_neg = 1;
+      // cfg.de_idle_high = 0;
+      // cfg.pclk_idle_high = 0;
+
+      // // Aim ~25.2 MHz first for stability
+      // cfg.freq_write = 15000000;
+
+      // cfg.hsync_polarity    = 0;
+      // cfg.hsync_pulse_width = 2;
+      // cfg.hsync_back_porch  = 50;
+      // cfg.hsync_front_porch = 8;   // 800 + 46 + 2 + 12 = 860
+
+      // cfg.vsync_polarity    = 0;
+      // cfg.vsync_pulse_width = 2;
+      // cfg.vsync_back_porch  = 5;
+      // cfg.vsync_front_porch = 41;   // 480 + 5 + 2 + 41 = 528
+
+      // cfg.pclk_active_neg = 0;      // if fringing persists, flip to 1
+      // cfg.de_idle_high    = 0;
+      // cfg.pclk_idle_high  = 0;
+
+      cfg.freq_write        = 15000000;   // vendor sample uses ~18 MHz
+
+      cfg.hsync_polarity    = 0;
+      cfg.hsync_back_porch  = 40;
+      cfg.hsync_front_porch = 20;
+      cfg.hsync_pulse_width = 1;
+
+      cfg.vsync_polarity    = 0;
+      cfg.vsync_back_porch  = 8;
+      cfg.vsync_front_porch = 4;
+      cfg.vsync_pulse_width = 1;
+
+      cfg.pclk_active_neg   = 1;          // sample on falling edge, per sample
+      cfg.de_idle_high      = 0;
+      cfg.pclk_idle_high    = 1;
+
+
 
       _bus_instance.config(cfg);
     }

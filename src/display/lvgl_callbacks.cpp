@@ -90,7 +90,7 @@ void init_lvgl() {
 
   // Initialize display buffer
   // lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
-  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, SCREEN_WIDTH * 40);
+  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, SCREEN_WIDTH * 10);
 
   // Initialize display driver
   lv_disp_drv_init(&disp_drv);

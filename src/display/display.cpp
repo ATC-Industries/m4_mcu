@@ -7,6 +7,7 @@ LGFX lcd;
 
 // Initialize the display and touch
 void init_display() {
+  boost_rgb_drive();
   // Initialize backlight
   ledcSetup(LCD_BL_CHANNEL, LCD_BL_FREQ, LCD_BL_RESOLUTION);
   ledcAttachPin(LCD_BL_PIN, LCD_BL_CHANNEL);

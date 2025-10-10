@@ -9,7 +9,7 @@
 
 // LVGL buffers and drivers
 static lv_disp_draw_buf_t draw_buf;
-static lv_color_t buf1[800 * 40];
+static lv_color_t buf1[800 * 10];
 static lv_disp_drv_t disp_drv;
 static lv_indev_drv_t indev_drv;
 

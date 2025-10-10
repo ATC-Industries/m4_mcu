@@ -37,7 +37,7 @@ static void IRAM_ATTR onSpeedSensorPulseISR() {
 }
 
 void SpeedModule::begin() {
-  pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
+  pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
 
   timingIndex = 0;
@@ -100,6 +100,8 @@ void SpeedModule::begin() {
 //     }
 //   }
 // }
+
+
 void SpeedModule::tick() {
   unsigned long now = micros();
 
