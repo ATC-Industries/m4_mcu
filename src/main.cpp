@@ -62,23 +62,33 @@ bool isMainScreenReady() {
          uic_MainLabelDriverNumber && uic_MainLabelClassName;
 }
 
-unsigned long lastScreenUpdate = 0;
-
+/**
+ * Central runtime loop executed repeatedly by the Arduino scheduler.
+ * Captures the current time, polls peripherals every 5ms for fresh sensor data,
+ * then services all fast-path subsystems (LVGL UI, backlight PWM, benchmarks,
+ * pull-state sync, and speed telemetry). When the main screen widgets exist and
+ * the screen refresh interval has elapsed, trigger a UI redraw with the latest data.
+ */
 void loop() {
-  PeripheralsPoll();
+  unsigned long now = millis();
+  static unsigned long lastScreenUpdate = 0;
+
+  constexpr unsigned long PERIPHERAL_POLL_INTERVAL_MS = 5;
+  static unsigned long lastPeripheralPoll = 0;
+  if (now - lastPeripheralPoll >= PERIPHERAL_POLL_INTERVAL_MS) {
+    lastPeripheralPoll = now;
+    PeripheralsPoll();
+  }
+
   lv_timer_handler();
   updateBacklight();
   benchmark_update();
   PullStateManager::update();
   SpeedModule::tick();
 
-  unsigned long now = millis();
+  now = millis();
   if (isMainScreenReady() && now - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL_MS) {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  // TODO: look into removing this delay, if we need to slow down a task we should slow down the specific task.
-  // This is just to prevent the loop from running too fast and hogging CPU time.
-  // lv_timer_handler() should be enough to throttle the loop.
-  delay(5);
 }

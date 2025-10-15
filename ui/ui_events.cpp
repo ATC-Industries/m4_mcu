@@ -775,3 +775,13 @@ void SettingsSwitchRotateScreen(lv_event_t * e)
   // Apply the screen rotation setting
   StateManager::setScreenRotation(rotation180);
 }
+
+void SettingsSwitchAutoConnectTach(lv_event_t * e)
+{
+	// Your code here
+}
+
+void enterPairingModeBtnClicked(lv_event_t * e)
+{
+	// Your code here
+}
