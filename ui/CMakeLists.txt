@@ -1,5 +1,5 @@
 SET(SOURCES screens/ui_ScreenMain.c
-    screens/ui_ScreenSettings.c
+    screens/ui_ScreenSettings1.c
     screens/ui_ScreenPullHistoryScreen.c
     ui_theme_manager.cpp
     ui_themes.cpp

@@ -33,7 +33,7 @@ lv_disp_t *dispp = lv_disp_get_default();
 lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
 lv_disp_set_theme(dispp, theme);
 ui_ScreenMain_screen_init();
-ui_ScreenSettings_screen_init();
+ui_ScreenSettings1_screen_init();
 ui_ScreenPullHistoryScreen_screen_init();
 ui_Startevents___initial_actions0 = lv_obj_create(NULL);
 lv_disp_load_scr( ui_ScreenMain);
@@ -41,6 +41,6 @@ lv_disp_load_scr( ui_ScreenMain);
 
 void ui_destroy( void )
 {ui_ScreenMain_screen_destroy();
-ui_ScreenSettings_screen_destroy();
+ui_ScreenSettings1_screen_destroy();
 ui_ScreenPullHistoryScreen_screen_destroy();
 }

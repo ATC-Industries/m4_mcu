@@ -10,12 +10,16 @@ Horn     g_horn(&g_mcp, MCP_HORN_PORTA_PIN, MCP_HORN_ACTIVE_HIGH == 1);
 Button   g_button(IO_BUTTON, true, 30, 600);  // active_low, debounce, longpress
 
 static void onButtonPress() {
-  Serial.println("Button Pressed");
   lv_obj_t* const active_screen = lv_scr_act();
   if (ui_ScreenMain != nullptr && active_screen == ui_ScreenMain) {
     touch_inject_press(358, 60, 60);
+    Serial.println("Button Pressed in Main Screen");
+    g_horn.pulse(150);
   }
-  g_horn.pulse(150);
+  else {
+    Serial.println("Button Pressed but ignored - not in Main Screen");
+  }
+  
 }
 
 //TODO figure our how to add parameters to callback this code doesnt work lol

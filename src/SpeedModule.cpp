@@ -18,12 +18,12 @@ static volatile int timingIndex = 0;
 static volatile bool bufferFull = false;
 
 // UI Elements (externs from UI event screen)
-extern lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
-extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
-extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
-extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
-extern lv_obj_t *ui_SettingsLabelGearToothCalculatorPulses;
-extern lv_obj_t *ui_SettingsLabelAutoDriveCurrentPulses;
+extern lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea;
+extern lv_obj_t *ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea;
+extern lv_obj_t *ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea;
+extern lv_obj_t *ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea;
+extern lv_obj_t *ui_Settings1LabelGearToothCalculatorPulses;
+extern lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses;
 
 // Internal state
 static int calibrationPulses = 1000;  // default/fallback
@@ -185,12 +185,12 @@ void SpeedModule::saveManualCalibration(int pulses) {
 // ---- Presets ----
 void SpeedModule::applyRadarCalibration() {
   saveManualCalibration(RADAR_CALIBRATION_PULSES);
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(RADAR_CALIBRATION_PULSES).c_str());
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(RADAR_CALIBRATION_PULSES).c_str());
 }
 
 void SpeedModule::applyGPSCalibration() {
   saveManualCalibration(GPS_CALIBRATION_PULSES);
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(GPS_CALIBRATION_PULSES).c_str());
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(GPS_CALIBRATION_PULSES).c_str());
 }
 
 // ---- Gear Tooth Calculation ----
@@ -202,9 +202,9 @@ int SpeedModule::calculateCalibrationFromInputs(int numTeeth, float wheelDiamete
 }
 
 void SpeedModule::saveCalculatorCalibration() {
-  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
-  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
-  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+  int teeth = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea));
 
   int pulses = calculateCalibrationFromInputs(teeth, diameter, ratio);
   if (!isValidCalibrationNumber(pulses)) {
@@ -223,8 +223,8 @@ void SpeedModule::saveCalculatorCalibration() {
     return;
   }
 
-  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", pulses);
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulses).c_str());
+  lv_label_set_text_fmt(ui_Settings1LabelGearToothCalculatorPulses, "%d pulses", pulses);
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(pulses).c_str());
   saveManualCalibration(pulses);
 }
 
@@ -232,13 +232,13 @@ void SpeedModule::saveCalculatorCalibration() {
 void SpeedModule::startDriveOffCalibration() {
   driveOffMode = true;
   pulseCount = 0;
-  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+  lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
 }
 
 void SpeedModule::stopDriveOffCalibration() {
   driveOffMode = false;
   saveManualCalibration(pulseCount);
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulseCount).c_str());
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(pulseCount).c_str());
 }
 
 bool SpeedModule::isDriveOffModeActive() { return driveOffMode; }
@@ -246,7 +246,7 @@ bool SpeedModule::isDriveOffModeActive() { return driveOffMode; }
 void SpeedModule::handlePulseDuringDriveOff() {
   if (!driveOffMode) return;
   pulseCount++;
-  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+  lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
 }
 
 // ---- Runtime Tracking ----

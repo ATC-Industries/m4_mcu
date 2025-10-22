@@ -8,9 +8,10 @@
 static float lastDisplayedSpeed = -1.0f;
 static float lastDisplayedDistance = -1.0f;
 static float lastDisplayedRPM = -1.0f;
-static std::string lastClassName;
-static std::string lastDriverName;
-static int lastDriverNumber = -1;
+static std::string lastDisplayedClassName;
+static std::string lastDisplayedDriverName;
+static int lastDisplayedDriverNumber = -1;
+static int lastDisplayedUnitID = -1;
 
 static void setIndicatorColor(lv_obj_t* obj, uint8_t themeID) {
   lv_color_t color = COLOR_INDIC_DISABLED;
@@ -95,18 +96,25 @@ void updateMainScreen() {
   // Driver info
   std::string driverName = StateManager::prefs().driverName.c_str();
   int driverNumber = StateManager::prefs().driverNumber;
-  if (driverName != lastDriverName || driverNumber != lastDriverNumber) {
+  if (driverName != lastDisplayedDriverName || driverNumber != lastDisplayedDriverNumber) {
     lv_label_set_text_fmt(uic_MainLabelDriverName, "%s", driverName.c_str());
     lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", driverNumber);
-    lastDriverName = driverName;
-    lastDriverNumber = driverNumber;
+    lastDisplayedDriverName = driverName;
+    lastDisplayedDriverNumber = driverNumber;
   }
 
   // Class name
   std::string className = StateManager::prefs().pullingClassName.c_str();
-  if (className != lastClassName) {
+  if (className != lastDisplayedClassName) {
     lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className.c_str());
-    lastClassName = className;
+    lastDisplayedClassName = className;
+  }
+
+  // M4 Unit ID Number
+  int unitId = StateManager::prefs().M4UnitID;
+  if (unitId != lastDisplayedUnitID) {
+    lv_label_set_text_fmt(ui_MainLabelM4UnitIDLabel, "%d", unitId);
+    lastDisplayedUnitID = unitId;
   }
 
   //

@@ -4,6 +4,8 @@
 // Project name: M4_MCU_2025
 
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "Config.h"
@@ -11,7 +13,6 @@
 #include "SpeedModule.h"
 #include "StateManager.h"
 #include "custom_ui/custom_keyboard.h"
-#include "dev_utils/benchmark.h"
 #include "display/backlight.h"
 #include "touch/touch.h"
 #include "ui.h"
@@ -32,7 +33,6 @@ void applyMainScreenPreferences() {
   setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
   setObjectVisible(uic_MainContainerRelays, StateManager::prefs().relaysEnabled);
   setObjectVisible(uic_MainContainerLimit, StateManager::prefs().limitSwitchesEnabled);
-  benchmark_set_enabled(StateManager::prefs().benchmarkMode);
 
   setBacklight(StateManager::prefs().screenBrightness);
 }
@@ -82,73 +82,63 @@ void loadMainScreen(lv_event_t *e) {
 }
 
 void SettingsSwitchUnitsChange(lv_event_t *e) {
-  lv_obj_t *switchObj = lv_event_get_target(e);
-  bool isMetric = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
-
-  // Set unit system based on switch state
+  lv_obj_t *sw = lv_event_get_target(e);
+  bool isMetric = lv_obj_has_state(sw, LV_STATE_CHECKED);
   StateManager::setUnitSystem(isMetric ? UnitSystem::METRIC : UnitSystem::IMPERIAL);
-
-  // Update label text
-  if (ui_SettingsLabelTrackLengthUnitsTitle != nullptr) {
-    lv_label_set_text(ui_SettingsLabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
+  if (ui_Settings1LabelTrackLengthUnitsTitle) {
+    lv_label_set_text(ui_Settings1LabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
   }
 }
 
 void SettingsSwitchBenchmarkChange(lv_event_t *e) {
-  lv_obj_t *cb = lv_event_get_target(e);
-  bool enabled = lv_obj_get_state(cb) & LV_STATE_CHECKED;
-  benchmark_set_enabled(enabled);
-
-  StateManager::prefs().benchmarkMode = lv_obj_has_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setBenchmarkMode(lv_obj_has_state(sw, LV_STATE_CHECKED));
 }
 
 void SettingsSliderBrightnessChange(lv_event_t *e) {
   lv_obj_t *slider = lv_event_get_target(e);
-  uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
+  uint8_t level = (uint8_t)lv_slider_get_value(slider); // expect 0..255
 
-  // Get event code
+  // live feedback
+  lv_label_set_text_fmt(ui_Settings1LabelBrightness, "%d%%", (level * 100) / 255);
+  setBacklightFast(level);
+
   lv_event_code_t code = lv_event_get_code(e);
-
-  // Update label immediately
-  lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
-
-  // For immediate visual feedback during slider movement
-  setBacklightFast(brightness);
-
-  // Update preference value
-  StateManager::prefs().screenBrightness = brightness;
-
-  // Only save preferences when slider is released to avoid writing to flash constantly
-  if (code == LV_EVENT_RELEASED) {
-    // Only save to flash when the user releases the slider
-    StateManager::savePreferences();
+  if (code == LV_EVENT_VALUE_CHANGED || code == LV_EVENT_RELEASED) {
+    StateManager::setScreenBrightness(level); // setter saves only if changed
   }
+}
+
+void SettingsUnitIDText(lv_event_t *e) {
+  const char *text = lv_textarea_get_text(lv_event_get_target(e));
+  int val = atoi(text);
+  StateManager::setM4UnitID(val, true);  // clamps 0..9999 + saves if changed
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {
-  const char *text = lv_textarea_get_text(uic_SettingsTextareaTrackLengthText);
-  float val = atof(text);
-  if (val > 0.0f) {
-    StateManager::prefs().trackLengthFeet = val;
-    StateManager::savePreferences();
-  }
+  const char *text = lv_textarea_get_text(lv_event_get_target(e));
+  float feet = atof(text);
+  StateManager::setTrackLengthFeet(feet); // ignores <= 0
 }
 
 void SettingsSwitchTachChange(lv_event_t *e) {
-  StateManager::prefs().tachEnabled = lv_obj_has_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setTachEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
 
 void SettingsSwitchLimitChange(lv_event_t *e) {
-  StateManager::prefs().limitSwitchesEnabled = lv_obj_has_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setLimitSwitchesEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
 
 void SettingsSwitchRelaysChange(lv_event_t *e) {
-  StateManager::prefs().relaysEnabled = lv_obj_has_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setRelaysEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
+
 
 static void exit_tab_handler(lv_event_t *e) {
   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
@@ -169,50 +159,55 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
   if (code == LV_EVENT_SCREEN_LOADED) {
-    setup_custom_number_keyboard(ui_SettingsKeyboardSettingsNumberKeyboard);
+    setup_custom_number_keyboard(ui_Settings1KeyboardSettingsNumberKeyboard);
 
     // Set units toggle to match current preference
     (StateManager::getUnitSystem() == UnitSystem::METRIC)
-        ? lv_obj_add_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED)
-        : lv_obj_clear_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED);
+        ? lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED)
+        : lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED);
     // Toggle switches
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED)
+                                        : lv_obj_clear_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED)
-                                      : lv_obj_clear_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
+    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
+                                      : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED)
-                                               : lv_obj_clear_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
+    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED)
+                                               : lv_obj_clear_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
+    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED)
+                                        : lv_obj_clear_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().screenRotation180 ? lv_obj_add_state(ui_SettingsSwitchRotateScreenToggle, LV_STATE_CHECKED)
-                                            : lv_obj_clear_state(ui_SettingsSwitchRotateScreenToggle, LV_STATE_CHECKED);
+    StateManager::prefs().screenRotation180 ? lv_obj_add_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED)
+                                            : lv_obj_clear_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED);
 
     // Brightness
-    lv_slider_set_value(uic_SettingsSliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
+    lv_slider_set_value(uic_Settings1SliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
+
+    // M4 Unit ID Number
+    char unitIdBuf[16];
+    snprintf(unitIdBuf, sizeof(unitIdBuf), "%d", StateManager::prefs().M4UnitID);
+    lv_textarea_set_text(uic_M4UnitNumberTitleTextArea, unitIdBuf);
 
     // Track length
     char buf[16];
     snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
-    lv_textarea_set_text(uic_SettingsTextareaTrackLengthText, buf);
+    lv_textarea_set_text(uic_Settings1TextareaTrackLengthText, buf);
   }
 
   // Speed and Distance Page
   // Update calibration number input box with stored integer pulse calibration value
   char calibBuf[16];
   snprintf(calibBuf, sizeof(calibBuf), "%d", StateManager::getSpeedCalibrationNumber());
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, calibBuf);
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, calibBuf);
 
   // About Page
-  lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
-  lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
+  lv_label_set_text(ui_Settings1LabelVersionData, VERSION_STRING);
+  lv_label_set_text(ui_Settings1LabelBuildDateData, BUILD_DATETIME);
 
   // Exit Page
-  lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
-  lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
+  lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView);
+  lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_Settings1TabviewSettingsView);
 }
 
 void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
@@ -411,7 +406,7 @@ void HELPPresetCalNumber(lv_event_t *e) {
 }
 
 void SaveCalibrationNumberButton(lv_event_t *e) {
-  int val = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationNumberTextArea));
+  int val = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationNumberTextArea));
   SpeedModule::saveManualCalibration(val);
 }
 
@@ -428,11 +423,11 @@ void FinishAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::stopDriveOffCali
 void SaveGPSCalibration(lv_event_t *e) { SpeedModule::applyGPSCalibration(); }
 
 void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
-  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
-  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
-  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+  int teeth = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea));
   int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
-  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
+  lv_label_set_text_fmt(ui_Settings1LabelGearToothCalculatorPulses, "%d", result);
 }
 
 void RecalibrateTouch(lv_event_t *e) { setRecalibrationFlag(); }
@@ -468,14 +463,14 @@ void HELPAlarmPresets(lv_event_t *e) {
 }
 
 void CreateDeviceTable(lv_event_t *e) {
-  // lv_obj_clean(ui_SettingsPanelDeviceTable);  // Clear old content
+  // lv_obj_clean(ui_Settings1PanelDeviceTable);  // Clear old content
 
   // // Scrollable panel setup
-  // lv_obj_set_scroll_dir(ui_SettingsPanelDeviceTable, LV_DIR_VER);
-  // lv_obj_set_scrollbar_mode(ui_SettingsPanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
+  // lv_obj_set_scroll_dir(ui_Settings1PanelDeviceTable, LV_DIR_VER);
+  // lv_obj_set_scrollbar_mode(ui_Settings1PanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
 
   // // Table container
-  // lv_obj_t *table_container = lv_obj_create(ui_SettingsPanelDeviceTable);
+  // lv_obj_t *table_container = lv_obj_create(ui_Settings1PanelDeviceTable);
   // lv_obj_set_size(table_container, lv_pct(100), LV_SIZE_CONTENT);
   // lv_obj_set_flex_flow(table_container, LV_FLEX_FLOW_COLUMN);
   // lv_obj_set_scroll_dir(table_container, LV_DIR_VER);

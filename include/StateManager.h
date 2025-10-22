@@ -36,6 +36,7 @@ struct SystemPreferences {
   int pullingClassWeight = 0;
   String driverName = "Driver";
   int driverNumber = 1;
+  int M4UnitID = 0;
 
   bool limitSwitchEnabled[2] = {true, true};
 
@@ -109,6 +110,13 @@ public:
 
   // State accessors
   static void setUnitSystem(UnitSystem system);
+  static void setBenchmarkMode(bool on);
+  static void setScreenBrightness(uint8_t level);      // 0..255
+  static void setTrackLengthFeet(float feet);          // > 0
+  static void setTachEnabled(bool on);
+  static void setLimitSwitchesEnabled(bool on);
+  static void setRelaysEnabled(bool on);
+
 
   static void setDistance(float ft);  // Sets distance in feet
   static void setSpeed(float mph);    // Sets speed in mph
@@ -135,6 +143,7 @@ public:
   static void setSpeedCalibrationNumber(int pulses);
   
   static void setScreenRotation(bool rotation180);
+  static void setM4UnitID(int unitId, bool persist = true);
 
   // M4 Communication methods
   static const uint8_t* getPairedTractorAddress();

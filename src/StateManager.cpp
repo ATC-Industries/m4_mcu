@@ -46,9 +46,11 @@ float StateManager::getMaxDistance() {
 
 // ----- Setters -----
 
-void StateManager::setUnitSystem(UnitSystem system) {
-  preferences.unitSystem = system;
-  savePreferences();  // Save preferences when unit system changes
+void StateManager::setUnitSystem(UnitSystem s) {
+  Serial.printf("[SET] setUnitSystem -> %u\n", (unsigned)s);
+  if (preferences.unitSystem == s) return;
+  preferences.unitSystem = s;
+  savePreferences();
 }
 
 void StateManager::setRPM(float rpm) {
@@ -100,6 +102,62 @@ void StateManager::setScreenRotation(bool rotation180) {
   savePreferences();
   Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
 }
+
+void StateManager::setM4UnitID(int unitId, bool persist) {
+  int clamped = unitId;
+  if (clamped < 0) {
+    clamped = 0;
+  } else if (clamped > 9999) {
+    clamped = 9999;
+  }
+
+  bool changed = preferences.M4UnitID != clamped;
+  if (changed) {
+    preferences.M4UnitID = clamped;
+  }
+
+  if (persist && changed) {
+    savePreferences();
+  }
+}
+
+void StateManager::setBenchmarkMode(bool on) {
+  if (preferences.benchmarkMode == on) return;
+  preferences.benchmarkMode = on;
+  savePreferences();
+}
+
+void StateManager::setScreenBrightness(uint8_t level) {
+  if (preferences.screenBrightness == level) return;
+  preferences.screenBrightness = level;
+  savePreferences();
+}
+
+void StateManager::setTrackLengthFeet(float feet) {
+  if (feet <= 0.0f) return;                     // ignore bad values
+  if (fabs(preferences.trackLengthFeet - feet) < 0.001f) return;
+  preferences.trackLengthFeet = feet;
+  savePreferences();
+}
+
+void StateManager::setTachEnabled(bool on) {
+  if (preferences.tachEnabled == on) return;
+  preferences.tachEnabled = on;
+  savePreferences();
+}
+
+void StateManager::setLimitSwitchesEnabled(bool on) {
+  if (preferences.limitSwitchesEnabled == on) return;
+  preferences.limitSwitchesEnabled = on;
+  savePreferences();
+}
+
+void StateManager::setRelaysEnabled(bool on) {
+  if (preferences.relaysEnabled == on) return;
+  preferences.relaysEnabled = on;
+  savePreferences();
+}
+
 
 bool StateManager::getScreenRotation() {
   bool rotation180 = preferences.screenRotation180;
@@ -239,6 +297,8 @@ void StateManager::loadPreferences() {
   preferences.driverName = storage.getString("driverName", "Driver");
   preferences.driverNumber = storage.getInt("driverNumber", 1);
 
+  preferences.M4UnitID = storage.getInt("M4UnitID", 0);
+
   preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
   preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);
 
@@ -311,6 +371,7 @@ void StateManager::savePreferences() {
   storage.putInt("classWeight", preferences.pullingClassWeight);
   storage.putString("driverName", preferences.driverName);
   storage.putInt("driverNumber", preferences.driverNumber);
+  storage.putInt("M4UnitID", preferences.M4UnitID);
 
   storage.putBool("ls1_enabled", preferences.limitSwitchEnabled[0]);
   storage.putBool("ls2_enabled", preferences.limitSwitchEnabled[1]);
