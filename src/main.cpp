@@ -6,6 +6,7 @@
 #include "ScreenUpdater.h"
 #include "SpeedModule.h"
 #include "StateManager.h"
+#include "AlarmManager.h"
 #include "display/backlight.h"
 #include "display/display.h"
 #include "display/lvgl_callbacks.h"
@@ -61,6 +62,7 @@ void setup() {
   
   PullStateManager::init();
   SpeedModule::begin();
+  AlarmManager::init();
 
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
@@ -88,10 +90,10 @@ void loop() {
   static unsigned long lastPeripheralPoll = 0;
   if (now - lastPeripheralPoll >= PERIPHERAL_POLL_INTERVAL_MS) {
     lastPeripheralPoll = now;
-    PeripheralsPoll();
+    PeripheralsPoll();          // must return fast
   }
 
-  lv_timer_handler();
+  lv_timer_handler();           // non-blocking
   updateBacklight();
   PullStateManager::update();
   SpeedModule::tick();
@@ -101,4 +103,8 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
+
+  // Let the RTOS breathe a bit
+  vTaskDelay(1); // or yield()
 }
+

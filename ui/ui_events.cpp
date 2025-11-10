@@ -12,10 +12,14 @@
 #include "PullStateManager.h"
 #include "SpeedModule.h"
 #include "StateManager.h"
+#include "AlarmManager.h"
+#include "ScreenUpdater.h"
 #include "custom_ui/custom_keyboard.h"
 #include "display/backlight.h"
 #include "touch/touch.h"
 #include "ui.h"
+
+extern void refreshAlarmUIFromPreset(uint8_t preset);
 
 const char *VERSION_STRING = DEVICE_VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
@@ -79,6 +83,8 @@ void loadMainScreen(lv_event_t *e) {
   // Driver Info
   lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", StateManager::prefs().driverNumber);
   lv_label_set_text(uic_MainLabelDriverName, StateManager::prefs().driverName.c_str());
+
+  refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
 
 void SettingsSwitchUnitsChange(lv_event_t *e) {
@@ -112,7 +118,7 @@ void SettingsSliderBrightnessChange(lv_event_t *e) {
 void SettingsUnitIDText(lv_event_t *e) {
   const char *text = lv_textarea_get_text(lv_event_get_target(e));
   int val = atoi(text);
-  StateManager::setM4UnitID(val, true);  // clamps 0..9999 + saves if changed
+  StateManager::setM4ID(val, true);  // clamps 0..9999 + saves if changed
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {
@@ -158,41 +164,16 @@ static void exit_tab_handler(lv_event_t *e) {
 void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
+  Serial.printf("[SettingsScreen] Event code: %d\n", code);
   if (code == LV_EVENT_SCREEN_LOADED) {
     setup_custom_number_keyboard(ui_Settings1KeyboardSettingsNumberKeyboard);
+    setup_custom_hex_keyboard(ui_Settings1KeyboardSettingsHexKeyboard);
 
-    // Set units toggle to match current preference
-    (StateManager::getUnitSystem() == UnitSystem::METRIC)
-        ? lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED)
-        : lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED);
-    // Toggle switches
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED);
+    Serial.println("[SettingsScreen] Screen loaded - applying preferences");
 
-    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
-                                      : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
+    updateSettingsScreen();
 
-    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED)
-                                               : lv_obj_clear_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED);
-
-    StateManager::prefs().screenRotation180 ? lv_obj_add_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED)
-                                            : lv_obj_clear_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED);
-
-    // Brightness
-    lv_slider_set_value(uic_Settings1SliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
-
-    // M4 Unit ID Number
-    char unitIdBuf[16];
-    snprintf(unitIdBuf, sizeof(unitIdBuf), "%d", StateManager::prefs().M4UnitID);
-    lv_textarea_set_text(uic_M4UnitNumberTitleTextArea, unitIdBuf);
-
-    // Track length
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
-    lv_textarea_set_text(uic_Settings1TextareaTrackLengthText, buf);
   }
 
   // Speed and Distance Page
@@ -208,6 +189,8 @@ void SettingsScreenLoaded(lv_event_t *e) {
   // Exit Page
   lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView);
   lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_Settings1TabviewSettingsView);
+
+  refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
 
 void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
@@ -779,4 +762,111 @@ void SettingsSwitchAutoConnectTach(lv_event_t * e)
 void enterPairingModeBtnClicked(lv_event_t * e)
 {
 	// Your code here
+}
+
+// Distance #1
+void AlarmDXToggle1(lv_event_t* e)          { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmDXTripPointChange1(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmDXTripStyleChange1(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmDXColorChange1(lv_event_t* e)     { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// Distance #2
+void AlarmDXToggle2(lv_event_t* e)          { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmDXTripPointChange2(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmDXTripStyleChange2(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmDXColorChange2(lv_event_t* e)     { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+// Speed #1
+void AlarmSpeedToggle1(lv_event_t* e)       { AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmSpeedTripPointChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmSpeedTripStyleChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmSpeedColorChange1(lv_event_t* e)  { AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// Speed #2
+void AlarmSpeedToggle2(lv_event_t* e)       { 
+  Serial.printf("AlarmSpeedToggle2 triggered\n");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmSpeedTripPointChange2(lv_event_t* e){ 
+  Serial.printf("AlarmSpeedTripPointChange2 triggered\n");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmSpeedTripStyleChange2(lv_event_t* e){ 
+  Serial.printf("AlarmSpeedTripStyleChange2 triggered\n");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmSpeedColorChange2(lv_event_t* e)  { 
+  Serial.printf("AlarmSpeedColorChange2 triggered\n");  
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+// RPM #1
+void AlarmRPMToggle1(lv_event_t* e)         { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmRPMTripPointChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmRPMTripStyleChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmRPMColorChange1(lv_event_t* e)    { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// RPM #2
+void AlarmRPMToggle2(lv_event_t* e)         { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmRPMTripPointChange2(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmRPMTripStyleChange2(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmRPMColorChange2(lv_event_t* e)    { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+
+void AlarmPresetValueChanged(lv_event_t * e)
+{
+	AlarmManager::handleAlarmPresetChanged(e);
+}
+
+void MainScreenPresetButtonClicked(lv_event_t * e)
+{
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) {
+    return;
+  }
+
+  _ui_screen_change(&ui_ScreenSettings1, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenSettings1_screen_init);
+
+  if (ui_Settings1TabviewSettingsView) {
+    static const uint32_t alarms_tab_index = 3;  // General=0, Speed+Distance=1, Tach=2, Alarms=3
+    lv_tabview_set_act(ui_Settings1TabviewSettingsView, alarms_tab_index, LV_ANIM_OFF);
+  }
+}
+
+void CalibrationNumberChanged(lv_event_t * e)
+{
+	// Your code here
+}
+
+void SettingsSwitchJudgeChange(lv_event_t * e)
+{
+	lv_obj_t *switchObj = lv_event_get_target(e);
+  bool isJudgeMode = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  StateManager::setJudgeMode(isJudgeMode);
+  updateSettingsScreen();
+
+}
+
+void EnableJudgeHelpButtonPressed(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "Judge Stand Mode turns this device into a read only display for the main M4.\n"
+      "It mirrors live pull data and disables local controls like staging, relays, and alarms.\n\n"
+      "How to connect:\n"
+      "1) On this device: enable Judge Stand Mode in General Settings.\n"
+      "2) Open the Judge tab and enter the MCU ID shown on the main unit.\n"
+      "3) Tap Connect. The feed starts once the main unit is in range.\n\n"
+      "Notes:\n"
+      "- The main unit is always broadcasting. No traditional pairing is required.\n"
+      "- Multiple Judge displays can view the same main unit.\n"
+      "- If the feed is lost, the Judge will try to reconnect automatically.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "JUDGE STAND MODE", help_text, btn_txts, true);
+
+  // Size and position
+  lv_obj_set_width(mbox, 600);
+  lv_obj_center(mbox);
+
+  // Close handler
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 }

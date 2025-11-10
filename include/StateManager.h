@@ -36,7 +36,9 @@ struct SystemPreferences {
   int pullingClassWeight = 0;
   String driverName = "Driver";
   int driverNumber = 1;
-  int M4UnitID = 0;
+  int M4IDNumber = 0;
+  int HostM4IDNumber = 0;
+  bool isJudgeMode = false;
 
   bool limitSwitchEnabled[2] = {true, true};
 
@@ -57,6 +59,7 @@ struct SystemPreferences {
   bool tachEnabled = true;
   bool limitSwitchesEnabled = true;
   bool relaysEnabled = true;
+  bool isAutoConnectTractor = true;
 
   int speedCalibrationPulses = 1000;
 
@@ -86,6 +89,8 @@ struct SystemState {
                                RelayState::DISENGAGED};
 
   PullState currentPullState = PullState::READY;
+
+  bool judgeMode = false;
 };
 
 //
@@ -143,11 +148,17 @@ public:
   static void setSpeedCalibrationNumber(int pulses);
   
   static void setScreenRotation(bool rotation180);
-  static void setM4UnitID(int unitId, bool persist = true);
+  static void setM4ID(int unitId, bool persist = true);
+  static void setHostM4ID(int unitId, bool persist = true);
+  static void setJudgeMode(bool isJudgeMode, bool persist = true);
 
-  // M4 Communication methods
+  // M4 Communication with Tach Tractor methods
+  static bool getIsAutoConnectTractor();
+  static void setIsAutoConnectTractor(bool autoConnect);
   static const uint8_t* getPairedTractorAddress();
   static void setPairedTractorAddress(const uint8_t* address);
+
+  // M4 Communication with Remote Display methods
   static const uint8_t* getPairedRemoteDisplayAddress();
   static void setPairedRemoteDisplayAddress(const uint8_t* address);
   static unsigned long getPairingDelay();
@@ -160,6 +171,11 @@ public:
   static const PullResult* getPullResult(int index);
   static void clearPullHistory();
 
+  static int getM4ID();       // Added getter for M4 ID
+  static int getHostM4ID();  // Added getter for Host M4 ID
+  static bool getJudgeMode();            // runtime flag
+  static bool getJudgeModePreference();  // persisted preference
+
   // Persistence
   static void loadPreferences();
   static void savePreferences();
@@ -168,5 +184,6 @@ private:
   static SystemState systemState;
   static SystemPreferences preferences;
 };
+
 
 #endif  // STATEMANAGER_H

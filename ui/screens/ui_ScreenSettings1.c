@@ -5,6 +5,7 @@
 
 #include "../ui.h"
 
+lv_obj_t *uic_Settings1KeyboardSettingsHexKeyboard;
 lv_obj_t *uic_Settings1KeyboardSettingsNumberKeyboard;
 lv_obj_t *uic_Settings1LabelButtonReturnHome;
 lv_obj_t *uic_Settings1ButtonReturnHome;
@@ -22,6 +23,13 @@ lv_obj_t *uic_Settings1LabelVersionTitle;
 lv_obj_t *uic_Settings1LabelAboutTitle;
 lv_obj_t *uic_Settings1PanelAboutInfo;
 lv_obj_t *uic_Settings1PanelDeviceTable;
+lv_obj_t *uic_Settings1LabelHelperTextTargetMCU;
+lv_obj_t *uic_Settings1ButtonHelpJudgeTargetMCU;
+lv_obj_t *uic_Settings1TextareaTargetMCUID1;
+lv_obj_t *uic_Settings1LabelTargetMCUID;
+lv_obj_t *uic_Settings1PanelSettingJudgeJudgePanel;
+lv_obj_t *uic_Settings1LabelJudgeSettingTips;
+lv_obj_t *uic_Settings1PanelSettingJudgeMCUPanel;
 lv_obj_t *uic_Settings1ContainercontainerEnableLimit;
 lv_obj_t *uic_Settings1ContainercontainerLimitSettings;
 lv_obj_t *uic_Settings1ContainercontainterRelaySwitch1;
@@ -30,10 +38,20 @@ lv_obj_t *uic_Settings1LabellblRelays;
 lv_obj_t *uic_Settings1ContainerRelaySettings;
 lv_obj_t *uic_Settings1PanelRelayLimitSettings;
 lv_obj_t *uic_Settings1PanelConnectionRLM;
+lv_obj_t *uic_Settings1DropdownAlarmRPMColorDropdown1;
 lv_obj_t *uic_Settings1ContainerAlarmRPM1;
+lv_obj_t *uic_Settings1DropdownAlarmSpeedColorDropdown1;
 lv_obj_t *uic_Settings1SwitchAlarmSpeedToggle1;
+lv_obj_t *uic_Settings1DropdownAlarmDistanceColorDropdown2;
+lv_obj_t *uic_Settings1DropdownAlarmDistanceColorDropdown1;
 lv_obj_t *uic_Settings1DropdownAlarmDistanceDropdown1;
 lv_obj_t *uic_Settings1SwitchAlarmDistanceToggle1;
+lv_obj_t *uic_Settings1ButtonPresetButton4;
+lv_obj_t *uic_Settings1ButtonPresetButton3;
+lv_obj_t *uic_Settings1ButtonPresetButton2;
+lv_obj_t *uic_Settings1ButtonPresetButton1;
+lv_obj_t *uic_PresetSelctionButtonGroup;
+lv_obj_t *uic_AlarmsTabContainer;
 lv_obj_t *uic_Settings1ButtonTachAutoConnectHelp;
 lv_obj_t *uic_Settings1SwitchTachAutoConnectToggle;
 lv_obj_t *uic_Settings1ButtonCalculateButton;
@@ -53,12 +71,14 @@ lv_obj_t *uic_Settings1LabelBrightnessTitle;
 lv_obj_t *uic_Settings1ContainerBrightnessSetting;
 lv_obj_t *uic_Settings1SwitchBenchmarkToggle;
 lv_obj_t *uic_Settings1SwitchUnitsToggle;
-lv_obj_t *uic_M4UnitNumberTitleTextArea;
-lv_obj_t *uic_Settings1LabelM4UnitNumberTitleLable;
+lv_obj_t *uic_Settings1SwitchUseJudgeSwitch;
+lv_obj_t *uic_Settings1LabelUseJudgeTitleLabel;
+lv_obj_t *uic_M4IDNumberTitleTextArea;
+lv_obj_t *uic_Settings1LabelM4IDNumberTitleLabel;
 lv_obj_t *uic_Settings1PanelGeneralSettings;
 lv_obj_t *uic_Settings1TabviewSettingsView;
 lv_obj_t *uic_ScreenSettings;
-lv_obj_t *ui_ScreenSettings1 = NULL;lv_obj_t *ui_Settings1TabviewSettingsView = NULL;lv_obj_t *ui_Settings1TabpageGeneral = NULL;lv_obj_t *ui_Settings1PanelGeneralSettings = NULL;lv_obj_t *ui_Settings1ContainerGeneralSettingsTitleLabel = NULL;lv_obj_t *ui_Settings1LabelLabel10 = NULL;lv_obj_t *ui_Settings1ContainerM4UnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelM4UnitNumberTitleLable = NULL;lv_obj_t *ui_Settings1TextareaM4UnitNumberTitleTextArea = NULL;lv_obj_t *ui_Settings1LabelTrackLengthUnitsTitle1 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral1 = NULL;lv_obj_t *ui_Settings1SwitchUnitsToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle1 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral2 = NULL;lv_obj_t *ui_Settings1SwitchBenchmarkToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle2 = NULL;lv_obj_t *ui_Settings1ContainerBrightnessSetting = NULL;lv_obj_t *ui_Settings1LabelBrightnessTitle = NULL;lv_obj_t *ui_Settings1SliderBrightnessSlider = NULL;lv_obj_t *ui_Settings1LabelBrightness = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral3 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle3 = NULL;lv_obj_t *ui_Settings1TextareaTrackLengthText = NULL;lv_obj_t *ui_Settings1LabelTrackLengthUnitsTitle = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral4 = NULL;lv_obj_t *ui_Settings1SwitchTachToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach = NULL;lv_obj_t *ui_Settings1LabelLabel11 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral5 = NULL;lv_obj_t *ui_Settings1SwitchLimitToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle5 = NULL;lv_obj_t *ui_Settings1ButtonHelpLimit = NULL;lv_obj_t *ui_Settings1LabelLabel12 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral6 = NULL;lv_obj_t *ui_Settings1SwitchRelaysToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle6 = NULL;lv_obj_t *ui_Settings1ButtonHelpRelay = NULL;lv_obj_t *ui_Settings1LabelLabel13 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral9 = NULL;lv_obj_t *ui_Settings1SwitchRotateScreenToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle8 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral7 = NULL;lv_obj_t *ui_Settings1SwitchHelpIconVisibiltyToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle7 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral8 = NULL;lv_obj_t *ui_Settings1ButtonButton5 = NULL;lv_obj_t *ui_Settings1LabelLabel30 = NULL;lv_obj_t *ui_Settings1TabpageSpeed_and_Distance = NULL;lv_obj_t *ui_Settings1PanelCalibrationNumberPanel = NULL;lv_obj_t *ui_Settings1LabelSpeedandDistanceTitle = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle = NULL;lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea = NULL;lv_obj_t *ui_Settings1ButtonButton4 = NULL;lv_obj_t *ui_Settings1LabelLabel15 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText = NULL;lv_obj_t *ui_Settings1LabelLabel14 = NULL;lv_obj_t *ui_Settings1PanelGearToothCalculatorPanel = NULL;lv_obj_t *ui_Settings1ContainerCalc = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle1 = NULL;lv_obj_t *ui_Settings1LabelLabel17 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel19 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel18 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea = NULL;lv_obj_t *ui_Settings1LabelGearToothCalculatorPulses = NULL;lv_obj_t *ui_Settings1ButtonCalculateButton = NULL;lv_obj_t *ui_Settings1LabelLabel29 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationCalculatorButton = NULL;lv_obj_t *ui_Settings1LabelLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText1 = NULL;lv_obj_t *ui_Settings1LabelLabel16 = NULL;lv_obj_t *ui_Settings1PanelAutoCalibration = NULL;lv_obj_t *ui_Settings1ContainerCalc1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle2 = NULL;lv_obj_t *ui_Settings1ButtonStartAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel20 = NULL;lv_obj_t *ui_Settings1LabelLabel22 = NULL;lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses = NULL;lv_obj_t *ui_Settings1ButtonFinishAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel23 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel24 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText2 = NULL;lv_obj_t *ui_Settings1LabelLabel25 = NULL;lv_obj_t *ui_Settings1PanelCalibrationPresetsPanel = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle3 = NULL;lv_obj_t *ui_Settings1ButtonButton2 = NULL;lv_obj_t *ui_Settings1LabelLabel26 = NULL;lv_obj_t *ui_Settings1ButtonButton3 = NULL;lv_obj_t *ui_Settings1LabelLabel28 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText3 = NULL;lv_obj_t *ui_Settings1LabelLabel27 = NULL;lv_obj_t *ui_Settings1TabpageTach = NULL;lv_obj_t *ui_Settings1PanelPanel2 = NULL;lv_obj_t *ui_Settings1ContainerSettingTach1 = NULL;lv_obj_t *ui_Settings1SwitchTachAutoConnectToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle9 = NULL;lv_obj_t *ui_Settings1ButtonTachAutoConnectHelp = NULL;lv_obj_t *ui_Settings1LabelLabel32 = NULL;lv_obj_t *ui_Settings1TabpageAlarms = NULL;lv_obj_t *ui_Settings1PanelPanel3 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral10 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle10 = NULL;lv_obj_t *ui_Settings1DropdownDropdown9 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach2 = NULL;lv_obj_t *ui_Settings1LabelLabel33 = NULL;lv_obj_t *ui_Settings1ContainerDistanceAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerSpeedAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerRPMAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown2 = NULL;lv_obj_t *ui_Settings1TabpageRelays_and_Limits = NULL;lv_obj_t *ui_Settings1PanelConnectionRLM = NULL;lv_obj_t *ui_Settings1ContainerContainer8 = NULL;lv_obj_t *ui_Settings1ContainerContainer9 = NULL;lv_obj_t *ui_Settings1ButtonButton1 = NULL;lv_obj_t *ui_Settings1LabelLabel6 = NULL;lv_obj_t *ui_Settings1LabelLabel7 = NULL;lv_obj_t *ui_Settings1PanelRelayLimitSettings = NULL;lv_obj_t *ui_Settings1ContainerRelaySettings = NULL;lv_obj_t *ui_Settings1LabellblRelays = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableRelay = NULL;lv_obj_t *ui_Settings1SwitchSwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel1 = NULL;lv_obj_t *ui_Settings1Containerrealayversion1 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel21 = NULL;lv_obj_t *ui_Settings1SwitchSwitch3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownDropdown2 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch2 = NULL;lv_obj_t *ui_Settings1LabelLabel5 = NULL;lv_obj_t *ui_Settings1SwitchSwitch2 = NULL;lv_obj_t *ui_Settings1DropdownDropdown3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown4 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch3 = NULL;lv_obj_t *ui_Settings1LabelLabel8 = NULL;lv_obj_t *ui_Settings1SwitchSwitch5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown6 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel9 = NULL;lv_obj_t *ui_Settings1SwitchSwitch6 = NULL;lv_obj_t *ui_Settings1DropdownDropdown7 = NULL;lv_obj_t *ui_Settings1DropdownDropdown8 = NULL;lv_obj_t *ui_Settings1ContainercontainerLimitSettings = NULL;lv_obj_t *ui_Settings1LabelLabel2 = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableLimit = NULL;lv_obj_t *ui_Settings1SwitchSwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel3 = NULL;lv_obj_t *ui_Settings1PanelPanel1 = NULL;lv_obj_t *ui_Settings1TabpageJudge = NULL;lv_obj_t *ui_Settings1TabpageSafety_and_Displays = NULL;lv_obj_t *ui_Settings1PanelConnectionRemotes = NULL;lv_obj_t *ui_Settings1ContainerContainer3 = NULL;lv_obj_t *ui_Settings1ContainerContainer1 = NULL;lv_obj_t *ui_Settings1ButtonButton7 = NULL;lv_obj_t *ui_Settings1LabelLabel36 = NULL;lv_obj_t *ui_Settings1LabelLabel31 = NULL;lv_obj_t *ui_Settings1ButtonHelpPairDisplays = NULL;lv_obj_t *ui_Settings1LabelLabel34 = NULL;lv_obj_t *ui_Settings1PanelDeviceTable = NULL;lv_obj_t *ui_Settings1ContainerTable = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableHeader = NULL;lv_obj_t *ui_Settings1ContainerContainer13 = NULL;lv_obj_t *ui_Settings1LabelLabel35 = NULL;lv_obj_t *ui_Settings1ContainerContainer2 = NULL;lv_obj_t *ui_Settings1LabelLabel37 = NULL;lv_obj_t *ui_Settings1ContainerContainer4 = NULL;lv_obj_t *ui_Settings1LabelLabel38 = NULL;lv_obj_t *ui_Settings1ContainerContainer5 = NULL;lv_obj_t *ui_Settings1LabelLabel39 = NULL;lv_obj_t *ui_Settings1ContainerContainer6 = NULL;lv_obj_t *ui_Settings1LabelLabel40 = NULL;lv_obj_t *ui_Settings1ContainerContainer7 = NULL;lv_obj_t *ui_Settings1LabelLabel41 = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableRow1 = NULL;lv_obj_t *ui_Settings1ContainerTypeRow1 = NULL;lv_obj_t *ui_Settings1LabelLabel42 = NULL;lv_obj_t *ui_Settings1ContainerContainer12 = NULL;lv_obj_t *ui_Settings1LabelLabel43 = NULL;lv_obj_t *ui_Settings1ContainerContainer14 = NULL;lv_obj_t *ui_Settings1LabelLabel44 = NULL;lv_obj_t *ui_Settings1ContainerContainer15 = NULL;lv_obj_t *ui_Settings1LabelLabel45 = NULL;lv_obj_t *ui_Settings1ContainerContainer16 = NULL;lv_obj_t *ui_Settings1LabelLabel46 = NULL;lv_obj_t *ui_Settings1ContainerContainer17 = NULL;lv_obj_t *ui_Settings1LabelLabel47 = NULL;lv_obj_t *ui_Settings1TabpageAbout = NULL;lv_obj_t *ui_Settings1PanelAboutInfo = NULL;lv_obj_t *ui_Settings1LabelAboutTitle = NULL;lv_obj_t *ui_Settings1LabelVersionTitle = NULL;lv_obj_t *ui_Settings1LabelVersionData = NULL;lv_obj_t *ui_Settings1LabelBuildDateTitle = NULL;lv_obj_t *ui_Settings1LabelBuildDateData = NULL;lv_obj_t *ui_Settings1LabelDevelopedByTitle = NULL;lv_obj_t *ui_Settings1LabelDevelopedByData = NULL;lv_obj_t *ui_Settings1LabelInfoTitle = NULL;lv_obj_t *ui_Settings1LabelInfoData = NULL;lv_obj_t *ui_Settings1LabelSupportTitle = NULL;lv_obj_t *ui_Settings1LabelSupportData = NULL;lv_obj_t *ui_Settings1LabelCopyrightData = NULL;lv_obj_t *ui_Settings1TabpageExit = NULL;lv_obj_t *ui_Settings1LabelBountyMessage = NULL;lv_obj_t *ui_Settings1ButtonReturnHome = NULL;lv_obj_t *ui_Settings1LabelButtonReturnHome = NULL;lv_obj_t *ui_Settings1ContainerContainer11 = NULL;lv_obj_t *ui_Settings1KeyboardSettingsNumberKeyboard = NULL;
+lv_obj_t *ui_ScreenSettings1 = NULL;lv_obj_t *ui_Settings1TabviewSettingsView = NULL;lv_obj_t *ui_Settings1TabpageGeneral = NULL;lv_obj_t *ui_Settings1PanelGeneralSettings = NULL;lv_obj_t *ui_Settings1ContainerGeneralSettingsTitleLabel = NULL;lv_obj_t *ui_Settings1LabelLabel10 = NULL;lv_obj_t *ui_Settings1ContainerM4UnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelM4IDNumberTitleLabel = NULL;lv_obj_t *ui_Settings1TextareaM4IDNumberTitleTextArea = NULL;lv_obj_t *ui_Settings1LabelUseJudgeTitleLabel = NULL;lv_obj_t *ui_Settings1SwitchUseJudgeSwitch = NULL;lv_obj_t *ui_Settings1ButtonHelpJudge = NULL;lv_obj_t *ui_Settings1LabelLabel48 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral1 = NULL;lv_obj_t *ui_Settings1SwitchUnitsToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle1 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral2 = NULL;lv_obj_t *ui_Settings1SwitchBenchmarkToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle2 = NULL;lv_obj_t *ui_Settings1ContainerBrightnessSetting = NULL;lv_obj_t *ui_Settings1LabelBrightnessTitle = NULL;lv_obj_t *ui_Settings1SliderBrightnessSlider = NULL;lv_obj_t *ui_Settings1LabelBrightness = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral3 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle3 = NULL;lv_obj_t *ui_Settings1TextareaTrackLengthText = NULL;lv_obj_t *ui_Settings1LabelTrackLengthUnitsTitle = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral4 = NULL;lv_obj_t *ui_Settings1SwitchTachToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach = NULL;lv_obj_t *ui_Settings1LabelLabel11 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral5 = NULL;lv_obj_t *ui_Settings1SwitchLimitToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle5 = NULL;lv_obj_t *ui_Settings1ButtonHelpLimit = NULL;lv_obj_t *ui_Settings1LabelLabel12 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral6 = NULL;lv_obj_t *ui_Settings1SwitchRelaysToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle6 = NULL;lv_obj_t *ui_Settings1ButtonHelpRelay = NULL;lv_obj_t *ui_Settings1LabelLabel13 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral9 = NULL;lv_obj_t *ui_Settings1SwitchRotateScreenToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle8 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral7 = NULL;lv_obj_t *ui_Settings1SwitchHelpIconVisibiltyToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle7 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral8 = NULL;lv_obj_t *ui_Settings1ButtonButton5 = NULL;lv_obj_t *ui_Settings1LabelLabel30 = NULL;lv_obj_t *ui_Settings1TabpageSpeed_and_Distance = NULL;lv_obj_t *ui_Settings1PanelCalibrationNumberPanel = NULL;lv_obj_t *ui_Settings1LabelSpeedandDistanceTitle = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle = NULL;lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea = NULL;lv_obj_t *ui_Settings1ButtonButton4 = NULL;lv_obj_t *ui_Settings1LabelLabel15 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText = NULL;lv_obj_t *ui_Settings1LabelLabel14 = NULL;lv_obj_t *ui_Settings1PanelGearToothCalculatorPanel = NULL;lv_obj_t *ui_Settings1ContainerCalc = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle1 = NULL;lv_obj_t *ui_Settings1LabelLabel17 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel19 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel18 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea = NULL;lv_obj_t *ui_Settings1LabelGearToothCalculatorPulses = NULL;lv_obj_t *ui_Settings1ButtonCalculateButton = NULL;lv_obj_t *ui_Settings1LabelLabel29 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationCalculatorButton = NULL;lv_obj_t *ui_Settings1LabelLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText1 = NULL;lv_obj_t *ui_Settings1LabelLabel16 = NULL;lv_obj_t *ui_Settings1PanelAutoCalibration = NULL;lv_obj_t *ui_Settings1ContainerCalc1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle2 = NULL;lv_obj_t *ui_Settings1ButtonStartAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel20 = NULL;lv_obj_t *ui_Settings1LabelLabel22 = NULL;lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses = NULL;lv_obj_t *ui_Settings1ButtonFinishAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel23 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel24 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText2 = NULL;lv_obj_t *ui_Settings1LabelLabel25 = NULL;lv_obj_t *ui_Settings1PanelCalibrationPresetsPanel = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle3 = NULL;lv_obj_t *ui_Settings1ButtonButton2 = NULL;lv_obj_t *ui_Settings1LabelLabel26 = NULL;lv_obj_t *ui_Settings1ButtonButton3 = NULL;lv_obj_t *ui_Settings1LabelLabel28 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText3 = NULL;lv_obj_t *ui_Settings1LabelLabel27 = NULL;lv_obj_t *ui_Settings1TabpageTach = NULL;lv_obj_t *ui_Settings1PanelPanel2 = NULL;lv_obj_t *ui_Settings1ContainerSettingTach1 = NULL;lv_obj_t *ui_Settings1SwitchTachAutoConnectToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle9 = NULL;lv_obj_t *ui_Settings1ButtonTachAutoConnectHelp = NULL;lv_obj_t *ui_Settings1LabelLabel32 = NULL;lv_obj_t *ui_Settings1TabpageAlarmsTabContainer = NULL;lv_obj_t *ui_Settings1PanelPanel3 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral10 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle10 = NULL;lv_obj_t *ui_Settings1ContainerPresetSelctionButtonGroup = NULL;lv_obj_t *ui_Settings1ButtonPresetButton1 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel1 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton2 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel2 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton3 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel3 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton4 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach2 = NULL;lv_obj_t *ui_Settings1LabelLabel33 = NULL;lv_obj_t *ui_Settings1ContainerDistanceAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerSpeedAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerRPMAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea1 = NULL;lv_obj_t *ui_Settings1PanelPanel4 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown2 = NULL;lv_obj_t *ui_Settings1TabpageRelays_and_Limits = NULL;lv_obj_t *ui_Settings1PanelConnectionRLM = NULL;lv_obj_t *ui_Settings1ContainerContainer8 = NULL;lv_obj_t *ui_Settings1ContainerContainer9 = NULL;lv_obj_t *ui_Settings1ButtonButton1 = NULL;lv_obj_t *ui_Settings1LabelLabel6 = NULL;lv_obj_t *ui_Settings1LabelLabel7 = NULL;lv_obj_t *ui_Settings1PanelRelayLimitSettings = NULL;lv_obj_t *ui_Settings1ContainerRelaySettings = NULL;lv_obj_t *ui_Settings1LabellblRelays = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableRelay = NULL;lv_obj_t *ui_Settings1SwitchSwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel1 = NULL;lv_obj_t *ui_Settings1Containerrealayversion1 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel21 = NULL;lv_obj_t *ui_Settings1SwitchSwitch3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownDropdown2 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch2 = NULL;lv_obj_t *ui_Settings1LabelLabel5 = NULL;lv_obj_t *ui_Settings1SwitchSwitch2 = NULL;lv_obj_t *ui_Settings1DropdownDropdown3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown4 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch3 = NULL;lv_obj_t *ui_Settings1LabelLabel8 = NULL;lv_obj_t *ui_Settings1SwitchSwitch5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown6 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel9 = NULL;lv_obj_t *ui_Settings1SwitchSwitch6 = NULL;lv_obj_t *ui_Settings1DropdownDropdown7 = NULL;lv_obj_t *ui_Settings1DropdownDropdown8 = NULL;lv_obj_t *ui_Settings1ContainercontainerLimitSettings = NULL;lv_obj_t *ui_Settings1LabelLabel2 = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableLimit = NULL;lv_obj_t *ui_Settings1SwitchSwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel3 = NULL;lv_obj_t *ui_Settings1PanelPanel1 = NULL;lv_obj_t *ui_Settings1TabpageJudge = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeMCUPanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips = NULL;lv_obj_t *ui_Settings1LabelLabel54 = NULL;lv_obj_t *ui_Settings1LabelLabel53 = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeJudgePanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips1 = NULL;lv_obj_t *ui_Settings1ContainerContainer10 = NULL;lv_obj_t *ui_Settings1ContainerJudgeUnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelTargetMCUID = NULL;lv_obj_t *ui_Settings1TextareaTargetMCUID1 = NULL;lv_obj_t *ui_Settings1ButtonButton8 = NULL;lv_obj_t *ui_Settings1LabelLabel50 = NULL;lv_obj_t *ui_Settings1ButtonHelpJudgeTargetMCU = NULL;lv_obj_t *ui_Settings1LabelLabel49 = NULL;lv_obj_t *ui_Settings1LabelHelperTextTargetMCU = NULL;lv_obj_t *ui_Settings1ContainerContainer18 = NULL;lv_obj_t *ui_Settings1LabelLabel51 = NULL;lv_obj_t *ui_Settings1LabelLabel52 = NULL;lv_obj_t *ui_Settings1TabpageSafety_and_Displays = NULL;lv_obj_t *ui_Settings1PanelConnectionRemotes = NULL;lv_obj_t *ui_Settings1ContainerContainer3 = NULL;lv_obj_t *ui_Settings1ContainerContainer1 = NULL;lv_obj_t *ui_Settings1ButtonButton7 = NULL;lv_obj_t *ui_Settings1LabelLabel36 = NULL;lv_obj_t *ui_Settings1LabelLabel31 = NULL;lv_obj_t *ui_Settings1ButtonHelpPairDisplays = NULL;lv_obj_t *ui_Settings1LabelLabel34 = NULL;lv_obj_t *ui_Settings1PanelDeviceTable = NULL;lv_obj_t *ui_Settings1ContainerTable = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableHeader = NULL;lv_obj_t *ui_Settings1ContainerContainer13 = NULL;lv_obj_t *ui_Settings1LabelLabel35 = NULL;lv_obj_t *ui_Settings1ContainerContainer2 = NULL;lv_obj_t *ui_Settings1LabelLabel37 = NULL;lv_obj_t *ui_Settings1ContainerContainer4 = NULL;lv_obj_t *ui_Settings1LabelLabel38 = NULL;lv_obj_t *ui_Settings1ContainerContainer5 = NULL;lv_obj_t *ui_Settings1LabelLabel39 = NULL;lv_obj_t *ui_Settings1ContainerContainer6 = NULL;lv_obj_t *ui_Settings1LabelLabel40 = NULL;lv_obj_t *ui_Settings1ContainerContainer7 = NULL;lv_obj_t *ui_Settings1LabelLabel41 = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableRow1 = NULL;lv_obj_t *ui_Settings1ContainerTypeRow1 = NULL;lv_obj_t *ui_Settings1LabelLabel42 = NULL;lv_obj_t *ui_Settings1ContainerContainer12 = NULL;lv_obj_t *ui_Settings1LabelLabel43 = NULL;lv_obj_t *ui_Settings1ContainerContainer14 = NULL;lv_obj_t *ui_Settings1LabelLabel44 = NULL;lv_obj_t *ui_Settings1ContainerContainer15 = NULL;lv_obj_t *ui_Settings1LabelLabel45 = NULL;lv_obj_t *ui_Settings1ContainerContainer16 = NULL;lv_obj_t *ui_Settings1LabelLabel46 = NULL;lv_obj_t *ui_Settings1ContainerContainer17 = NULL;lv_obj_t *ui_Settings1LabelLabel47 = NULL;lv_obj_t *ui_Settings1TabpageAbout = NULL;lv_obj_t *ui_Settings1PanelAboutInfo = NULL;lv_obj_t *ui_Settings1LabelAboutTitle = NULL;lv_obj_t *ui_Settings1LabelVersionTitle = NULL;lv_obj_t *ui_Settings1LabelVersionData = NULL;lv_obj_t *ui_Settings1LabelBuildDateTitle = NULL;lv_obj_t *ui_Settings1LabelBuildDateData = NULL;lv_obj_t *ui_Settings1LabelDevelopedByTitle = NULL;lv_obj_t *ui_Settings1LabelDevelopedByData = NULL;lv_obj_t *ui_Settings1LabelInfoTitle = NULL;lv_obj_t *ui_Settings1LabelInfoData = NULL;lv_obj_t *ui_Settings1LabelSupportTitle = NULL;lv_obj_t *ui_Settings1LabelSupportData = NULL;lv_obj_t *ui_Settings1LabelCopyrightData = NULL;lv_obj_t *ui_Settings1TabpageExit = NULL;lv_obj_t *ui_Settings1LabelBountyMessage = NULL;lv_obj_t *ui_Settings1ButtonReturnHome = NULL;lv_obj_t *ui_Settings1LabelButtonReturnHome = NULL;lv_obj_t *ui_Settings1ContainerContainer11 = NULL;lv_obj_t *ui_Settings1KeyboardSettingsNumberKeyboard = NULL;lv_obj_t *ui_Settings1KeyboardSettingsHexKeyboard = NULL;
 // event funtions
 void ui_event_ScreenSettings1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -69,18 +89,42 @@ if ( event_code == LV_EVENT_SCREEN_LOADED) {
 }
 }
 
-void ui_event_Settings1TextareaM4UnitNumberTitleTextArea( lv_event_t * e) {
+void ui_event_Settings1TextareaM4IDNumberTitleTextArea( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_CLICKED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-      _ui_keyboard_set_target(ui_Settings1KeyboardSettingsNumberKeyboard,  ui_Settings1TextareaM4UnitNumberTitleTextArea);
+      _ui_keyboard_set_target(ui_Settings1KeyboardSettingsNumberKeyboard,  ui_Settings1TextareaM4IDNumberTitleTextArea);
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
-if ( event_code == LV_EVENT_VALUE_CHANGED) {
+if ( event_code == LV_EVENT_READY) {
       SettingsUnitIDText( e );
+}
+}
+
+void ui_event_Settings1SwitchUseJudgeSwitch( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      SettingsSwitchJudgeChange( e );
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_flag_modify( ui_Settings1PanelSettingJudgeJudgePanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+      _ui_flag_modify( ui_Settings1PanelSettingJudgeMCUPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
+      _ui_flag_modify( ui_Settings1PanelSettingJudgeMCUPanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+      _ui_flag_modify( ui_Settings1PanelSettingJudgeJudgePanel, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+}
+
+void ui_event_Settings1ButtonHelpJudge( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EnableJudgeHelpButtonPressed( e );
 }
 }
 
@@ -118,7 +162,7 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
-if ( event_code == LV_EVENT_VALUE_CHANGED) {
+if ( event_code == LV_EVENT_READY) {
       SettingsTrackLengthText( e );
 }
 }
@@ -207,6 +251,9 @@ if ( event_code == LV_EVENT_CLICKED) {
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+if ( event_code == LV_EVENT_READY) {
+      CalibrationNumberChanged( e );
 }
 }
 
@@ -362,6 +409,54 @@ if ( event_code == LV_EVENT_CLICKED) {
 }
 }
 
+void ui_event_Settings1ButtonPresetButton1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_PRESSED) {
+      _ui_state_modify( ui_Settings1ButtonPresetButton4, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton3, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton2, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton1, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+      AlarmPresetValueChanged( e );
+}
+}
+
+void ui_event_Settings1ButtonPresetButton2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_PRESSED) {
+      _ui_state_modify( ui_Settings1ButtonPresetButton4, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton3, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton1, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton2, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+      AlarmPresetValueChanged( e );
+}
+}
+
+void ui_event_Settings1ButtonPresetButton3( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_PRESSED) {
+      _ui_state_modify( ui_Settings1ButtonPresetButton4, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton2, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton1, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton3, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+      AlarmPresetValueChanged( e );
+}
+}
+
+void ui_event_Settings1ButtonPresetButton4( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_PRESSED) {
+      _ui_state_modify( ui_Settings1ButtonPresetButton3, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton2, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton1, LV_STATE_CHECKED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1ButtonPresetButton4, LV_STATE_CHECKED, _UI_MODIFY_STATE_ADD);
+      AlarmPresetValueChanged( e );
+}
+}
+
 void ui_event_Settings1ButtonHelpTach2( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
@@ -374,16 +469,17 @@ void ui_event_Settings1SwitchAlarmDistanceToggle1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmDXToggle1( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmDistanceValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmDistanceDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmDistanceDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmDistanceValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -397,22 +493,42 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
+if ( event_code == LV_EVENT_READY) {
+      AlarmDXTripPointChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmDistanceDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmDXTripStyleChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmDistanceColorDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmDXColorChange1( e );
+}
 }
 
 void ui_event_Settings1SwitchAlarmDistanceToggle2( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmDXToggle2( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmDistanceValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmDistanceDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmDistanceDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmDistanceValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -426,22 +542,42 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
+if ( event_code == LV_EVENT_READY) {
+      AlarmDXTripPointChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmDistanceDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmDXTripStyleChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmDistanceColorDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmDXColorChange2( e );
+}
 }
 
 void ui_event_Settings1SwitchAlarmSpeedToggle1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmSpeedToggle1( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmSpeedValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmSpeedDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmSpeedDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmSpeedValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -455,22 +591,42 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
+if ( event_code == LV_EVENT_READY) {
+      AlarmSpeedTripPointChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmSpeedDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmSpeedTripStyleChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmSpeedColorDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmSpeedColorChange1( e );
+}
 }
 
 void ui_event_Settings1SwitchAlarmSpeedToggle2( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmSpeedToggle2( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmSpeedValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmSpeedDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmSpeedDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmSpeedValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -484,22 +640,42 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
+if ( event_code == LV_EVENT_READY) {
+      AlarmSpeedTripPointChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmSpeedDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmSpeedTripStyleChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmSpeedColorDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmSpeedColorChange2( e );
+}
 }
 
 void ui_event_Settings1SwitchAlarmRPMToggle1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmRPMToggle1( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmRPMValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmRPMDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmRPMDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmRPMValueTextArea1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -513,22 +689,42 @@ if ( event_code == LV_EVENT_CLICKED) {
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
 }
+if ( event_code == LV_EVENT_READY) {
+      AlarmRPMTripPointChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmRPMDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmRPMTripStyleChange1( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmRPMColorDropdown1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmRPMColorChange1( e );
+}
 }
 
 void ui_event_Settings1SwitchAlarmRPMToggle2( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
 
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
-      SettingsSwitchRelaysChange( e );
-      _ui_flag_modify( ui_MainContainerRelays, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_TOGGLE);
+      AlarmRPMToggle2( e );
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
       _ui_state_modify( ui_Settings1DropdownAlarmRPMDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
+      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_ADD);
 }
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmRPMDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 
@@ -541,6 +737,48 @@ if ( event_code == LV_EVENT_CLICKED) {
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+if ( event_code == LV_EVENT_READY) {
+      AlarmRPMTripPointChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmRPMDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmRPMTripStyleChange2( e );
+}
+}
+
+void ui_event_Settings1DropdownAlarmRPMColorDropdown2( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_VALUE_CHANGED) {
+      AlarmRPMColorChange2( e );
+}
+}
+
+void ui_event_Settings1TextareaTargetMCUID1( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
+      _ui_keyboard_set_target(ui_Settings1KeyboardSettingsNumberKeyboard,  ui_Settings1TextareaTargetMCUID1);
+}
+if ( event_code == LV_EVENT_DEFOCUSED) {
+      _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+}
+if ( event_code == LV_EVENT_READY) {
+      SettingsUnitIDText( e );
+}
+}
+
+void ui_event_Settings1ButtonHelpJudgeTargetMCU( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      EnableJudgeHelpButtonPressed( e );
 }
 }
 
@@ -585,6 +823,15 @@ if ( event_code == LV_EVENT_READY) {
 }
 }
 
+void ui_event_Settings1KeyboardSettingsHexKeyboard( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_READY) {
+      _ui_flag_modify( ui_Settings1KeyboardSettingsHexKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+      _ui_state_modify( ui_Settings1TabviewSettingsView, LV_STATE_FOCUSED, _UI_MODIFY_STATE_ADD);
+}
+}
+
 // build funtions
 
 void ui_ScreenSettings1_screen_init(void)
@@ -602,8 +849,22 @@ ui_object_set_themeable_style_property(ui_Settings1TabviewSettingsView, LV_PART_
 lv_obj_set_style_text_align(ui_Settings1TabviewSettingsView, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_set_style_text_align(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), LV_TEXT_ALIGN_LEFT,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_MAIN| LV_STATE_DEFAULT);
 
+lv_obj_set_style_text_align(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), LV_TEXT_ALIGN_LEFT,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_text_decor(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), LV_TEXT_DECOR_NONE,  LV_PART_ITEMS| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), &lv_font_montserrat_12,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 0,  LV_PART_ITEMS| LV_STATE_DEFAULT);
 lv_obj_set_style_text_color(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), lv_color_hex(0xFFFFFF),  LV_PART_ITEMS | LV_STATE_CHECKED );
 lv_obj_set_style_text_opa(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), 255,  LV_PART_ITEMS| LV_STATE_CHECKED);
 lv_obj_set_style_bg_color(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), lv_color_hex(0x797979),  LV_PART_ITEMS | LV_STATE_CHECKED );
@@ -611,6 +872,10 @@ lv_obj_set_style_bg_opa(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView)
 ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BORDER_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BORDER_OPA, _ui_theme_alpha_Orange);
 lv_obj_set_style_border_side(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView), LV_BORDER_SIDE_LEFT,  LV_PART_ITEMS| LV_STATE_CHECKED);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_DISABLED, LV_STYLE_TEXT_COLOR, _ui_theme_color_indicDisabled);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_DISABLED, LV_STYLE_TEXT_OPA, _ui_theme_alpha_indicDisabled);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_DISABLED, LV_STYLE_BG_COLOR, _ui_theme_color_Dolphin);
+ui_object_set_themeable_style_property(lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView),  LV_PART_ITEMS| LV_STATE_DISABLED, LV_STYLE_BG_OPA, _ui_theme_alpha_Dolphin);
 
 ui_Settings1TabpageGeneral = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "General");
 lv_obj_set_flex_flow(ui_Settings1TabpageGeneral,LV_FLEX_FLOW_ROW);
@@ -656,39 +921,76 @@ lv_obj_remove_style_all(ui_Settings1ContainerM4UnitNumberContainer);
 lv_obj_set_height( ui_Settings1ContainerM4UnitNumberContainer, 50);
 lv_obj_set_width( ui_Settings1ContainerM4UnitNumberContainer, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerM4UnitNumberContainer, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerM4UnitNumberContainer,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerM4UnitNumberContainer, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerM4UnitNumberContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_pad_left(ui_Settings1ContainerM4UnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1ContainerM4UnitNumberContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1ContainerM4UnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerM4UnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_row(ui_Settings1ContainerM4UnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerM4UnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1LabelM4UnitNumberTitleLable = lv_label_create(ui_Settings1ContainerM4UnitNumberContainer);
-lv_obj_set_width( ui_Settings1LabelM4UnitNumberTitleLable, 200);
-lv_obj_set_height( ui_Settings1LabelM4UnitNumberTitleLable, LV_SIZE_CONTENT);   /// 50
-lv_obj_set_x( ui_Settings1LabelM4UnitNumberTitleLable, -234 );
-lv_obj_set_y( ui_Settings1LabelM4UnitNumberTitleLable, 0 );
-lv_obj_set_align( ui_Settings1LabelM4UnitNumberTitleLable, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Settings1LabelM4UnitNumberTitleLable,"M4 Unit ID Number");
-lv_obj_clear_flag( ui_Settings1LabelM4UnitNumberTitleLable, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
-lv_obj_set_style_text_font(ui_Settings1LabelM4UnitNumberTitleLable, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_Settings1LabelM4IDNumberTitleLabel = lv_label_create(ui_Settings1ContainerM4UnitNumberContainer);
+lv_obj_set_width( ui_Settings1LabelM4IDNumberTitleLabel, 128);
+lv_obj_set_height( ui_Settings1LabelM4IDNumberTitleLabel, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_x( ui_Settings1LabelM4IDNumberTitleLabel, -234 );
+lv_obj_set_y( ui_Settings1LabelM4IDNumberTitleLabel, 0 );
+lv_obj_set_align( ui_Settings1LabelM4IDNumberTitleLabel, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelM4IDNumberTitleLabel,"M4 ID Number");
+lv_obj_clear_flag( ui_Settings1LabelM4IDNumberTitleLabel, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_text_font(ui_Settings1LabelM4IDNumberTitleLabel, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1TextareaM4UnitNumberTitleTextArea = lv_textarea_create(ui_Settings1ContainerM4UnitNumberContainer);
-lv_obj_set_width( ui_Settings1TextareaM4UnitNumberTitleTextArea, 150);
-lv_obj_set_height( ui_Settings1TextareaM4UnitNumberTitleTextArea, LV_SIZE_CONTENT);   /// 70
-lv_obj_set_x( ui_Settings1TextareaM4UnitNumberTitleTextArea, -340 );
-lv_obj_set_y( ui_Settings1TextareaM4UnitNumberTitleTextArea, 0 );
-lv_obj_set_align( ui_Settings1TextareaM4UnitNumberTitleTextArea, LV_ALIGN_RIGHT_MID );
-lv_textarea_set_text(ui_Settings1TextareaM4UnitNumberTitleTextArea,"24");
-lv_textarea_set_placeholder_text(ui_Settings1TextareaM4UnitNumberTitleTextArea,"Unit Number");
-lv_textarea_set_one_line(ui_Settings1TextareaM4UnitNumberTitleTextArea,true);
-lv_obj_clear_flag( ui_Settings1TextareaM4UnitNumberTitleTextArea, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+ui_Settings1TextareaM4IDNumberTitleTextArea = lv_textarea_create(ui_Settings1ContainerM4UnitNumberContainer);
+lv_obj_set_width( ui_Settings1TextareaM4IDNumberTitleTextArea, 150);
+lv_obj_set_height( ui_Settings1TextareaM4IDNumberTitleTextArea, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_x( ui_Settings1TextareaM4IDNumberTitleTextArea, -340 );
+lv_obj_set_y( ui_Settings1TextareaM4IDNumberTitleTextArea, 0 );
+lv_obj_set_align( ui_Settings1TextareaM4IDNumberTitleTextArea, LV_ALIGN_RIGHT_MID );
+lv_textarea_set_text(ui_Settings1TextareaM4IDNumberTitleTextArea,"24");
+lv_textarea_set_placeholder_text(ui_Settings1TextareaM4IDNumberTitleTextArea,"Unit Number");
+lv_textarea_set_one_line(ui_Settings1TextareaM4IDNumberTitleTextArea,true);
+lv_obj_clear_flag( ui_Settings1TextareaM4IDNumberTitleTextArea, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
-ui_Settings1LabelTrackLengthUnitsTitle1 = lv_label_create(ui_Settings1ContainerM4UnitNumberContainer);
-lv_obj_set_width( ui_Settings1LabelTrackLengthUnitsTitle1, lv_pct(20));
-lv_obj_set_height( ui_Settings1LabelTrackLengthUnitsTitle1, LV_SIZE_CONTENT);   /// 50
-lv_obj_set_align( ui_Settings1LabelTrackLengthUnitsTitle1, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Settings1LabelTrackLengthUnitsTitle1,"Feet");
-lv_obj_add_flag( ui_Settings1LabelTrackLengthUnitsTitle1, LV_OBJ_FLAG_HIDDEN );   /// Flags
-lv_obj_clear_flag( ui_Settings1LabelTrackLengthUnitsTitle1, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
-lv_obj_set_style_text_font(ui_Settings1LabelTrackLengthUnitsTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_Settings1LabelUseJudgeTitleLabel = lv_label_create(ui_Settings1ContainerM4UnitNumberContainer);
+lv_obj_set_width( ui_Settings1LabelUseJudgeTitleLabel, 258);
+lv_obj_set_height( ui_Settings1LabelUseJudgeTitleLabel, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_x( ui_Settings1LabelUseJudgeTitleLabel, -234 );
+lv_obj_set_y( ui_Settings1LabelUseJudgeTitleLabel, 0 );
+lv_obj_set_align( ui_Settings1LabelUseJudgeTitleLabel, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelUseJudgeTitleLabel,"Use as Judge Stand Unit");
+lv_obj_clear_flag( ui_Settings1LabelUseJudgeTitleLabel, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_text_align(ui_Settings1LabelUseJudgeTitleLabel, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_Settings1LabelUseJudgeTitleLabel, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1SwitchUseJudgeSwitch = lv_switch_create(ui_Settings1ContainerM4UnitNumberContainer);
+lv_obj_set_width( ui_Settings1SwitchUseJudgeSwitch, 50);
+lv_obj_set_height( ui_Settings1SwitchUseJudgeSwitch, 25);
+lv_obj_set_align( ui_Settings1SwitchUseJudgeSwitch, LV_ALIGN_CENTER );
+lv_obj_clear_flag( ui_Settings1SwitchUseJudgeSwitch, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+
+ui_Settings1ButtonHelpJudge = lv_btn_create(ui_Settings1ContainerM4UnitNumberContainer);
+lv_obj_set_width( ui_Settings1ButtonHelpJudge, 30);
+lv_obj_set_height( ui_Settings1ButtonHelpJudge, 30);
+lv_obj_set_align( ui_Settings1ButtonHelpJudge, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonHelpJudge,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonHelpJudge, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_Settings1ButtonHelpJudge, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonHelpJudge, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_Settings1ButtonHelpJudge, 35, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonHelpJudge, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_Settings1ButtonHelpJudge, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_pad_left(ui_Settings1ButtonHelpJudge, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1ButtonHelpJudge, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1ButtonHelpJudge, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ButtonHelpJudge, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1LabelLabel48 = lv_label_create(ui_Settings1ButtonHelpJudge);
+lv_obj_set_width( ui_Settings1LabelLabel48, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel48, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel48, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel48,"?");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel48, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1ContainerSettingGeneral1 = lv_obj_create(ui_Settings1PanelGeneralSettings);
 lv_obj_remove_style_all(ui_Settings1ContainerSettingGeneral1);
@@ -847,6 +1149,8 @@ lv_obj_set_style_pad_column(ui_Settings1ContainerSettingGeneral4, 15, LV_PART_MA
 ui_Settings1SwitchTachToggle = lv_switch_create(ui_Settings1ContainerSettingGeneral4);
 lv_obj_set_width( ui_Settings1SwitchTachToggle, 50);
 lv_obj_set_height( ui_Settings1SwitchTachToggle, 25);
+lv_obj_set_x( ui_Settings1SwitchTachToggle, 0 );
+lv_obj_set_y( ui_Settings1SwitchTachToggle, 1 );
 lv_obj_set_align( ui_Settings1SwitchTachToggle, LV_ALIGN_CENTER );
 lv_obj_add_state( ui_Settings1SwitchTachToggle, LV_STATE_CHECKED );     /// States
 
@@ -1075,7 +1379,7 @@ ui_Settings1LabelLabel30 = lv_label_create(ui_Settings1ButtonButton5);
 lv_obj_set_width( ui_Settings1LabelLabel30, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Settings1LabelLabel30, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1LabelLabel30, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Settings1LabelLabel30,"Recalibrate Touch Screen (Reset Unit to Calibrate)");
+lv_label_set_text(ui_Settings1LabelLabel30,"Recalibrate Touch Screen (Restart Unit to Calibrate)");
 
 ui_Settings1TabpageSpeed_and_Distance = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Speed + Distance");
 lv_obj_set_flex_flow(ui_Settings1TabpageSpeed_and_Distance,LV_FLEX_FLOW_ROW_WRAP);
@@ -1578,9 +1882,14 @@ lv_obj_set_align( ui_Settings1LabelLabel32, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Settings1LabelLabel32,"?");
 lv_obj_set_style_text_font(ui_Settings1LabelLabel32, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1TabpageAlarms = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Alarms");
+ui_Settings1TabpageAlarmsTabContainer = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Alarms");
+lv_obj_clear_flag( ui_Settings1TabpageAlarmsTabContainer, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_pad_left(ui_Settings1TabpageAlarmsTabContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1TabpageAlarmsTabContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1TabpageAlarmsTabContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1TabpageAlarmsTabContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1PanelPanel3 = lv_obj_create(ui_Settings1TabpageAlarms);
+ui_Settings1PanelPanel3 = lv_obj_create(ui_Settings1TabpageAlarmsTabContainer);
 lv_obj_set_width( ui_Settings1PanelPanel3, lv_pct(100));
 lv_obj_set_height( ui_Settings1PanelPanel3, lv_pct(100));
 lv_obj_set_align( ui_Settings1PanelPanel3, LV_ALIGN_CENTER );
@@ -1590,31 +1899,135 @@ lv_obj_clear_flag( ui_Settings1PanelPanel3, LV_OBJ_FLAG_SCROLLABLE );    /// Fla
 
 ui_Settings1ContainerSettingGeneral10 = lv_obj_create(ui_Settings1PanelPanel3);
 lv_obj_remove_style_all(ui_Settings1ContainerSettingGeneral10);
-lv_obj_set_height( ui_Settings1ContainerSettingGeneral10, 40);
+lv_obj_set_height( ui_Settings1ContainerSettingGeneral10, 61);
 lv_obj_set_width( ui_Settings1ContainerSettingGeneral10, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerSettingGeneral10, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerSettingGeneral10,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerSettingGeneral10, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerSettingGeneral10, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerSettingGeneral10, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerSettingGeneral10, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerSettingGeneral10, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1LabelSettingsGeneralTitle10 = lv_label_create(ui_Settings1ContainerSettingGeneral10);
-lv_obj_set_width( ui_Settings1LabelSettingsGeneralTitle10, lv_pct(20));
+lv_obj_set_width( ui_Settings1LabelSettingsGeneralTitle10, lv_pct(27));
 lv_obj_set_height( ui_Settings1LabelSettingsGeneralTitle10, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelSettingsGeneralTitle10, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelSettingsGeneralTitle10,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_Settings1LabelSettingsGeneralTitle10, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_label_set_text(ui_Settings1LabelSettingsGeneralTitle10,"Select Preset #");
-lv_obj_set_style_text_font(ui_Settings1LabelSettingsGeneralTitle10, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_Settings1LabelSettingsGeneralTitle10, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1DropdownDropdown9 = lv_dropdown_create(ui_Settings1ContainerSettingGeneral10);
-lv_dropdown_set_options( ui_Settings1DropdownDropdown9, "Preset #1\nPreset #2\nPreset #3\nPreset #4" );
-lv_obj_set_width( ui_Settings1DropdownDropdown9, 225);
-lv_obj_set_height( ui_Settings1DropdownDropdown9, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_align( ui_Settings1DropdownDropdown9, LV_ALIGN_CENTER );
-lv_obj_add_flag( ui_Settings1DropdownDropdown9, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
-lv_obj_set_style_radius(ui_Settings1DropdownDropdown9, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_Settings1ContainerPresetSelctionButtonGroup = lv_obj_create(ui_Settings1ContainerSettingGeneral10);
+lv_obj_remove_style_all(ui_Settings1ContainerPresetSelctionButtonGroup);
+lv_obj_set_width( ui_Settings1ContainerPresetSelctionButtonGroup, 472);
+lv_obj_set_height( ui_Settings1ContainerPresetSelctionButtonGroup, 66);
+lv_obj_set_align( ui_Settings1ContainerPresetSelctionButtonGroup, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerPresetSelctionButtonGroup,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerPresetSelctionButtonGroup, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_Settings1ContainerPresetSelctionButtonGroup, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_left(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_Settings1ContainerPresetSelctionButtonGroup, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ButtonPresetButton1 = lv_btn_create(ui_Settings1ContainerPresetSelctionButtonGroup);
+lv_obj_set_width( ui_Settings1ButtonPresetButton1, 75);
+lv_obj_set_height( ui_Settings1ButtonPresetButton1, 45);
+lv_obj_set_align( ui_Settings1ButtonPresetButton1, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonPresetButton1,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonPresetButton1, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_state( ui_Settings1ButtonPresetButton1, LV_STATE_CHECKED );     /// States
+lv_obj_add_flag( ui_Settings1ButtonPresetButton1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonPresetButton1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Red);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Red);
+lv_obj_set_style_text_font(ui_Settings1ButtonPresetButton1, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton1, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Red);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton1, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Red);
+lv_obj_set_style_outline_color(ui_Settings1ButtonPresetButton1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_CHECKED );
+lv_obj_set_style_outline_opa(ui_Settings1ButtonPresetButton1, 255, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_width(ui_Settings1ButtonPresetButton1, 5, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_pad(ui_Settings1ButtonPresetButton1, 0, LV_PART_MAIN| LV_STATE_CHECKED);
+
+ui_Settings1LabelPresetButtonLabel1 = lv_label_create(ui_Settings1ButtonPresetButton1);
+lv_obj_set_width( ui_Settings1LabelPresetButtonLabel1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelPresetButtonLabel1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelPresetButtonLabel1, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelPresetButtonLabel1,"1");
+
+ui_Settings1ButtonPresetButton2 = lv_btn_create(ui_Settings1ContainerPresetSelctionButtonGroup);
+lv_obj_set_width( ui_Settings1ButtonPresetButton2, 75);
+lv_obj_set_height( ui_Settings1ButtonPresetButton2, 45);
+lv_obj_set_align( ui_Settings1ButtonPresetButton2, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonPresetButton2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonPresetButton2, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_Settings1ButtonPresetButton2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonPresetButton2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+lv_obj_set_style_text_font(ui_Settings1ButtonPresetButton2, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton2, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton2, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+lv_obj_set_style_outline_color(ui_Settings1ButtonPresetButton2, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_CHECKED );
+lv_obj_set_style_outline_opa(ui_Settings1ButtonPresetButton2, 255, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_width(ui_Settings1ButtonPresetButton2, 5, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_pad(ui_Settings1ButtonPresetButton2, 0, LV_PART_MAIN| LV_STATE_CHECKED);
+
+ui_Settings1LabelPresetButtonLabel2 = lv_label_create(ui_Settings1ButtonPresetButton2);
+lv_obj_set_width( ui_Settings1LabelPresetButtonLabel2, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelPresetButtonLabel2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelPresetButtonLabel2, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelPresetButtonLabel2,"2");
+
+ui_Settings1ButtonPresetButton3 = lv_btn_create(ui_Settings1ContainerPresetSelctionButtonGroup);
+lv_obj_set_width( ui_Settings1ButtonPresetButton3, 75);
+lv_obj_set_height( ui_Settings1ButtonPresetButton3, 45);
+lv_obj_set_align( ui_Settings1ButtonPresetButton3, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonPresetButton3,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonPresetButton3, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_Settings1ButtonPresetButton3, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonPresetButton3, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton3, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Green);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton3, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Green);
+lv_obj_set_style_text_font(ui_Settings1ButtonPresetButton3, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton3, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Green);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton3, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Green);
+lv_obj_set_style_outline_color(ui_Settings1ButtonPresetButton3, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_CHECKED );
+lv_obj_set_style_outline_opa(ui_Settings1ButtonPresetButton3, 255, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_width(ui_Settings1ButtonPresetButton3, 5, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_pad(ui_Settings1ButtonPresetButton3, 0, LV_PART_MAIN| LV_STATE_CHECKED);
+
+ui_Settings1LabelPresetButtonLabel3 = lv_label_create(ui_Settings1ButtonPresetButton3);
+lv_obj_set_width( ui_Settings1LabelPresetButtonLabel3, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelPresetButtonLabel3, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelPresetButtonLabel3, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelPresetButtonLabel3,"3");
+
+ui_Settings1ButtonPresetButton4 = lv_btn_create(ui_Settings1ContainerPresetSelctionButtonGroup);
+lv_obj_set_width( ui_Settings1ButtonPresetButton4, 75);
+lv_obj_set_height( ui_Settings1ButtonPresetButton4, 45);
+lv_obj_set_align( ui_Settings1ButtonPresetButton4, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonPresetButton4,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonPresetButton4, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_Settings1ButtonPresetButton4, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonPresetButton4, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton4, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton4, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_text_font(ui_Settings1ButtonPresetButton4, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton4, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_Settings1ButtonPresetButton4, LV_PART_MAIN| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_outline_color(ui_Settings1ButtonPresetButton4, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_CHECKED );
+lv_obj_set_style_outline_opa(ui_Settings1ButtonPresetButton4, 255, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_width(ui_Settings1ButtonPresetButton4, 5, LV_PART_MAIN| LV_STATE_CHECKED);
+lv_obj_set_style_outline_pad(ui_Settings1ButtonPresetButton4, 0, LV_PART_MAIN| LV_STATE_CHECKED);
+
+ui_Settings1LabelPresetButtonLabel4 = lv_label_create(ui_Settings1ButtonPresetButton4);
+lv_obj_set_width( ui_Settings1LabelPresetButtonLabel4, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelPresetButtonLabel4, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelPresetButtonLabel4, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelPresetButtonLabel4,"4");
 
 ui_Settings1ButtonHelpTach2 = lv_btn_create(ui_Settings1ContainerSettingGeneral10);
 lv_obj_set_width( ui_Settings1ButtonHelpTach2, 30);
@@ -1649,12 +2062,12 @@ lv_obj_set_flex_align(ui_Settings1ContainerDistanceAlarms, LV_FLEX_ALIGN_START, 
 lv_obj_clear_flag( ui_Settings1ContainerDistanceAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_border_color(ui_Settings1ContainerDistanceAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_Settings1ContainerDistanceAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_width(ui_Settings1ContainerDistanceAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_side(ui_Settings1ContainerDistanceAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_left(ui_Settings1ContainerDistanceAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_Settings1ContainerDistanceAlarms, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_Settings1ContainerDistanceAlarms, LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_Settings1ContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_Settings1ContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_Settings1ContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_bottom(ui_Settings1ContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerDistanceAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_row(ui_Settings1ContainerDistanceAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerDistanceAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
@@ -1664,7 +2077,7 @@ lv_obj_set_height( ui_Settings1ContainerAlarmDistance1, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmDistance1, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmDistance1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmDistance1,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmDistance1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmDistance1, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmDistance1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmDistance1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmDistance1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1673,13 +2086,12 @@ ui_Settings1SwitchAlarmDistanceToggle1 = lv_switch_create(ui_Settings1ContainerA
 lv_obj_set_width( ui_Settings1SwitchAlarmDistanceToggle1, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmDistanceToggle1, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmDistanceToggle1, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmDistanceToggle1, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmDistanceToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmDistanceToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmDistanceTitle1 = lv_label_create(ui_Settings1ContainerAlarmDistance1);
-lv_obj_set_width( ui_Settings1LabelAlarmDistanceTitle1, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmDistanceTitle1, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmDistanceTitle1, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmDistanceTitle1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmDistanceTitle1,LV_FLEX_FLOW_ROW);
@@ -1688,19 +2100,22 @@ lv_label_set_text(ui_Settings1LabelAlarmDistanceTitle1,"Distance #1");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmDistanceTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmDistanceValueTextArea1 = lv_textarea_create(ui_Settings1ContainerAlarmDistance1);
-lv_obj_set_width( ui_Settings1TextareaAlarmDistanceValueTextArea1, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmDistanceValueTextArea1, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmDistanceValueTextArea1, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmDistanceValueTextArea1, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmDistanceValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmDistanceValueTextArea1,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmDistanceValueTextArea1,"250");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmDistanceValueTextArea1,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmDistanceValueTextArea1,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmDistanceValueTextArea1, LV_STATE_DISABLED );     /// States
 
 ui_Settings1DropdownAlarmDistanceDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmDistance1);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmDistanceDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmDistanceDropdown1, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmDistanceDropdown1, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmDistanceDropdown1, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmDistanceDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmDistanceDropdown1, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmDistanceDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmDistanceDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmDistanceDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
@@ -1708,13 +2123,26 @@ lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmDistanceDropdown1, 255, LV_PA
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
+ui_Settings1DropdownAlarmDistanceColorDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmDistance1);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmDistanceColorDropdown1, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmDistanceColorDropdown1, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmDistanceColorDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmDistanceColorDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmDistanceColorDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceColorDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceColorDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
 ui_Settings1ContainerAlarmDistance2 = lv_obj_create(ui_Settings1ContainerDistanceAlarms);
 lv_obj_remove_style_all(ui_Settings1ContainerAlarmDistance2);
 lv_obj_set_height( ui_Settings1ContainerAlarmDistance2, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmDistance2, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmDistance2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmDistance2,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmDistance2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmDistance2, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmDistance2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmDistance2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmDistance2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1723,13 +2151,12 @@ ui_Settings1SwitchAlarmDistanceToggle2 = lv_switch_create(ui_Settings1ContainerA
 lv_obj_set_width( ui_Settings1SwitchAlarmDistanceToggle2, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmDistanceToggle2, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmDistanceToggle2, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmDistanceToggle2, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmDistanceToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmDistanceToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmDistanceTitle2 = lv_label_create(ui_Settings1ContainerAlarmDistance2);
-lv_obj_set_width( ui_Settings1LabelAlarmDistanceTitle2, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmDistanceTitle2, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmDistanceTitle2, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmDistanceTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmDistanceTitle2,LV_FLEX_FLOW_ROW);
@@ -1738,25 +2165,41 @@ lv_label_set_text(ui_Settings1LabelAlarmDistanceTitle2,"Distance #2");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmDistanceTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmDistanceValueTextArea2 = lv_textarea_create(ui_Settings1ContainerAlarmDistance2);
-lv_obj_set_width( ui_Settings1TextareaAlarmDistanceValueTextArea2, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmDistanceValueTextArea2, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmDistanceValueTextArea2, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmDistanceValueTextArea2, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmDistanceValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmDistanceValueTextArea2,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmDistanceValueTextArea2,"125");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmDistanceValueTextArea2,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmDistanceValueTextArea2,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmDistanceValueTextArea2, LV_STATE_DISABLED );     /// States
 
 ui_Settings1DropdownAlarmDistanceDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmDistance2);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmDistanceDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmDistanceDropdown2, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmDistanceDropdown2, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmDistanceDropdown2, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmDistanceDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmDistanceDropdown2, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmDistanceDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmDistanceDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmDistanceDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
 
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_Settings1DropdownAlarmDistanceColorDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmDistance2);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmDistanceColorDropdown2, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmDistanceColorDropdown2, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmDistanceColorDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmDistanceColorDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmDistanceColorDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceColorDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmDistanceColorDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_Settings1ContainerSpeedAlarms = lv_obj_create(ui_Settings1PanelPanel3);
 lv_obj_remove_style_all(ui_Settings1ContainerSpeedAlarms);
@@ -1768,12 +2211,12 @@ lv_obj_set_flex_align(ui_Settings1ContainerSpeedAlarms, LV_FLEX_ALIGN_START, LV_
 lv_obj_clear_flag( ui_Settings1ContainerSpeedAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_border_color(ui_Settings1ContainerSpeedAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_Settings1ContainerSpeedAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_width(ui_Settings1ContainerSpeedAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_side(ui_Settings1ContainerSpeedAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_left(ui_Settings1ContainerSpeedAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_Settings1ContainerSpeedAlarms, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_Settings1ContainerSpeedAlarms, LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_Settings1ContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_Settings1ContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_Settings1ContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_bottom(ui_Settings1ContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerSpeedAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_row(ui_Settings1ContainerSpeedAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerSpeedAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
@@ -1783,7 +2226,7 @@ lv_obj_set_height( ui_Settings1ContainerAlarmSpeed1, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmSpeed1, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmSpeed1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmSpeed1,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmSpeed1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmSpeed1, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmSpeed1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmSpeed1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmSpeed1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1792,13 +2235,12 @@ ui_Settings1SwitchAlarmSpeedToggle1 = lv_switch_create(ui_Settings1ContainerAlar
 lv_obj_set_width( ui_Settings1SwitchAlarmSpeedToggle1, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmSpeedToggle1, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmSpeedToggle1, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmSpeedToggle1, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmSpeedToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmSpeedToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmSpeedTitle1 = lv_label_create(ui_Settings1ContainerAlarmSpeed1);
-lv_obj_set_width( ui_Settings1LabelAlarmSpeedTitle1, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmSpeedTitle1, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmSpeedTitle1, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmSpeedTitle1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmSpeedTitle1,LV_FLEX_FLOW_ROW);
@@ -1807,19 +2249,22 @@ lv_label_set_text(ui_Settings1LabelAlarmSpeedTitle1,"Speed #1");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmSpeedTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmSpeedValueTextArea1 = lv_textarea_create(ui_Settings1ContainerAlarmSpeed1);
-lv_obj_set_width( ui_Settings1TextareaAlarmSpeedValueTextArea1, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmSpeedValueTextArea1, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmSpeedValueTextArea1, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmSpeedValueTextArea1, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmSpeedValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmSpeedValueTextArea1,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmSpeedValueTextArea1,"12.5");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmSpeedValueTextArea1,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmSpeedValueTextArea1,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmSpeedValueTextArea1, LV_STATE_DISABLED );     /// States
 
 ui_Settings1DropdownAlarmSpeedDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmSpeed1);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmSpeedDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmSpeedDropdown1, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmSpeedDropdown1, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmSpeedDropdown1, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmSpeedDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmSpeedDropdown1, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmSpeedDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmSpeedDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmSpeedDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
@@ -1827,13 +2272,26 @@ lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmSpeedDropdown1, 255, LV_PART_
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
+ui_Settings1DropdownAlarmSpeedColorDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmSpeed1);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmSpeedColorDropdown1, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmSpeedColorDropdown1, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmSpeedColorDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmSpeedColorDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmSpeedColorDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedColorDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedColorDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
 ui_Settings1ContainerAlarmSpeed2 = lv_obj_create(ui_Settings1ContainerSpeedAlarms);
 lv_obj_remove_style_all(ui_Settings1ContainerAlarmSpeed2);
 lv_obj_set_height( ui_Settings1ContainerAlarmSpeed2, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmSpeed2, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmSpeed2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmSpeed2,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmSpeed2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmSpeed2, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmSpeed2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmSpeed2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmSpeed2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1842,13 +2300,12 @@ ui_Settings1SwitchAlarmSpeedToggle2 = lv_switch_create(ui_Settings1ContainerAlar
 lv_obj_set_width( ui_Settings1SwitchAlarmSpeedToggle2, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmSpeedToggle2, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmSpeedToggle2, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmSpeedToggle2, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmSpeedToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmSpeedToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmSpeedTitle2 = lv_label_create(ui_Settings1ContainerAlarmSpeed2);
-lv_obj_set_width( ui_Settings1LabelAlarmSpeedTitle2, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmSpeedTitle2, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmSpeedTitle2, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmSpeedTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmSpeedTitle2,LV_FLEX_FLOW_ROW);
@@ -1857,25 +2314,41 @@ lv_label_set_text(ui_Settings1LabelAlarmSpeedTitle2,"Speed #2");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmSpeedTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmSpeedValueTextArea2 = lv_textarea_create(ui_Settings1ContainerAlarmSpeed2);
-lv_obj_set_width( ui_Settings1TextareaAlarmSpeedValueTextArea2, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmSpeedValueTextArea2, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmSpeedValueTextArea2, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmSpeedValueTextArea2, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmSpeedValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmSpeedValueTextArea2,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmSpeedValueTextArea2,"30");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmSpeedValueTextArea2,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmSpeedValueTextArea2,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmSpeedValueTextArea2, LV_STATE_DISABLED );     /// States
 
 ui_Settings1DropdownAlarmSpeedDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmSpeed2);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmSpeedDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmSpeedDropdown2, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmSpeedDropdown2, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmSpeedDropdown2, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmSpeedDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmSpeedDropdown2, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmSpeedDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmSpeedDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmSpeedDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
 
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_Settings1DropdownAlarmSpeedColorDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmSpeed2);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmSpeedColorDropdown2, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmSpeedColorDropdown2, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmSpeedColorDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmSpeedColorDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmSpeedColorDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedColorDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmSpeedColorDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_Settings1ContainerRPMAlarms = lv_obj_create(ui_Settings1PanelPanel3);
 lv_obj_remove_style_all(ui_Settings1ContainerRPMAlarms);
@@ -1885,14 +2358,10 @@ lv_obj_set_align( ui_Settings1ContainerRPMAlarms, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerRPMAlarms,LV_FLEX_FLOW_COLUMN);
 lv_obj_set_flex_align(ui_Settings1ContainerRPMAlarms, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_Settings1ContainerRPMAlarms, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_obj_set_style_border_color(ui_Settings1ContainerRPMAlarms, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_border_opa(ui_Settings1ContainerRPMAlarms, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_width(ui_Settings1ContainerRPMAlarms, 4, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_side(ui_Settings1ContainerRPMAlarms, LV_BORDER_SIDE_LEFT, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_left(ui_Settings1ContainerRPMAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_Settings1ContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_Settings1ContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_Settings1ContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_bottom(ui_Settings1ContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerRPMAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_row(ui_Settings1ContainerRPMAlarms, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerRPMAlarms, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
@@ -1902,7 +2371,7 @@ lv_obj_set_height( ui_Settings1ContainerAlarmRPM1, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmRPM1, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmRPM1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmRPM1,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmRPM1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmRPM1, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmRPM1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmRPM1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmRPM1, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1911,13 +2380,12 @@ ui_Settings1SwitchAlarmRPMToggle1 = lv_switch_create(ui_Settings1ContainerAlarmR
 lv_obj_set_width( ui_Settings1SwitchAlarmRPMToggle1, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmRPMToggle1, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmRPMToggle1, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmRPMToggle1, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmRPMToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmRPMToggle1, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmRPMTitle1 = lv_label_create(ui_Settings1ContainerAlarmRPM1);
-lv_obj_set_width( ui_Settings1LabelAlarmRPMTitle1, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmRPMTitle1, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmRPMTitle1, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmRPMTitle1, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmRPMTitle1,LV_FLEX_FLOW_ROW);
@@ -1926,19 +2394,28 @@ lv_label_set_text(ui_Settings1LabelAlarmRPMTitle1,"RPM #1");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmRPMTitle1, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmRPMValueTextArea1 = lv_textarea_create(ui_Settings1ContainerAlarmRPM1);
-lv_obj_set_width( ui_Settings1TextareaAlarmRPMValueTextArea1, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmRPMValueTextArea1, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmRPMValueTextArea1, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmRPMValueTextArea1, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmRPMValueTextArea1, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmRPMValueTextArea1,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmRPMValueTextArea1,"4000");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmRPMValueTextArea1,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmRPMValueTextArea1,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmRPMValueTextArea1, LV_STATE_DISABLED );     /// States
+
+ui_Settings1PanelPanel4 = lv_obj_create(ui_Settings1TextareaAlarmRPMValueTextArea1);
+lv_obj_set_width( ui_Settings1PanelPanel4, 100);
+lv_obj_set_height( ui_Settings1PanelPanel4, 50);
+lv_obj_set_align( ui_Settings1PanelPanel4, LV_ALIGN_CENTER );
+lv_obj_clear_flag( ui_Settings1PanelPanel4, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
 ui_Settings1DropdownAlarmRPMDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmRPM1);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmRPMDropdown1, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmRPMDropdown1, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmRPMDropdown1, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmRPMDropdown1, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmRPMDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmRPMDropdown1, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmRPMDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmRPMDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
@@ -1946,13 +2423,26 @@ lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMDropdown1, 255, LV_PART_MA
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
+ui_Settings1DropdownAlarmRPMColorDropdown1 = lv_dropdown_create(ui_Settings1ContainerAlarmRPM1);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmRPMColorDropdown1, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmRPMColorDropdown1, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmRPMColorDropdown1, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMColorDropdown1, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMColorDropdown1), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMColorDropdown1), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
 ui_Settings1ContainerAlarmRPM2 = lv_obj_create(ui_Settings1ContainerRPMAlarms);
 lv_obj_remove_style_all(ui_Settings1ContainerAlarmRPM2);
 lv_obj_set_height( ui_Settings1ContainerAlarmRPM2, 40);
 lv_obj_set_width( ui_Settings1ContainerAlarmRPM2, lv_pct(100));
 lv_obj_set_align( ui_Settings1ContainerAlarmRPM2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1ContainerAlarmRPM2,LV_FLEX_FLOW_ROW);
-lv_obj_set_flex_align(ui_Settings1ContainerAlarmRPM2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_set_flex_align(ui_Settings1ContainerAlarmRPM2, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 lv_obj_clear_flag( ui_Settings1ContainerAlarmRPM2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_row(ui_Settings1ContainerAlarmRPM2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerAlarmRPM2, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -1961,13 +2451,12 @@ ui_Settings1SwitchAlarmRPMToggle2 = lv_switch_create(ui_Settings1ContainerAlarmR
 lv_obj_set_width( ui_Settings1SwitchAlarmRPMToggle2, 50);
 lv_obj_set_height( ui_Settings1SwitchAlarmRPMToggle2, 25);
 lv_obj_set_align( ui_Settings1SwitchAlarmRPMToggle2, LV_ALIGN_CENTER );
-lv_obj_add_state( ui_Settings1SwitchAlarmRPMToggle2, LV_STATE_CHECKED );     /// States
 
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmRPMToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
 ui_object_set_themeable_style_property(ui_Settings1SwitchAlarmRPMToggle2, LV_PART_INDICATOR| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
 
 ui_Settings1LabelAlarmRPMTitle2 = lv_label_create(ui_Settings1ContainerAlarmRPM2);
-lv_obj_set_width( ui_Settings1LabelAlarmRPMTitle2, lv_pct(18));
+lv_obj_set_width( ui_Settings1LabelAlarmRPMTitle2, lv_pct(16));
 lv_obj_set_height( ui_Settings1LabelAlarmRPMTitle2, LV_SIZE_CONTENT);   /// 50
 lv_obj_set_align( ui_Settings1LabelAlarmRPMTitle2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Settings1LabelAlarmRPMTitle2,LV_FLEX_FLOW_ROW);
@@ -1976,19 +2465,22 @@ lv_label_set_text(ui_Settings1LabelAlarmRPMTitle2,"RPM #2");
 lv_obj_set_style_text_font(ui_Settings1LabelAlarmRPMTitle2, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TextareaAlarmRPMValueTextArea2 = lv_textarea_create(ui_Settings1ContainerAlarmRPM2);
-lv_obj_set_width( ui_Settings1TextareaAlarmRPMValueTextArea2, 142);
+lv_obj_set_width( ui_Settings1TextareaAlarmRPMValueTextArea2, 100);
 lv_obj_set_height( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_SIZE_CONTENT);   /// 70
 lv_obj_set_align( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_ALIGN_CENTER );
 lv_textarea_set_accepted_chars(ui_Settings1TextareaAlarmRPMValueTextArea2, "1,2,3,4,5,6,7,8,9,0.");
 lv_textarea_set_max_length(ui_Settings1TextareaAlarmRPMValueTextArea2,6);
+lv_textarea_set_text(ui_Settings1TextareaAlarmRPMValueTextArea2,"900");
 lv_textarea_set_placeholder_text(ui_Settings1TextareaAlarmRPMValueTextArea2,"Trip Point");
 lv_textarea_set_one_line(ui_Settings1TextareaAlarmRPMValueTextArea2,true);
+lv_obj_add_state( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED );     /// States
 
 ui_Settings1DropdownAlarmRPMDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmRPM2);
 lv_dropdown_set_options( ui_Settings1DropdownAlarmRPMDropdown2, "Silent Alarm\nTrip Once at Crossover Point\nTrip and Hold (Auto Reset)\nTrip and Hold (Persistent)\nAuto End Run (DQ)" );
-lv_obj_set_width( ui_Settings1DropdownAlarmRPMDropdown2, 261);
+lv_obj_set_width( ui_Settings1DropdownAlarmRPMDropdown2, 240);
 lv_obj_set_height( ui_Settings1DropdownAlarmRPMDropdown2, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownAlarmRPMDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmRPMDropdown2, LV_STATE_DISABLED );     /// States
 lv_obj_add_flag( ui_Settings1DropdownAlarmRPMDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_set_style_text_color(ui_Settings1DropdownAlarmRPMDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
@@ -1996,9 +2488,23 @@ lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMDropdown2, 255, LV_PART_MA
 lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
 lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
 
+ui_Settings1DropdownAlarmRPMColorDropdown2 = lv_dropdown_create(ui_Settings1ContainerAlarmRPM2);
+lv_dropdown_set_options( ui_Settings1DropdownAlarmRPMColorDropdown2, "Red\nYellow\nGreen" );
+lv_obj_set_width( ui_Settings1DropdownAlarmRPMColorDropdown2, 100);
+lv_obj_set_height( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_ALIGN_CENTER );
+lv_obj_add_state( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_STATE_DISABLED );     /// States
+lv_obj_add_flag( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_color(ui_Settings1DropdownAlarmRPMColorDropdown2, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(ui_Settings1DropdownAlarmRPMColorDropdown2, 255, LV_PART_MAIN| LV_STATE_DISABLED);
+
+lv_obj_set_style_text_color(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMColorDropdown2), lv_color_hex(0x808080),  LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_text_opa(lv_dropdown_get_list(ui_Settings1DropdownAlarmRPMColorDropdown2), 255,  LV_PART_MAIN| LV_STATE_DISABLED);
+
 ui_Settings1TabpageRelays_and_Limits = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Relays + Limits");
 lv_obj_set_flex_flow(ui_Settings1TabpageRelays_and_Limits,LV_FLEX_FLOW_COLUMN);
 lv_obj_set_flex_align(ui_Settings1TabpageRelays_and_Limits, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1TabpageRelays_and_Limits, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 lv_obj_set_style_pad_left(ui_Settings1TabpageRelays_and_Limits, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_Settings1TabpageRelays_and_Limits, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_Settings1TabpageRelays_and_Limits, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -2316,7 +2822,173 @@ lv_obj_set_align( ui_Settings1PanelPanel1, LV_ALIGN_CENTER );
 lv_obj_clear_flag( ui_Settings1PanelPanel1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
 ui_Settings1TabpageJudge = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Judge");
+lv_obj_set_flex_flow(ui_Settings1TabpageJudge,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1TabpageJudge, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_Settings1TabpageJudge, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+
+ui_Settings1PanelSettingJudgeMCUPanel = lv_obj_create(ui_Settings1TabpageJudge);
+lv_obj_set_width( ui_Settings1PanelSettingJudgeMCUPanel, lv_pct(100));
+lv_obj_set_height( ui_Settings1PanelSettingJudgeMCUPanel, lv_pct(100));
+lv_obj_set_x( ui_Settings1PanelSettingJudgeMCUPanel, -73 );
+lv_obj_set_y( ui_Settings1PanelSettingJudgeMCUPanel, -21 );
+lv_obj_set_align( ui_Settings1PanelSettingJudgeMCUPanel, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1PanelSettingJudgeMCUPanel,LV_FLEX_FLOW_COLUMN_REVERSE);
+lv_obj_set_flex_align(ui_Settings1PanelSettingJudgeMCUPanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1PanelSettingJudgeMCUPanel, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelJudgeSettingTips = lv_label_create(ui_Settings1PanelSettingJudgeMCUPanel);
+lv_obj_set_width( ui_Settings1LabelJudgeSettingTips, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelJudgeSettingTips, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelJudgeSettingTips, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelJudgeSettingTips,"1. On the Judge unit, enable Judge Stand Mode in General Settings.\n\n2. Open the Judge tab and enter MCU ID 24.\n\n3. Tap Connect. The Judge will begin receiving pull state and sensor data.");
+
+ui_Settings1LabelLabel54 = lv_label_create(ui_Settings1PanelSettingJudgeMCUPanel);
+lv_obj_set_width( ui_Settings1LabelLabel54, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel54, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel54, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel54,"All steps should be performed on Judge Unit not on sled mounted unit.");
+ui_object_set_themeable_style_property(ui_Settings1LabelLabel54, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_TEXT_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_Settings1LabelLabel54, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_TEXT_OPA, _ui_theme_alpha_Orange);
+
+ui_Settings1LabelLabel53 = lv_label_create(ui_Settings1PanelSettingJudgeMCUPanel);
+lv_obj_set_width( ui_Settings1LabelLabel53, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel53, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel53, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel53,"Instructions for Pairing to Judge Unit");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel53, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1PanelSettingJudgeJudgePanel = lv_obj_create(ui_Settings1TabpageJudge);
+lv_obj_set_width( ui_Settings1PanelSettingJudgeJudgePanel, lv_pct(100));
+lv_obj_set_height( ui_Settings1PanelSettingJudgeJudgePanel, lv_pct(100));
+lv_obj_set_align( ui_Settings1PanelSettingJudgeJudgePanel, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1PanelSettingJudgeJudgePanel,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_Settings1PanelSettingJudgeJudgePanel, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_add_flag( ui_Settings1PanelSettingJudgeJudgePanel, LV_OBJ_FLAG_HIDDEN );   /// Flags
+lv_obj_clear_flag( ui_Settings1PanelSettingJudgeJudgePanel, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelJudgeSettingTips1 = lv_label_create(ui_Settings1PanelSettingJudgeJudgePanel);
+lv_obj_set_width( ui_Settings1LabelJudgeSettingTips1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelJudgeSettingTips1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelJudgeSettingTips1, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelJudgeSettingTips1,"Judge Stand Unit Settings");
+lv_obj_set_style_text_font(ui_Settings1LabelJudgeSettingTips1, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ContainerContainer10 = lv_obj_create(ui_Settings1PanelSettingJudgeJudgePanel);
+lv_obj_remove_style_all(ui_Settings1ContainerContainer10);
+lv_obj_set_height( ui_Settings1ContainerContainer10, 80);
+lv_obj_set_width( ui_Settings1ContainerContainer10, lv_pct(100));
+lv_obj_set_align( ui_Settings1ContainerContainer10, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerContainer10,LV_FLEX_FLOW_COLUMN);
+lv_obj_set_flex_align(ui_Settings1ContainerContainer10, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1ContainerContainer10, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_pad_row(ui_Settings1ContainerContainer10, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_Settings1ContainerContainer10, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ContainerJudgeUnitNumberContainer = lv_obj_create(ui_Settings1ContainerContainer10);
+lv_obj_remove_style_all(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_height( ui_Settings1ContainerJudgeUnitNumberContainer, 50);
+lv_obj_set_width( ui_Settings1ContainerJudgeUnitNumberContainer, lv_pct(100));
+lv_obj_set_align( ui_Settings1ContainerJudgeUnitNumberContainer, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerJudgeUnitNumberContainer,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerJudgeUnitNumberContainer, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_clear_flag( ui_Settings1ContainerJudgeUnitNumberContainer, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_pad_left(ui_Settings1ContainerJudgeUnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1ContainerJudgeUnitNumberContainer, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1ContainerJudgeUnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ContainerJudgeUnitNumberContainer, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_row(ui_Settings1ContainerJudgeUnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_column(ui_Settings1ContainerJudgeUnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1LabelTargetMCUID = lv_label_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1LabelTargetMCUID, 253);
+lv_obj_set_height( ui_Settings1LabelTargetMCUID, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_x( ui_Settings1LabelTargetMCUID, -234 );
+lv_obj_set_y( ui_Settings1LabelTargetMCUID, 0 );
+lv_obj_set_align( ui_Settings1LabelTargetMCUID, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelTargetMCUID,"Target MCU ID");
+lv_obj_clear_flag( ui_Settings1LabelTargetMCUID, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_text_font(ui_Settings1LabelTargetMCUID, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1TextareaTargetMCUID1 = lv_textarea_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1TextareaTargetMCUID1, 167);
+lv_obj_set_height( ui_Settings1TextareaTargetMCUID1, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_x( ui_Settings1TextareaTargetMCUID1, -340 );
+lv_obj_set_y( ui_Settings1TextareaTargetMCUID1, 0 );
+lv_obj_set_align( ui_Settings1TextareaTargetMCUID1, LV_ALIGN_RIGHT_MID );
+lv_textarea_set_text(ui_Settings1TextareaTargetMCUID1,"24");
+lv_textarea_set_placeholder_text(ui_Settings1TextareaTargetMCUID1,"Unit Number");
+lv_textarea_set_one_line(ui_Settings1TextareaTargetMCUID1,true);
+lv_obj_clear_flag( ui_Settings1TextareaTargetMCUID1, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+
+ui_Settings1ButtonButton8 = lv_btn_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1ButtonButton8, 155);
+lv_obj_set_height( ui_Settings1ButtonButton8, 50);
+lv_obj_set_align( ui_Settings1ButtonButton8, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_Settings1ButtonButton8, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonButton8, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_Settings1ButtonButton8, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_Settings1ButtonButton8, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+
+ui_Settings1LabelLabel50 = lv_label_create(ui_Settings1ButtonButton8);
+lv_obj_set_width( ui_Settings1LabelLabel50, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel50, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel50, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel50,"Connect");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel50, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ButtonHelpJudgeTargetMCU = lv_btn_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1ButtonHelpJudgeTargetMCU, 30);
+lv_obj_set_height( ui_Settings1ButtonHelpJudgeTargetMCU, 30);
+lv_obj_set_align( ui_Settings1ButtonHelpJudgeTargetMCU, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ButtonHelpJudgeTargetMCU,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ButtonHelpJudgeTargetMCU, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+lv_obj_add_flag( ui_Settings1ButtonHelpJudgeTargetMCU, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_Settings1ButtonHelpJudgeTargetMCU, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_Settings1ButtonHelpJudgeTargetMCU, 35, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1ButtonHelpJudgeTargetMCU, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_Settings1ButtonHelpJudgeTargetMCU, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_pad_left(ui_Settings1ButtonHelpJudgeTargetMCU, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_Settings1ButtonHelpJudgeTargetMCU, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_Settings1ButtonHelpJudgeTargetMCU, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_Settings1ButtonHelpJudgeTargetMCU, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1LabelLabel49 = lv_label_create(ui_Settings1ButtonHelpJudgeTargetMCU);
+lv_obj_set_width( ui_Settings1LabelLabel49, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel49, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel49, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel49,"?");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel49, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1LabelHelperTextTargetMCU = lv_label_create(ui_Settings1ContainerContainer10);
+lv_obj_set_width( ui_Settings1LabelHelperTextTargetMCU, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelHelperTextTargetMCU, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelHelperTextTargetMCU, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelHelperTextTargetMCU,"Enter the 2 to 4 digit ID printed on the main unit or shown on its screen.");
+lv_obj_set_style_text_color(ui_Settings1LabelHelperTextTargetMCU, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_Settings1LabelHelperTextTargetMCU, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ContainerContainer18 = lv_obj_create(ui_Settings1PanelSettingJudgeJudgePanel);
+lv_obj_remove_style_all(ui_Settings1ContainerContainer18);
+lv_obj_set_width( ui_Settings1ContainerContainer18, lv_pct(100));
+lv_obj_set_height( ui_Settings1ContainerContainer18, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_align( ui_Settings1ContainerContainer18, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerContainer18,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerContainer18, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1ContainerContainer18, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelLabel51 = lv_label_create(ui_Settings1ContainerContainer18);
+lv_obj_set_width( ui_Settings1LabelLabel51, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel51, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel51, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel51,"Status:    ");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel51, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1LabelLabel52 = lv_label_create(ui_Settings1ContainerContainer18);
+lv_obj_set_width( ui_Settings1LabelLabel52, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Settings1LabelLabel52, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelLabel52, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelLabel52,"Connected");
+lv_obj_set_style_text_font(ui_Settings1LabelLabel52, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Settings1TabpageSafety_and_Displays = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Safety + Displays");
 lv_obj_set_flex_flow(ui_Settings1TabpageSafety_and_Displays,LV_FLEX_FLOW_COLUMN);
@@ -2763,7 +3435,7 @@ ui_Settings1ButtonReturnHome = lv_btn_create(ui_Settings1TabpageExit);
 lv_obj_set_height( ui_Settings1ButtonReturnHome, 50);
 lv_obj_set_width( ui_Settings1ButtonReturnHome, LV_SIZE_CONTENT);  /// 100
 lv_obj_set_x( ui_Settings1ButtonReturnHome, -4 );
-lv_obj_set_y( ui_Settings1ButtonReturnHome, 85 );
+lv_obj_set_y( ui_Settings1ButtonReturnHome, 86 );
 lv_obj_set_align( ui_Settings1ButtonReturnHome, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_Settings1ButtonReturnHome, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
 lv_obj_clear_flag( ui_Settings1ButtonReturnHome, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
@@ -2810,7 +3482,38 @@ ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsNumberKeyboar
 ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsNumberKeyboard, LV_PART_ITEMS| LV_STATE_PRESSED, LV_STYLE_BORDER_OPA, _ui_theme_alpha_Yellow);
 lv_obj_set_style_border_width(ui_Settings1KeyboardSettingsNumberKeyboard, 4, LV_PART_ITEMS| LV_STATE_PRESSED);
 
-lv_obj_add_event_cb(ui_Settings1TextareaM4UnitNumberTitleTextArea, ui_event_Settings1TextareaM4UnitNumberTitleTextArea, LV_EVENT_ALL, NULL);
+ui_Settings1KeyboardSettingsHexKeyboard = lv_keyboard_create(ui_ScreenSettings1);
+lv_keyboard_set_mode(ui_Settings1KeyboardSettingsHexKeyboard,LV_KEYBOARD_MODE_NUMBER);
+lv_obj_set_width( ui_Settings1KeyboardSettingsHexKeyboard, 327);
+lv_obj_set_height( ui_Settings1KeyboardSettingsHexKeyboard, 372);
+lv_obj_set_x( ui_Settings1KeyboardSettingsHexKeyboard, 222 );
+lv_obj_set_y( ui_Settings1KeyboardSettingsHexKeyboard, 43 );
+lv_obj_set_align( ui_Settings1KeyboardSettingsHexKeyboard, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_Settings1KeyboardSettingsHexKeyboard, LV_OBJ_FLAG_HIDDEN );   /// Flags
+lv_obj_clear_flag( ui_Settings1KeyboardSettingsHexKeyboard, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_radius(ui_Settings1KeyboardSettingsHexKeyboard, 10, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_Settings1KeyboardSettingsHexKeyboard, lv_color_hex(0x4D4D4D), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_Settings1KeyboardSettingsHexKeyboard, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Orange);
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Orange);
+lv_obj_set_style_border_color(ui_Settings1KeyboardSettingsHexKeyboard, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_Settings1KeyboardSettingsHexKeyboard, 255, LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_Settings1KeyboardSettingsHexKeyboard, 1, LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_text_color(ui_Settings1KeyboardSettingsHexKeyboard, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_Settings1KeyboardSettingsHexKeyboard, 255, LV_PART_ITEMS| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_Settings1KeyboardSettingsHexKeyboard, &lv_font_montserrat_20, LV_PART_ITEMS| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BG_COLOR, _ui_theme_color_Blue);
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_CHECKED, LV_STYLE_BG_OPA, _ui_theme_alpha_Blue);
+lv_obj_set_style_text_color(ui_Settings1KeyboardSettingsHexKeyboard, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_STATE_CHECKED );
+lv_obj_set_style_text_opa(ui_Settings1KeyboardSettingsHexKeyboard, 255, LV_PART_ITEMS| LV_STATE_CHECKED);
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_PRESSED, LV_STYLE_BORDER_COLOR, _ui_theme_color_Yellow);
+ui_object_set_themeable_style_property(ui_Settings1KeyboardSettingsHexKeyboard, LV_PART_ITEMS| LV_STATE_PRESSED, LV_STYLE_BORDER_OPA, _ui_theme_alpha_Yellow);
+lv_obj_set_style_border_width(ui_Settings1KeyboardSettingsHexKeyboard, 4, LV_PART_ITEMS| LV_STATE_PRESSED);
+
+lv_obj_add_event_cb(ui_Settings1TextareaM4IDNumberTitleTextArea, ui_event_Settings1TextareaM4IDNumberTitleTextArea, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1SwitchUseJudgeSwitch, ui_event_Settings1SwitchUseJudgeSwitch, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonHelpJudge, ui_event_Settings1ButtonHelpJudge, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchUnitsToggle, ui_event_Settings1SwitchUnitsToggle, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchBenchmarkToggle, ui_event_Settings1SwitchBenchmarkToggle, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SliderBrightnessSlider, ui_event_Settings1SliderBrightnessSlider, LV_EVENT_ALL, NULL);
@@ -2842,31 +3545,53 @@ lv_obj_add_event_cb(ui_Settings1ButtonButton3, ui_event_Settings1ButtonButton3, 
 lv_obj_add_event_cb(ui_Settings1ButtonHelpCalibrationNumberText3, ui_event_Settings1ButtonHelpCalibrationNumberText3, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchTachAutoConnectToggle, ui_event_Settings1SwitchTachAutoConnectToggle, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonTachAutoConnectHelp, ui_event_Settings1ButtonTachAutoConnectHelp, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonPresetButton1, ui_event_Settings1ButtonPresetButton1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonPresetButton2, ui_event_Settings1ButtonPresetButton2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonPresetButton3, ui_event_Settings1ButtonPresetButton3, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonPresetButton4, ui_event_Settings1ButtonPresetButton4, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonHelpTach2, ui_event_Settings1ButtonHelpTach2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmDistanceToggle1, ui_event_Settings1SwitchAlarmDistanceToggle1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmDistanceValueTextArea1, ui_event_Settings1TextareaAlarmDistanceValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmDistanceDropdown1, ui_event_Settings1DropdownAlarmDistanceDropdown1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmDistanceColorDropdown1, ui_event_Settings1DropdownAlarmDistanceColorDropdown1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmDistanceToggle2, ui_event_Settings1SwitchAlarmDistanceToggle2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmDistanceValueTextArea2, ui_event_Settings1TextareaAlarmDistanceValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmDistanceDropdown2, ui_event_Settings1DropdownAlarmDistanceDropdown2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmDistanceColorDropdown2, ui_event_Settings1DropdownAlarmDistanceColorDropdown2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmSpeedToggle1, ui_event_Settings1SwitchAlarmSpeedToggle1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmSpeedValueTextArea1, ui_event_Settings1TextareaAlarmSpeedValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmSpeedDropdown1, ui_event_Settings1DropdownAlarmSpeedDropdown1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmSpeedColorDropdown1, ui_event_Settings1DropdownAlarmSpeedColorDropdown1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmSpeedToggle2, ui_event_Settings1SwitchAlarmSpeedToggle2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmSpeedValueTextArea2, ui_event_Settings1TextareaAlarmSpeedValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmSpeedDropdown2, ui_event_Settings1DropdownAlarmSpeedDropdown2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmSpeedColorDropdown2, ui_event_Settings1DropdownAlarmSpeedColorDropdown2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmRPMToggle1, ui_event_Settings1SwitchAlarmRPMToggle1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmRPMValueTextArea1, ui_event_Settings1TextareaAlarmRPMValueTextArea1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMDropdown1, ui_event_Settings1DropdownAlarmRPMDropdown1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMColorDropdown1, ui_event_Settings1DropdownAlarmRPMColorDropdown1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1SwitchAlarmRPMToggle2, ui_event_Settings1SwitchAlarmRPMToggle2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmRPMValueTextArea2, ui_event_Settings1TextareaAlarmRPMValueTextArea2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMDropdown2, ui_event_Settings1DropdownAlarmRPMDropdown2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMColorDropdown2, ui_event_Settings1DropdownAlarmRPMColorDropdown2, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1TextareaTargetMCUID1, ui_event_Settings1TextareaTargetMCUID1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1ButtonHelpJudgeTargetMCU, ui_event_Settings1ButtonHelpJudgeTargetMCU, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonButton7, ui_event_Settings1ButtonButton7, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonHelpPairDisplays, ui_event_Settings1ButtonHelpPairDisplays, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonReturnHome, ui_event_Settings1ButtonReturnHome, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1TabpageExit, ui_event_Settings1TabpageExit, LV_EVENT_ALL, NULL);
 lv_keyboard_set_textarea(ui_Settings1KeyboardSettingsNumberKeyboard,ui_Settings1TextareaTrackLengthText);
 lv_obj_add_event_cb(ui_Settings1KeyboardSettingsNumberKeyboard, ui_event_Settings1KeyboardSettingsNumberKeyboard, LV_EVENT_ALL, NULL);
+lv_keyboard_set_textarea(ui_Settings1KeyboardSettingsHexKeyboard,ui_Settings1TextareaTrackLengthText);
+lv_obj_add_event_cb(ui_Settings1KeyboardSettingsHexKeyboard, ui_event_Settings1KeyboardSettingsHexKeyboard, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_ScreenSettings1, ui_event_ScreenSettings1, LV_EVENT_ALL, NULL);
 uic_ScreenSettings = ui_ScreenSettings1;
 uic_Settings1TabviewSettingsView = ui_Settings1TabviewSettingsView;
 uic_Settings1PanelGeneralSettings = ui_Settings1PanelGeneralSettings;
-uic_Settings1LabelM4UnitNumberTitleLable = ui_Settings1LabelM4UnitNumberTitleLable;
-uic_M4UnitNumberTitleTextArea = ui_Settings1TextareaM4UnitNumberTitleTextArea;
+uic_Settings1LabelM4IDNumberTitleLabel = ui_Settings1LabelM4IDNumberTitleLabel;
+uic_M4IDNumberTitleTextArea = ui_Settings1TextareaM4IDNumberTitleTextArea;
+uic_Settings1LabelUseJudgeTitleLabel = ui_Settings1LabelUseJudgeTitleLabel;
+uic_Settings1SwitchUseJudgeSwitch = ui_Settings1SwitchUseJudgeSwitch;
 uic_Settings1SwitchUnitsToggle = ui_Settings1SwitchUnitsToggle;
 uic_Settings1SwitchBenchmarkToggle = ui_Settings1SwitchBenchmarkToggle;
 uic_Settings1ContainerBrightnessSetting = ui_Settings1ContainerBrightnessSetting;
@@ -2886,10 +3611,20 @@ uic_Settings1TextareaCalibrationCalculatorGearRatioTextArea = ui_Settings1Textar
 uic_Settings1ButtonCalculateButton = ui_Settings1ButtonCalculateButton;
 uic_Settings1SwitchTachAutoConnectToggle = ui_Settings1SwitchTachAutoConnectToggle;
 uic_Settings1ButtonTachAutoConnectHelp = ui_Settings1ButtonTachAutoConnectHelp;
+uic_AlarmsTabContainer = ui_Settings1TabpageAlarmsTabContainer;
+uic_PresetSelctionButtonGroup = ui_Settings1ContainerPresetSelctionButtonGroup;
+uic_Settings1ButtonPresetButton1 = ui_Settings1ButtonPresetButton1;
+uic_Settings1ButtonPresetButton2 = ui_Settings1ButtonPresetButton2;
+uic_Settings1ButtonPresetButton3 = ui_Settings1ButtonPresetButton3;
+uic_Settings1ButtonPresetButton4 = ui_Settings1ButtonPresetButton4;
 uic_Settings1SwitchAlarmDistanceToggle1 = ui_Settings1SwitchAlarmDistanceToggle1;
 uic_Settings1DropdownAlarmDistanceDropdown1 = ui_Settings1DropdownAlarmDistanceDropdown1;
+uic_Settings1DropdownAlarmDistanceColorDropdown1 = ui_Settings1DropdownAlarmDistanceColorDropdown1;
+uic_Settings1DropdownAlarmDistanceColorDropdown2 = ui_Settings1DropdownAlarmDistanceColorDropdown2;
 uic_Settings1SwitchAlarmSpeedToggle1 = ui_Settings1SwitchAlarmSpeedToggle1;
+uic_Settings1DropdownAlarmSpeedColorDropdown1 = ui_Settings1DropdownAlarmSpeedColorDropdown1;
 uic_Settings1ContainerAlarmRPM1 = ui_Settings1ContainerAlarmRPM1;
+uic_Settings1DropdownAlarmRPMColorDropdown1 = ui_Settings1DropdownAlarmRPMColorDropdown1;
 uic_Settings1PanelConnectionRLM = ui_Settings1PanelConnectionRLM;
 uic_Settings1PanelRelayLimitSettings = ui_Settings1PanelRelayLimitSettings;
 uic_Settings1ContainerRelaySettings = ui_Settings1ContainerRelaySettings;
@@ -2898,6 +3633,13 @@ uic_Settings1ContainercontainerEnableRelay = ui_Settings1ContainercontainerEnabl
 uic_Settings1ContainercontainterRelaySwitch1 = ui_Settings1ContainercontainterRelaySwitch1;
 uic_Settings1ContainercontainerLimitSettings = ui_Settings1ContainercontainerLimitSettings;
 uic_Settings1ContainercontainerEnableLimit = ui_Settings1ContainercontainerEnableLimit;
+uic_Settings1PanelSettingJudgeMCUPanel = ui_Settings1PanelSettingJudgeMCUPanel;
+uic_Settings1LabelJudgeSettingTips = ui_Settings1LabelJudgeSettingTips;
+uic_Settings1PanelSettingJudgeJudgePanel = ui_Settings1PanelSettingJudgeJudgePanel;
+uic_Settings1LabelTargetMCUID = ui_Settings1LabelTargetMCUID;
+uic_Settings1TextareaTargetMCUID1 = ui_Settings1TextareaTargetMCUID1;
+uic_Settings1ButtonHelpJudgeTargetMCU = ui_Settings1ButtonHelpJudgeTargetMCU;
+uic_Settings1LabelHelperTextTargetMCU = ui_Settings1LabelHelperTextTargetMCU;
 uic_Settings1PanelDeviceTable = ui_Settings1PanelDeviceTable;
 uic_Settings1PanelAboutInfo = ui_Settings1PanelAboutInfo;
 uic_Settings1LabelAboutTitle = ui_Settings1LabelAboutTitle;
@@ -2915,6 +3657,7 @@ uic_Settings1LabelBountyMessage = ui_Settings1LabelBountyMessage;
 uic_Settings1ButtonReturnHome = ui_Settings1ButtonReturnHome;
 uic_Settings1LabelButtonReturnHome = ui_Settings1LabelButtonReturnHome;
 uic_Settings1KeyboardSettingsNumberKeyboard = ui_Settings1KeyboardSettingsNumberKeyboard;
+uic_Settings1KeyboardSettingsHexKeyboard = ui_Settings1KeyboardSettingsHexKeyboard;
 
 }
 
@@ -2933,11 +3676,16 @@ ui_Settings1PanelGeneralSettings= NULL;
 ui_Settings1ContainerGeneralSettingsTitleLabel= NULL;
 ui_Settings1LabelLabel10= NULL;
 ui_Settings1ContainerM4UnitNumberContainer= NULL;
-uic_Settings1LabelM4UnitNumberTitleLable= NULL;
-ui_Settings1LabelM4UnitNumberTitleLable= NULL;
-uic_M4UnitNumberTitleTextArea= NULL;
-ui_Settings1TextareaM4UnitNumberTitleTextArea= NULL;
-ui_Settings1LabelTrackLengthUnitsTitle1= NULL;
+uic_Settings1LabelM4IDNumberTitleLabel= NULL;
+ui_Settings1LabelM4IDNumberTitleLabel= NULL;
+uic_M4IDNumberTitleTextArea= NULL;
+ui_Settings1TextareaM4IDNumberTitleTextArea= NULL;
+uic_Settings1LabelUseJudgeTitleLabel= NULL;
+ui_Settings1LabelUseJudgeTitleLabel= NULL;
+uic_Settings1SwitchUseJudgeSwitch= NULL;
+ui_Settings1SwitchUseJudgeSwitch= NULL;
+ui_Settings1ButtonHelpJudge= NULL;
+ui_Settings1LabelLabel48= NULL;
 ui_Settings1ContainerSettingGeneral1= NULL;
 uic_Settings1SwitchUnitsToggle= NULL;
 ui_Settings1SwitchUnitsToggle= NULL;
@@ -3050,11 +3798,25 @@ ui_Settings1LabelSettingsGeneralTitle9= NULL;
 uic_Settings1ButtonTachAutoConnectHelp= NULL;
 ui_Settings1ButtonTachAutoConnectHelp= NULL;
 ui_Settings1LabelLabel32= NULL;
-ui_Settings1TabpageAlarms= NULL;
+uic_AlarmsTabContainer= NULL;
+ui_Settings1TabpageAlarmsTabContainer= NULL;
 ui_Settings1PanelPanel3= NULL;
 ui_Settings1ContainerSettingGeneral10= NULL;
 ui_Settings1LabelSettingsGeneralTitle10= NULL;
-ui_Settings1DropdownDropdown9= NULL;
+uic_PresetSelctionButtonGroup= NULL;
+ui_Settings1ContainerPresetSelctionButtonGroup= NULL;
+uic_Settings1ButtonPresetButton1= NULL;
+ui_Settings1ButtonPresetButton1= NULL;
+ui_Settings1LabelPresetButtonLabel1= NULL;
+uic_Settings1ButtonPresetButton2= NULL;
+ui_Settings1ButtonPresetButton2= NULL;
+ui_Settings1LabelPresetButtonLabel2= NULL;
+uic_Settings1ButtonPresetButton3= NULL;
+ui_Settings1ButtonPresetButton3= NULL;
+ui_Settings1LabelPresetButtonLabel3= NULL;
+uic_Settings1ButtonPresetButton4= NULL;
+ui_Settings1ButtonPresetButton4= NULL;
+ui_Settings1LabelPresetButtonLabel4= NULL;
 ui_Settings1ButtonHelpTach2= NULL;
 ui_Settings1LabelLabel33= NULL;
 ui_Settings1ContainerDistanceAlarms= NULL;
@@ -3065,11 +3827,15 @@ ui_Settings1LabelAlarmDistanceTitle1= NULL;
 ui_Settings1TextareaAlarmDistanceValueTextArea1= NULL;
 uic_Settings1DropdownAlarmDistanceDropdown1= NULL;
 ui_Settings1DropdownAlarmDistanceDropdown1= NULL;
+uic_Settings1DropdownAlarmDistanceColorDropdown1= NULL;
+ui_Settings1DropdownAlarmDistanceColorDropdown1= NULL;
 ui_Settings1ContainerAlarmDistance2= NULL;
 ui_Settings1SwitchAlarmDistanceToggle2= NULL;
 ui_Settings1LabelAlarmDistanceTitle2= NULL;
 ui_Settings1TextareaAlarmDistanceValueTextArea2= NULL;
 ui_Settings1DropdownAlarmDistanceDropdown2= NULL;
+uic_Settings1DropdownAlarmDistanceColorDropdown2= NULL;
+ui_Settings1DropdownAlarmDistanceColorDropdown2= NULL;
 ui_Settings1ContainerSpeedAlarms= NULL;
 ui_Settings1ContainerAlarmSpeed1= NULL;
 uic_Settings1SwitchAlarmSpeedToggle1= NULL;
@@ -3077,23 +3843,30 @@ ui_Settings1SwitchAlarmSpeedToggle1= NULL;
 ui_Settings1LabelAlarmSpeedTitle1= NULL;
 ui_Settings1TextareaAlarmSpeedValueTextArea1= NULL;
 ui_Settings1DropdownAlarmSpeedDropdown1= NULL;
+uic_Settings1DropdownAlarmSpeedColorDropdown1= NULL;
+ui_Settings1DropdownAlarmSpeedColorDropdown1= NULL;
 ui_Settings1ContainerAlarmSpeed2= NULL;
 ui_Settings1SwitchAlarmSpeedToggle2= NULL;
 ui_Settings1LabelAlarmSpeedTitle2= NULL;
 ui_Settings1TextareaAlarmSpeedValueTextArea2= NULL;
 ui_Settings1DropdownAlarmSpeedDropdown2= NULL;
+ui_Settings1DropdownAlarmSpeedColorDropdown2= NULL;
 ui_Settings1ContainerRPMAlarms= NULL;
 uic_Settings1ContainerAlarmRPM1= NULL;
 ui_Settings1ContainerAlarmRPM1= NULL;
 ui_Settings1SwitchAlarmRPMToggle1= NULL;
 ui_Settings1LabelAlarmRPMTitle1= NULL;
 ui_Settings1TextareaAlarmRPMValueTextArea1= NULL;
+ui_Settings1PanelPanel4= NULL;
 ui_Settings1DropdownAlarmRPMDropdown1= NULL;
+uic_Settings1DropdownAlarmRPMColorDropdown1= NULL;
+ui_Settings1DropdownAlarmRPMColorDropdown1= NULL;
 ui_Settings1ContainerAlarmRPM2= NULL;
 ui_Settings1SwitchAlarmRPMToggle2= NULL;
 ui_Settings1LabelAlarmRPMTitle2= NULL;
 ui_Settings1TextareaAlarmRPMValueTextArea2= NULL;
 ui_Settings1DropdownAlarmRPMDropdown2= NULL;
+ui_Settings1DropdownAlarmRPMColorDropdown2= NULL;
 ui_Settings1TabpageRelays_and_Limits= NULL;
 uic_Settings1PanelConnectionRLM= NULL;
 ui_Settings1PanelConnectionRLM= NULL;
@@ -3143,6 +3916,31 @@ ui_Settings1SwitchSwitch4= NULL;
 ui_Settings1LabelLabel3= NULL;
 ui_Settings1PanelPanel1= NULL;
 ui_Settings1TabpageJudge= NULL;
+uic_Settings1PanelSettingJudgeMCUPanel= NULL;
+ui_Settings1PanelSettingJudgeMCUPanel= NULL;
+uic_Settings1LabelJudgeSettingTips= NULL;
+ui_Settings1LabelJudgeSettingTips= NULL;
+ui_Settings1LabelLabel54= NULL;
+ui_Settings1LabelLabel53= NULL;
+uic_Settings1PanelSettingJudgeJudgePanel= NULL;
+ui_Settings1PanelSettingJudgeJudgePanel= NULL;
+ui_Settings1LabelJudgeSettingTips1= NULL;
+ui_Settings1ContainerContainer10= NULL;
+ui_Settings1ContainerJudgeUnitNumberContainer= NULL;
+uic_Settings1LabelTargetMCUID= NULL;
+ui_Settings1LabelTargetMCUID= NULL;
+uic_Settings1TextareaTargetMCUID1= NULL;
+ui_Settings1TextareaTargetMCUID1= NULL;
+ui_Settings1ButtonButton8= NULL;
+ui_Settings1LabelLabel50= NULL;
+uic_Settings1ButtonHelpJudgeTargetMCU= NULL;
+ui_Settings1ButtonHelpJudgeTargetMCU= NULL;
+ui_Settings1LabelLabel49= NULL;
+uic_Settings1LabelHelperTextTargetMCU= NULL;
+ui_Settings1LabelHelperTextTargetMCU= NULL;
+ui_Settings1ContainerContainer18= NULL;
+ui_Settings1LabelLabel51= NULL;
+ui_Settings1LabelLabel52= NULL;
 ui_Settings1TabpageSafety_and_Displays= NULL;
 ui_Settings1PanelConnectionRemotes= NULL;
 ui_Settings1ContainerContainer3= NULL;
@@ -3217,5 +4015,7 @@ ui_Settings1LabelButtonReturnHome= NULL;
 ui_Settings1ContainerContainer11= NULL;
 uic_Settings1KeyboardSettingsNumberKeyboard= NULL;
 ui_Settings1KeyboardSettingsNumberKeyboard= NULL;
+uic_Settings1KeyboardSettingsHexKeyboard= NULL;
+ui_Settings1KeyboardSettingsHexKeyboard= NULL;
 
 }

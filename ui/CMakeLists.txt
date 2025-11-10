@@ -21,6 +21,7 @@ SET(SOURCES screens/ui_ScreenMain.c
     fonts/ui_font_HH40.c
     fonts/ui_font_HH8.c
     fonts/ui_font_INFORME_24.c
-    fonts/ui_font_INFORME_40.c)
+    fonts/ui_font_INFORME_40.c
+    fonts/ui_font_ShapesDeja.c)
 
 add_library(ui ${SOURCES})

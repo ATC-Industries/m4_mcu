@@ -1,4 +1,5 @@
 #include "M4CommsHelpers.h"
+#include "AlarmManager.h"
 
 #include "../ui/ui.h"
 
@@ -44,9 +45,10 @@ void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
   Serial.print("Received message: ");
   Serial.println(message.payload);
 
-  action_type action = doc["action"];
-  const float value = doc["value"];
-  const char *unit = doc["unit"];
+  action_type action = doc["action"].is<int>() ? static_cast<action_type>(doc["action"].as<int>()) : NO_ACTION;
+  float value = doc["value"].is<float>() ? doc["value"].as<float>() : 0.0f;
+  const char* unit = doc["unit"].is<const char*>() ? doc["unit"].as<const char*>() : "";
+
   switch (action) {
     case PAIRING_RESPONSE:
       processPairingResponse(senderAddress, rssi);
@@ -56,20 +58,49 @@ void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
       break;
     case SEND_RPM:
       processSendRPM(value, rssi);
-      if (doc.containsKey("version")) {
-        JsonObject versionObj = doc["version"].as<JsonObject>();
-        updateVersion(pairedTractorVersion, versionObj["major"].as<int>(),
-                      versionObj["minor"].as<int>(),
-                      versionObj["patch"].as<int>());
+      if (doc["version"].is<JsonObject>()) {
+        JsonObjectConst versionObj = doc["version"].as<JsonObjectConst>();
+        updateVersion(
+          pairedTractorVersion,
+          versionObj["major"].is<int>() ? versionObj["major"].as<int>() : 0,
+          versionObj["minor"].is<int>() ? versionObj["minor"].as<int>() : 0,
+          versionObj["patch"].is<int>() ? versionObj["patch"].as<int>() : 0
+        );
       }
       break;
     case REMOTE_ACK:
       processRemoteAck(rssi);
-      if (doc.containsKey("version")) {
-        JsonObject versionObj = doc["version"].as<JsonObject>();
-        updateVersion(pairedRemoteVersion, versionObj["major"].as<int>(),
-                      versionObj["minor"].as<int>(),
-                      versionObj["patch"].as<int>());
+      if (doc["version"].is<JsonObject>()) {
+        JsonObjectConst versionObj = doc["version"].as<JsonObjectConst>();
+        updateVersion(
+          pairedRemoteVersion,
+          versionObj["major"].is<int>() ? versionObj["major"].as<int>() : 0,
+          versionObj["minor"].is<int>() ? versionObj["minor"].as<int>() : 0,
+          versionObj["patch"].is<int>() ? versionObj["patch"].as<int>() : 0
+        );
+      }
+      break;
+    case SEND_REMOTE_VALUE:
+      // This could be two things. but likly if the MCU is getting this message it is on broadcast.  
+      // Need to check if this MCU is in judge stand mode. If not the ignore.
+      // Need to check if Host MCU ID matches the value in message under "M4ID"
+      // If it is then that means we need to update all the state with the things we did in the broadcastJudgeStandState() function.
+      if( StateManager::getJudgeMode() ) {
+        int m4id = doc["M4ID"].is<int>() ? doc["M4ID"].as<int>() : -1;
+        if( m4id == StateManager::getHostM4ID() ) {
+          // Update all the state values.
+          bool pulling = doc["isPulling"].is<bool>() ? doc["isPulling"].as<bool>() : false;
+          //StateManager::setIsInPull(pulling);
+
+          float distance = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
+          StateManager::setDistance(distance);
+
+          float speed = doc["speed"].is<float>() ? doc["speed"].as<float>() : 0.0f;
+          StateManager::setSpeed(speed);
+
+          float rpm = doc["rpm"].is<float>() ? doc["rpm"].as<float>() : 0.0f;
+          StateManager::setRPM(rpm);
+        }
       }
       break;
     default:
@@ -385,6 +416,70 @@ void signalStrengthHelper() {
   }
 }
 
+void broadcastJudgeStandState() {
+  static constexpr uint8_t kBroadcastAddress[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                                                   0xFF};
+  static constexpr const char *kChannelNames[kChannels] = {"distance", "speed",
+                                                           "rpm"};
+
+  const auto &systemState = StateManager::state();
+  const auto &preferences = StateManager::prefs();
+
+  StaticJsonDocument<512> doc;
+  String payload;
+  payload.reserve(256);
+
+  char macStr[18] = {0};
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           deviceSelf.getMacAddress()[0], deviceSelf.getMacAddress()[1],
+           deviceSelf.getMacAddress()[2], deviceSelf.getMacAddress()[3],
+           deviceSelf.getMacAddress()[4], deviceSelf.getMacAddress()[5]);
+
+  doc["macAddress"] = macStr;
+  doc["name"] = deviceSelf.getName();
+  doc["type"] = deviceSelf.getType();
+  doc["action"] = SEND_REMOTE_VALUE;
+  doc["currentMph"] = systemState.speedInMPH;
+  doc["currentRpm"] = systemState.rpm;
+  doc["maxRpm"] = systemState.maxRpm;
+  doc["m4Id"] = preferences.M4IDNumber;
+
+  JsonArray alarmsArray = doc.createNestedArray("alarms");
+  for (uint8_t channel = 0; channel < kChannels; ++channel) {
+    for (uint8_t slot = 0; slot < kSlots; ++slot) {
+      const AlarmConfig config = AlarmManager::getConfigActive(
+          static_cast<AlarmChannel>(channel),
+          static_cast<AlarmSlot>(slot));
+      if (!config.enabled || !config.tripped) {
+        continue;
+      }
+      JsonObject alarm = alarmsArray.createNestedObject();
+      alarm["channel"] = kChannelNames[channel];
+      alarm["slot"] = slot + 1;
+      alarm["tripPoint"] = config.tripPoint;
+      alarm["style"] = static_cast<int>(config.style);
+      alarm["color"] = static_cast<int>(config.color);
+    }
+  }
+
+  serializeJson(doc, payload);
+
+  esp_now_peer_info_t peerInfo;
+  memset(&peerInfo, 0, sizeof(peerInfo));
+  memcpy(peerInfo.peer_addr, kBroadcastAddress, sizeof(kBroadcastAddress));
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+
+  esp_now_del_peer(kBroadcastAddress);
+  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+    Serial.println("Failed to add judge broadcast peer");
+    return;
+  }
+
+  sendMessage(kBroadcastAddress, BROADCAST, SEND_REMOTE_VALUE, payload,
+              HIGH_PRIORITY);
+}
+
 void updateRemoteDisplay(float value) {
   // Create a JSON object and populate it
   JsonDocument doc;
@@ -527,10 +622,11 @@ bool isAddressEmpty(const uint8_t *address, size_t size) {
 
 void pairingStateSwitcher() {
   if (isPairing) {
-    int speedupPairingFactor = 1;
+    float speedupPairingFactor = 1.0f;
     if (!isAddressEmpty(pairedTractorAddress, 6)) {
-      speedupPairingFactor = .5;
+      speedupPairingFactor = 0.5f;
     }
+
     if (millis() - pairingStartedMillis >=
         (pairingDelay * speedupPairingFactor)) {
       isWaitingForPairingDelay = false;  // End the waiting period
@@ -586,4 +682,3 @@ void initializeM4Communications() {
   memcpy(pairedRemoteDisplayAddress, remoteAddr, 6);
   pairingDelay = StateManager::getPairingDelay();
 }
-

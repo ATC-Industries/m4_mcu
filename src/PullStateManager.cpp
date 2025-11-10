@@ -3,6 +3,7 @@
 #include "../ui/ui.h"
 #include "SpeedModule.h"
 #include "StateManager.h"
+#include "AlarmManager.h"
 
 static unsigned long lastDebugPrint = 0;
 static const unsigned long debugInterval = 2000;  // Every 2 seconds
@@ -25,6 +26,8 @@ void PullStateManager::enterState(PullState newState) {
 void PullStateManager::init() {
   enterState(PullState::READY);  // Always start in READY
 }
+// TODO: Somewhere here I need to Call AlarmManager::evaluateTick() while PullState is STAGED or PULLING.
+
 
 void PullStateManager::update() {
   PullState current = StateManager::getPullState();
@@ -74,7 +77,7 @@ void PullStateManager::update() {
         break;
     }
 
-    Serial.printf("[PullState] Current state: %s\n", stateStr);
+    //Serial.printf("[PullState] Current state: %s\n", stateStr);
     updateUIForState(current);
   }
 }

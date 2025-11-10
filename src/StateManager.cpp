@@ -1,9 +1,7 @@
 #include "StateManager.h"
 #include "peripherals/PeripheralsInit.h"
 
-
 #include <Preferences.h>
-// #include <cstring>
 
 static ::Preferences storage;
 
@@ -43,6 +41,14 @@ float StateManager::getMaxDistance() {
       return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet : systemState.maxDistanceInFeet *
   0.3048f;
 }
+
+int StateManager::getM4ID() {
+  return preferences.M4IDNumber;
+} 
+
+int StateManager::getHostM4ID() {
+  return preferences.HostM4IDNumber;
+} 
 
 // ----- Setters -----
 
@@ -103,7 +109,7 @@ void StateManager::setScreenRotation(bool rotation180) {
   Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
 }
 
-void StateManager::setM4UnitID(int unitId, bool persist) {
+void StateManager::setM4ID(int unitId, bool persist) {
   int clamped = unitId;
   if (clamped < 0) {
     clamped = 0;
@@ -111,14 +117,52 @@ void StateManager::setM4UnitID(int unitId, bool persist) {
     clamped = 9999;
   }
 
-  bool changed = preferences.M4UnitID != clamped;
+  bool changed = preferences.M4IDNumber != clamped;
   if (changed) {
-    preferences.M4UnitID = clamped;
+    preferences.M4IDNumber = clamped;
   }
 
   if (persist && changed) {
     savePreferences();
   }
+}
+
+void StateManager::setHostM4ID(int unitId, bool persist) {
+  int clamped = unitId;
+  if (clamped < 0) {
+    clamped = 0;
+  } else if (clamped > 9999) {
+    clamped = 9999;
+  }
+
+  bool changed = preferences.HostM4IDNumber != clamped;
+  if (changed) {
+    preferences.HostM4IDNumber = clamped;
+  }
+
+  if (persist && changed) {
+    savePreferences();
+  }
+}
+
+void StateManager::setJudgeMode(bool isJudgeMode, bool persist) {
+  bool changed = preferences.isJudgeMode != isJudgeMode;
+  if (changed) {
+    preferences.isJudgeMode = isJudgeMode;
+    systemState.judgeMode = isJudgeMode;  // sync runtime state
+  }
+
+  if (persist && changed) {
+    savePreferences();
+  }
+}
+
+bool StateManager::getJudgeMode() {
+  return systemState.judgeMode;
+}
+
+bool StateManager::getJudgeModePreference() {
+  return preferences.isJudgeMode;
 }
 
 void StateManager::setBenchmarkMode(bool on) {
@@ -166,6 +210,10 @@ bool StateManager::getScreenRotation() {
 }
 
 // M4 Communication methods
+bool StateManager::getIsAutoConnectTractor() {
+  return preferences.isAutoConnectTractor;
+}
+
 const uint8_t* StateManager::getPairedTractorAddress() {
   return preferences.pairedTractorAddress;
 }
@@ -297,7 +345,9 @@ void StateManager::loadPreferences() {
   preferences.driverName = storage.getString("driverName", "Driver");
   preferences.driverNumber = storage.getInt("driverNumber", 1);
 
-  preferences.M4UnitID = storage.getInt("M4UnitID", 0);
+  preferences.M4IDNumber = storage.getInt("M4ID", 0);
+  preferences.HostM4IDNumber = storage.getInt("HostM4ID", 0);
+  preferences.isJudgeMode = storage.getBool("isJudgeMode", false);
 
   preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
   preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);
@@ -321,6 +371,8 @@ void StateManager::loadPreferences() {
   preferences.tachEnabled = storage.getBool("tachEnabled", true);
   preferences.limitSwitchesEnabled = storage.getBool("limitsEnabled", true);
   preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
+
+  preferences.isAutoConnectTractor = storage.getBool("autoConnectTractor", true);
 
   preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
 
@@ -371,7 +423,9 @@ void StateManager::savePreferences() {
   storage.putInt("classWeight", preferences.pullingClassWeight);
   storage.putString("driverName", preferences.driverName);
   storage.putInt("driverNumber", preferences.driverNumber);
-  storage.putInt("M4UnitID", preferences.M4UnitID);
+  storage.putInt("M4ID", preferences.M4IDNumber);
+  storage.putInt("HostM4ID", preferences.HostM4IDNumber);
+  storage.putBool("isJudgeMode", preferences.isJudgeMode);
 
   storage.putBool("ls1_enabled", preferences.limitSwitchEnabled[0]);
   storage.putBool("ls2_enabled", preferences.limitSwitchEnabled[1]);
@@ -397,6 +451,7 @@ void StateManager::savePreferences() {
   storage.putInt("speedCal", preferences.speedCalibrationPulses);
 
   // Save M4 communication settings
+  storage.putBool("autoConnectTractor", preferences.isAutoConnectTractor);
   storage.putBytes("tractorAddr", preferences.pairedTractorAddress, 6);
   storage.putBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
   storage.putULong("pairingDelay", preferences.pairingDelay);
@@ -414,6 +469,5 @@ void StateManager::savePreferences() {
     storage.putFloat((keyPrefix + "rpm").c_str(), preferences.pullHistory[i].maxRPM);
     storage.putULong((keyPrefix + "time").c_str(), preferences.pullHistory[i].timestamp);
   }
-
   storage.end();
 }

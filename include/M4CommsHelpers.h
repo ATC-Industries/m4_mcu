@@ -49,6 +49,7 @@ void updateDisplayWithMAC(uint8_t *macAddress, lv_obj_t *btn, lv_obj_t *label);
 void isRemoteDisplayConnectedHelper();
 void updateRemoteDisplay(float value);
 void updateRemoteDisplay(String value);
+void broadcastJudgeStandState();
 
 // Test pattern update handling
 void handleTestPattern(bool &SendTestPatternToSignFlag);

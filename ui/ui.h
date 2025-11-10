@@ -45,6 +45,7 @@ LV_FONT_DECLARE( ui_font_HH40);
 LV_FONT_DECLARE( ui_font_HH8);
 LV_FONT_DECLARE( ui_font_INFORME_24);
 LV_FONT_DECLARE( ui_font_INFORME_40);
+LV_FONT_DECLARE( ui_font_ShapesDeja);
 
 // UI INIT
 void ui_init(void);

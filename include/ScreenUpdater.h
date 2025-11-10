@@ -7,5 +7,7 @@
 #define COLOR_INDIC_YELLOW lv_color_make(0xFF, 0xE0, 0x00)
 
 void updateMainScreen();  // Call this periodically to update UI elements based on state
+void updateSettingsScreen();
+bool isAlarmUIRefreshing();
 
 #endif  // SCREEN_UPDATER_H
