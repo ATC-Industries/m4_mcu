@@ -91,6 +91,11 @@ struct SystemState {
   PullState currentPullState = PullState::READY;
 
   bool judgeMode = false;
+
+  int pairedTractorRSSI = INT_MIN;  // Start with the lowest possible value
+  uint8_t pairedTractorAddress[6] = {
+    0};                  // To store the address of the paired tractor
+  bool isPairing = false;  // Flag to control the pairing process
 };
 
 //

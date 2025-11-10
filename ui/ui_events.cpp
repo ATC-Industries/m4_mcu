@@ -756,7 +756,10 @@ void SettingsSwitchRotateScreen(lv_event_t * e)
 
 void SettingsSwitchAutoConnectTach(lv_event_t * e)
 {
-	// Your code here
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool autoConnect = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  StateManager::setIsAutoConnectTractor(autoConnect);
 }
 
 void enterPairingModeBtnClicked(lv_event_t * e)

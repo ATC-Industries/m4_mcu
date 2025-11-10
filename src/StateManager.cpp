@@ -214,6 +214,13 @@ bool StateManager::getIsAutoConnectTractor() {
   return preferences.isAutoConnectTractor;
 }
 
+void StateManager::setIsAutoConnectTractor(bool autoConnect) {
+  preferences.isAutoConnectTractor = autoConnect;
+  savePreferences();
+
+  Serial.printf("[StateManager] Auto-connect to Tach Tractor set to %s\n", autoConnect ? "ENABLED" : "DISABLED");
+}
+
 const uint8_t* StateManager::getPairedTractorAddress() {
   return preferences.pairedTractorAddress;
 }
@@ -372,7 +379,7 @@ void StateManager::loadPreferences() {
   preferences.limitSwitchesEnabled = storage.getBool("limitsEnabled", true);
   preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
 
-  preferences.isAutoConnectTractor = storage.getBool("autoConnectTractor", true);
+  preferences.isAutoConnectTractor = storage.getBool("autoConnTrac", true);
 
   preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
 
@@ -451,7 +458,7 @@ void StateManager::savePreferences() {
   storage.putInt("speedCal", preferences.speedCalibrationPulses);
 
   // Save M4 communication settings
-  storage.putBool("autoConnectTractor", preferences.isAutoConnectTractor);
+  storage.putBool("autoConnTrac", preferences.isAutoConnectTractor);
   storage.putBytes("tractorAddr", preferences.pairedTractorAddress, 6);
   storage.putBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
   storage.putULong("pairingDelay", preferences.pairingDelay);

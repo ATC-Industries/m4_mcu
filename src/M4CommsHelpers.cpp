@@ -155,40 +155,6 @@ void processPairingRemoteResponse(uint8_t *senderAddress) {
   formatMACAddress(macStr, senderAddress);
   Serial.print("Found a Remote Display (Sender Address): ");
   Serial.println(macStr);
-  
-  // This code was brought over from the Tach Monitor UI. TODO: Update this
-  // for (int i = 0; i < MAX_PAIRABLE_REMOTE_DISPLAYS; i++) {
-  //   if (pairableDevicesMAC[i][0] == 0) {  // Assuming 0 indicates an empty slot
-  //     memcpy(pairableDevicesMAC[i], senderAddress, 6);
-
-  //     lv_obj_t *btn = NULL;
-  //     lv_obj_t *label = NULL;
-  //     switch (i) {
-  //       case 0:
-  //         btn = ui_AvailableSignBtn1;
-  //         label = ui_AvailableSignBtnLabel1;
-  //         break;
-  //       case 1:
-  //         btn = ui_AvailableSignBtn2;
-  //         label = ui_AvailableSignBtnLabel2;
-  //         break;
-  //       case 2:
-  //         btn = ui_AvailableSignBtn3;
-  //         label = ui_AvailableSignBtnLabel3;
-  //         break;
-  //       case 3:
-  //         btn = ui_AvailableSignBtn4;
-  //         label = ui_AvailableSignBtnLabel4;
-  //         break;
-  //       default:
-  //         Serial.println("Error: No available slot for new remote display.");
-  //         return;
-  //     }
-
-  //     updateDisplayWithMAC(senderAddress, btn, label);
-  //     break;  // Exit loop after adding the MAC address and updating the display
-  //   }
-  // }
 }
 
 void processSendRPM(const float value, int rssi) {
@@ -309,56 +275,6 @@ void changeRSSISymbol(signed int rssi, wirelessSymbols symbol) {
   // }
 }
 
-void isRemoteDisplayConnectedHelper() {
-  if (millis() - isRemoteDisplayConnectedMillis >=
-      CHECK_REMOTE_CONNECTION_RATE) {
-    isRemoteDisplayConnected = false;
-  }
-  if (isRemoteDisplayConnected) {
-    // TODO update Display stuff from tach
-    // showUIObject(ui_isRemoteDisplayConnectedStatusIcon, true);
-    // // Change text of ui_pairedStatusLabel to "PAIRED"
-    // lv_label_set_text(ui_pairedStatusLabel, LV_SYMBOL_OK " PAIRED");
-    // // clear object state for ui_testPatternBtn to undisable button
-    // _ui_state_modify(ui_testPatternBtn, LV_STATE_DISABLED,
-    //                  _UI_MODIFY_FLAG_REMOVE);
-    // // clear object state for ui_signalTestBtn to undisable button
-    // _ui_state_modify(ui_signalTestBtn, LV_STATE_DISABLED,
-    //                  _UI_MODIFY_FLAG_REMOVE);
-    // // Show Wireless signal strength
-    // showUIObject(ui_RemoteRSSIStrengthContainer, true);
-    // // update D35 with the signal strength
-    // // change ui_WirelessSymbol to a different icon
-    // changeRSSISymbol(pairedRemoteRSSI, REMOTE_SETTINGS);
-
-    // // update label ui_RemoteRSSIScaleLabel with the signal strength scale
-    // // cast to a string
-    // lv_label_set_text(
-    //     ui_RemoteRSSIScaleLabel,
-    //     String(convertRssiToSignalStrength(pairedRemoteRSSI)).c_str());
-    // // update label ui_RemoteRSSITextLabel with the signal strength text cast
-    // // to a string
-    // lv_label_set_text(ui_RemoteRSSITextLabel,
-    //                   convertRssiToSignalQuality(pairedRemoteRSSI).c_str());
-    // update label ui_RemoteRSSILabel with signal strenght as "RSSI: -30dBm"
-    char buff[25];
-    snprintf(buff, sizeof(buff), "RSSI: %d dBm", pairedRemoteRSSI);
-    // lv_label_set_text(ui_RemoteRSSILabel, buff);
-  } else {
-        // TODO update Display stuff from tach
-
-    // showUIObject(ui_isRemoteDisplayConnectedStatusIcon, false);
-    // // Change text of ui_pairedStatusLabel to "NOT PAIRED"
-    // lv_label_set_text(ui_pairedStatusLabel, LV_SYMBOL_CLOSE " NOT PAIRED");
-    // // add object state for ui_testPatternBtn to disable button
-    // lv_obj_add_state(ui_testPatternBtn, LV_STATE_DISABLED);
-    // // add object state for ui_signalTestBtn to disable button
-    // lv_obj_add_state(ui_signalTestBtn, LV_STATE_DISABLED);
-    // // Hide Wireless signal strength
-    // showUIObject(ui_RemoteRSSIStrengthContainer, false);
-  }
-}
-
 void signalStrengthHelper() {
   // if tractor is connected then show ui_RunTractorContainer and hide
   // ui_NoTractorConnectedLabelContainer
@@ -390,30 +306,7 @@ void signalStrengthHelper() {
   }
   // if isRemoteDisplayConnected then show ui_RemoteContainer and hide
   // ui_NoRemoteConnectedLabelContainer
-  if (isRemoteDisplayConnected) {
-    // showUIObject(ui_RunRemoteContainer, true);
-    // showUIObject(ui_NoRemoteConnectedLabelContainer, false);
-    // // update D35 with the signal strength
-    // // change ui_WirelessSymbol to a different icon
-    // changeRSSISymbol(pairedRemoteRSSI, REMOTE_RUN);
-
-    // // update label ui_RemoteRSSIScaleLabel with the signal strength scale
-    // // cast to a string
-    // lv_label_set_text(
-    //     ui_RunRemoteRSSIScaleLabel,
-    //     String(convertRssiToSignalStrength(pairedRemoteRSSI)).c_str());
-    // // update label ui_RemoteRSSITextLabel with the signal strength text cast
-    // // to a string
-    // lv_label_set_text(ui_RunRemoteRSSITextLabel,
-    //                   convertRssiToSignalQuality(pairedRemoteRSSI).c_str());
-    // // update label ui_RemoteRSSILabel with signal strenght as "RSSI: -30dBm"
-    char buff[25];
-    snprintf(buff, sizeof(buff), "RSSI: %d dBm", pairedRemoteRSSI);
-    // lv_label_set_text(ui_RunRemoteRSSILabel, buff);
-  } else {
-    // showUIObject(ui_RunRemoteContainer, false);
-    // showUIObject(ui_NoRemoteConnectedLabelContainer, true);
-  }
+  
 }
 
 void broadcastJudgeStandState() {

@@ -82,7 +82,51 @@ void PullStateManager::update() {
   }
 }
 
-void PullStateManager::handleStagePressed() { enterState(PullState::STAGED); }
+void PullStateManager::handleStagePressed() { 
+  enterState(PullState::STAGED); 
+  // // TODO: all this is copid from the D35. I need figur it all out. commenting for now.
+  // resetBtnCB(e); //TODO change to something that will reset the tach connection indicator
+  // Serial.println("Starting pairing...");  // Log start of pairing process
+
+  // // Reset the RSSI (Received Signal Strength Indicator) value to the lowest
+  // // possible to ensure the next value received is higher.
+  // pairedTractorRSSI = INT_MIN;
+
+  // // Clear the previously paired tractor's address to start fresh.
+  // memset(pairedTractorAddress, 0, sizeof(pairedTractorAddress));
+
+  // // Flag to indicate that the pairing process has started.
+  // isPairing = true;
+  // pairingStartedMillis = millis();
+  // isWaitingForPairingDelay = true;
+
+  // // Create a JSON document for configuring the pairing message.
+  // // This document is used to specify the action and the type of device we want
+  // // to pair with.
+  // JsonDocument doc;
+  // doc["action"] =
+  //     SEND_PROXIMITY;  // Action to request proximity information from devices.
+  // doc["reqDevice"] = M4_TACH_SENSOR;  // Specify that we're interested in
+  //                                     // pairing with a tach sensor.
+
+  // // Serialize the JSON document to a string payload to be sent over the
+  // // network.
+  // String payload;
+
+  // doc.shrinkToFit();  // optional
+
+  // serializeJson(doc, payload);  // Convert the JSON document into a string.
+
+  // // Define a broadcast address to send the pairing message to all devices.
+  // uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+  // // Send the pairing message as a broadcast with high priority.
+  // sendMessage(broadcastAddress, BROADCAST, SEND_PROXIMITY, payload,
+  //             HIGH_PRIORITY);
+
+  // // Log that the pairing button was pressed and the message has been sent.
+  // Serial.println("Pair Tach button pressed");
+}
 
 void PullStateManager::handleCancelPressed() { enterState(PullState::READY); }
 
