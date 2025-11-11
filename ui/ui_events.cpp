@@ -14,6 +14,7 @@
 #include "StateManager.h"
 #include "AlarmManager.h"
 #include "ScreenUpdater.h"
+#include "TachClient.h"
 #include "custom_ui/custom_keyboard.h"
 #include "display/backlight.h"
 #include "touch/touch.h"
@@ -193,7 +194,7 @@ void SettingsScreenLoaded(lv_event_t *e) {
   refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
 
-void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
+void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(e); }
 
 void STAGEDCancelBtnPressed(lv_event_t *e) { PullStateManager::handleCancelPressed(); }
 
@@ -762,9 +763,10 @@ void SettingsSwitchAutoConnectTach(lv_event_t * e)
   StateManager::setIsAutoConnectTractor(autoConnect);
 }
 
+// This is for pairing with Remote displays NOT for Tach sensor
 void enterPairingModeBtnClicked(lv_event_t * e)
 {
-	// Your code here
+
 }
 
 // Distance #1
