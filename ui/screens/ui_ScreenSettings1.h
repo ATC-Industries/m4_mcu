@@ -232,7 +232,6 @@ extern lv_obj_t *ui_Settings1SwitchAlarmRPMToggle1;
 extern lv_obj_t *ui_Settings1LabelAlarmRPMTitle1;
 extern void ui_event_Settings1TextareaAlarmRPMValueTextArea1( lv_event_t * e);
 extern lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea1;
-extern lv_obj_t *ui_Settings1PanelPanel4;
 extern void ui_event_Settings1DropdownAlarmRPMDropdown1( lv_event_t * e);
 extern lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown1;
 extern void ui_event_Settings1DropdownAlarmRPMColorDropdown1( lv_event_t * e);

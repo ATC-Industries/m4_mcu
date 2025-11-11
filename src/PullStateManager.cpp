@@ -13,8 +13,9 @@ static PullState s_lastState = PullState::READY;
 static PullState s_lastNotifiedState = PullState::READY;
 
 void PullStateManager::enterState(PullState newState) {
-  PullState old = StateManager::getPullState();
-  LOGI("[PSM] enterState old=%d new=%d", (int)old, (int)newState);
+  const char* oldState = PullStateManager::stateToString(StateManager::getPullState());
+  const char* newStateStr = PullStateManager::stateToString(newState);
+  LOGI("[PSM] Transitioning from %s to %s", oldState, newStateStr);
 
   StateManager::setPullState(newState);
   updateUIForState(newState);
@@ -35,7 +36,10 @@ void PullStateManager::update() {
   PullState current = StateManager::getPullState();
 
   static unsigned long lastStageCheckMs = 0;
-  if (current == PullState::STAGED) {
+  if (current == PullState::READY) {
+    AlarmManager::resetForStateEntry(); // Reset all alarms
+  }
+  else if (current == PullState::STAGED) {
     float s = StateManager::getSpeed();
     detectPullStart(s);
     unsigned long now = millis();
@@ -55,30 +59,10 @@ void PullStateManager::update() {
     lastDebugPrint = now;
 
     PullState current = StateManager::getPullState();
-    const char* stateStr = "";
+    const char* stateStr = PullStateManager::stateToString(current);
+    //LOGD("[PSM] Heartbeat: current state=%s", stateStr);
 
-    switch (current) {
-      case PullState::READY:
-        stateStr = "READY";
-        break;
-      case PullState::STAGED:
-        stateStr = "STAGED";
-        break;
-      case PullState::PULLING:
-        stateStr = "PULLING";
-        break;
-      case PullState::PULLEND:
-        stateStr = "PULLEND";
-        break;
-      case PullState::EMERGENCYSTOP:
-        stateStr = "EMERGENCYSTOP";
-        break;
-      default:
-        stateStr = "UNKNOWN";
-        break;
-    }
-
-    LOGI("[PSM] heartbeat state=%d", (int)current);
+    //LOGI("[PSM] heartbeat state=%d", (int)current);
     updateUIForState(current);
   }
 }
@@ -127,7 +111,10 @@ void PullStateManager::detectPullStart(float currentSpeed) {
   }
 }
 
-void PullStateManager::resetMaxValues() { StateManager::resetAllMaxValues(); }
+void PullStateManager::resetMaxValues() { 
+  StateManager::resetAllMaxValues(); 
+  AlarmManager::resetForStateEntry(); // Reset all alarms
+}
 
 void PullStateManager::resetCurrentValues() {
   StateManager::setRPM(0);
@@ -168,5 +155,22 @@ void PullStateManager::triggerRelaysForState(PullState state) {
     if (StateManager::prefs().relayEnabled[i]) {
       StateManager::setRelayState(i, (state == PullState::PULLING ? RelayState::ENGAGED : RelayState::DISENGAGED));
     }
+  }
+}
+
+const char* PullStateManager::stateToString(PullState state) {
+  switch (state) {
+    case PullState::READY:
+      return "READY";
+    case PullState::STAGED:
+      return "STAGED";
+    case PullState::PULLING:
+      return "PULLING";
+    case PullState::PULLEND:
+      return "PULLEND";
+    case PullState::EMERGENCYSTOP:
+      return "EMERGENCYSTOP";
+    default:
+      return "UNKNOWN";
   }
 }

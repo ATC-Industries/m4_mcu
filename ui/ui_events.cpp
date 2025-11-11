@@ -614,6 +614,7 @@ void PullHistoryScreenLoaded(lv_event_t * e)
     lv_obj_center(noDataLabel);
     lv_obj_set_style_text_align(noDataLabel, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(noDataLabel, lv_color_hex(0x808080), 0);
+    lv_obj_set_style_text_font(noDataLabel, &ui_font_BIO_SEMIBOLD_6, 0);
     return;
   }
   

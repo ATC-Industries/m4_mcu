@@ -66,7 +66,7 @@ void Tach::updatePairing() {
         doc.shrinkToFit();
         serializeJson(doc, payload);
 
-        LOGD("[Tach] Pairing broadcast #%d: %s", state.pairingBroadcastCount, payload.c_str());
+        //LOGD("[Tach] Pairing broadcast #%d: %s", state.pairingBroadcastCount, payload.c_str());
 
         uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
         sendMessage(broadcastAddress, BROADCAST, SEND_PROXIMITY, payload, HIGH_PRIORITY);
@@ -86,7 +86,7 @@ void Tach::requestRPM() {
     doc.shrinkToFit();
     serializeJson(doc, payload);
 
-    LOGD("[Tach] Requesting RPM from locked TSS");
+    //LOGD("[Tach] Requesting RPM from locked TSS");
 
     // Send to the paired TSS address
     sendMessage(state.pairedTSSAddress, REQUEST, SEND_RPM, "{}", HIGH_PRIORITY);

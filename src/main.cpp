@@ -108,6 +108,9 @@ void loop() {
   SpeedModule::tick();
   Tach::update();
 
+  AlarmManager::evaluateTick();
+
+
   now = millis();
   if (isMainScreenReady() && now - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL_MS) {
     lastScreenUpdate = now;

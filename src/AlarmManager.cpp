@@ -1,6 +1,8 @@
 #include "AlarmManager.h"
 #include "../ui/ui.h"
 
+#include "Logging.h"
+
 
 // Extern UI objects you already have from Squareline
 extern lv_obj_t* uic_Settings1DropdownAlarmPresetDropdown;
@@ -164,13 +166,13 @@ void AlarmManager::setEnabled(uint8_t preset, AlarmChannel ch, AlarmSlot sl, boo
 }
 
 void AlarmManager::setTripPoint(uint8_t preset, AlarmChannel ch, AlarmSlot sl, float baseValue) {
-  Serial.println("[AlarmManager] setTripPoint called");
+  LOGI("[AlarmManager] setTripPoint called");
   if (preset >= kPresetCount) preset = 0;
   float v = baseValue;
   clampAndValidate(ch, v);
   presets_[preset].alarms[(int)ch][(int)sl].tripPoint = v;
   savePrefs();
-  Serial.printf("[AlarmManager] Trip point set to %.2f\n", v);
+  LOGI("[AlarmManager] Trip point set to %.2f for preset %d", v, preset);
 }
 
 void AlarmManager::setStyle(uint8_t preset, AlarmChannel ch, AlarmSlot sl, AlarmStyle st) {
@@ -192,19 +194,119 @@ void AlarmManager::setColor(uint8_t preset, AlarmChannel ch, AlarmSlot sl, Alarm
 // Evaluation
 // ----------------------------
 void AlarmManager::evaluateTick() {
-  // TODO: call this during STAGED and PULLING only.
-  // Pull current values from StateManager
-  // float dFt = StateManager::state().distanceInFeet;
-  // float mph = StateManager::state().speedInMPH;
-  // float rpm = StateManager::state().rpm;
-  // For each enabled alarm in active preset:
-  //   apply style logic
-  //   set A.tripped, update A.firedOnce, timestamps
-  //   emit events to horn, relays, UI as needed
-  // TODO: hook horn logic using buzzerSilencedUntilMs_
+  PullState pullState = StateManager::getPullState();
+  
+  // Only evaluate during STAGED and PULLING
+  if (pullState != PullState::STAGED && pullState != PullState::PULLING) {
+    return;
+  }
+  
+  uint32_t now = millis();
+  
+  // Get current values (in base units)
+  float distFt = StateManager::state().distanceInFeet;
+  float speedMph = StateManager::state().speedInMPH;
+  float rpm = StateManager::state().rpm;
+  
+  // Log current values occasionally (every 50 calls to avoid spam)
+  static int logCounter = 0;
+  if (++logCounter >= 500) {
+    LOGD("[AlarmManager] Current values: RPM=%.0f, Speed=%.1f, Dist=%.2f", rpm, speedMph, distFt);
+    logCounter = 0;
+  }
+  
+  AlarmPreset& P = presets_[activePreset_];
+  
+  // Evaluate all alarms
+  for (int c = 0; c < kChannels; ++c) {
+    AlarmChannel ch = static_cast<AlarmChannel>(c);
+    
+    // Get current value for this channel
+    float currentValue = 0.0f;
+    switch (ch) {
+      case AlarmChannel::DISTANCE: currentValue = distFt; break;
+      case AlarmChannel::SPEED:    currentValue = speedMph; break;
+      case AlarmChannel::RPM:      currentValue = rpm; break;
+    }
+    
+    for (int s = 0; s < kSlots; ++s) {
+      AlarmConfig& A = P.alarms[c][s];
+      
+      if (!A.enabled) {
+        A.tripped = false;
+        continue;
+      }
+      
+      // Check if value exceeds trip point
+      bool shouldTrip = (currentValue >= A.tripPoint);
+      
+      // Apply style logic
+      switch (A.style) {
+        case AlarmStyle::SILENT:
+          // No horn, but set tripped state for UI
+          A.tripped = shouldTrip;
+          break;
+          
+        case AlarmStyle::TRIP_ONCE:
+          if (shouldTrip && !A.firedOnce) {
+            A.tripped = true;
+            A.firedOnce = true;
+            A.trippedAtMs = now;
+            LOGI("[AlarmManager] TRIP_ONCE fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+                 (int)ch, s, currentValue, A.tripPoint);
+            triggerHorn(A);
+          } else if (!shouldTrip) {
+            A.tripped = false;
+          }
+          break;
+          
+        case AlarmStyle::HOLD_AUTORESET:
+          if (shouldTrip) {
+            if (!A.tripped) {
+              A.trippedAtMs = now;
+              LOGI("[AlarmManager] HOLD_AUTORESET fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+                   (int)ch, s, currentValue, A.tripPoint);
+              triggerHorn(A);
+            }
+            A.tripped = true;
+          } else {
+            // Auto-reset when value drops below trip point
+            if (A.tripped) {
+              LOGD("[AlarmManager] HOLD_AUTORESET reset: ch=%d slot=%d", (int)ch, s);
+            }
+            A.tripped = false;
+            A.firedOnce = false;
+          }
+          break;
+          
+        case AlarmStyle::HOLD_PERSISTENT:
+          if (shouldTrip && !A.tripped) {
+            A.tripped = true;
+            A.trippedAtMs = now;
+            LOGI("[AlarmManager] HOLD_PERSISTENT fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+                 (int)ch, s, currentValue, A.tripPoint);
+            triggerHorn(A);
+          }
+          // Never auto-reset - stays tripped until manual reset
+          break;
+          
+        case AlarmStyle::AUTO_END_RUN_DQ:
+          if (shouldTrip && !A.tripped) {
+            A.tripped = true;
+            A.trippedAtMs = now;
+            LOGI("[AlarmManager] AUTO_END_RUN_DQ fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+                 (int)ch, s, currentValue, A.tripPoint);
+            triggerHorn(A);
+            // TODO: Call StateManager to end the pull and mark as DQ
+            // StateManager::endPullDQ();
+          }
+          break;
+      }
+    }
+  }
 }
 
-void AlarmManager::resetForStateEntry(StateManager& /*sm*/) {
+void AlarmManager::resetForStateEntry() {
   // TODO: call on STAGED entry
   AlarmPreset& P = presets_[activePreset_];
   for (int c = 0; c < kChannels; ++c) {
@@ -245,10 +347,14 @@ static int getActivePresetFromButtons() {
   return AlarmManager::getActivePreset();
 }
 
-void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField field, lv_event_t* e) {
+void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField field, lv_event_t* e) {  
   const uint8_t preset = (uint8_t)getActivePresetFromButtons();
+  
   const lv_event_code_t code = lv_event_get_code(e);
-  if (isAlarmUIRefreshing()) return;
+  
+  if (isAlarmUIRefreshing()) {
+    return;
+  }
 
   switch (field) {
     case AlarmField::ENABLE:
@@ -257,12 +363,16 @@ void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField f
       if (code != LV_EVENT_VALUE_CHANGED) return;
       break;
     case AlarmField::TRIPPOINT:
-      if (code != LV_EVENT_DEFOCUSED && code != LV_EVENT_READY) return;
+      if (code != LV_EVENT_DEFOCUSED && code != LV_EVENT_READY) {;
+        return;
+      }
       break;
   }
 
   lv_obj_t* target = lv_event_get_target(e);
-  if (!target) return;
+  if (!target) {
+    return;
+  }
 
   switch (field) {
     case AlarmField::ENABLE: {
@@ -271,20 +381,28 @@ void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField f
     } break;
 
     case AlarmField::TRIPPOINT: {
+      LOGI("[AlarmManager] TRIPPOINT case entered");
+      LOGI("[AlarmManager] Preset: %d, Channel: %d, Slot: %d", preset, (int)ch, (int)sl);
+      
       const char* txt = lv_textarea_get_text(target);
-      if (!txt) return;
+      if (!txt) {
+        return;
+      }
+      
       // parse
       char* endp = nullptr;
       float v = strtof(txt, &endp);
       if (endp == txt || isnan(v)) {
-        // TODO: Implement invalid input handling (eg. less than 0, greater than track length for distance, non-numeric)
-        // TODO: show invalid modal
-        // refresh UI to restore old value
+        LOGW("[AlarmManager] Invalid parse, refreshing UI");
         refreshAlarmUIFromPreset(preset);
         return;
       }
+      
+      LOGI("[AlarmManager] Parsed value: %.2f", v);
+      
       // convert UI units to base
       float base = uiToBase(ch, v);
+      
       setTripPoint(preset, ch, sl, base);
       refreshAlarmUIFromPreset(preset);
     } break;
@@ -398,4 +516,43 @@ void AlarmManager::clampAndValidate(AlarmChannel ch, float& v) {
       if (v > 10000.0f) v = 10000.0f;
       break;
   }
+}
+
+void AlarmManager::triggerHorn(const AlarmConfig& A) {
+  uint32_t now = millis();
+  
+  // Check global silence
+  if (now < buzzerSilencedUntilMs_) {
+    LOGD("[AlarmManager] Horn silenced globally until %lu ms", buzzerSilencedUntilMs_);
+    return;
+  }
+  
+  // Check per-alarm silence
+  if (now < A.silencedUntilMs) {
+    LOGD("[AlarmManager] Horn silenced for this alarm until %lu ms", A.silencedUntilMs);
+    return;
+  }
+  
+  // Log which alarm is firing
+  const char* styleName = "UNKNOWN";
+  switch (A.style) {
+    case AlarmStyle::SILENT: styleName = "SILENT"; break;
+    case AlarmStyle::TRIP_ONCE: styleName = "TRIP_ONCE"; break;
+    case AlarmStyle::HOLD_AUTORESET: styleName = "HOLD_AUTORESET"; break;
+    case AlarmStyle::HOLD_PERSISTENT: styleName = "HOLD_PERSISTENT"; break;
+    case AlarmStyle::AUTO_END_RUN_DQ: styleName = "AUTO_END_RUN_DQ"; break;
+  }
+  
+  const char* colorName = "UNKNOWN";
+  switch (A.color) {
+    case AlarmColor::RED: colorName = "RED"; break;
+    case AlarmColor::YELLOW: colorName = "YELLOW"; break;
+    case AlarmColor::GREEN: colorName = "GREEN"; break;
+  }
+  
+  LOGI("[AlarmManager] 🔊 HORN TRIGGERED! TripPoint=%.2f Style=%s Color=%s Enabled=%d", 
+       A.tripPoint, styleName, colorName, A.enabled);
+  
+  // TODO: Trigger actual horn/buzzer hardware
+  // Example: digitalWrite(BUZZER_PIN, HIGH);
 }

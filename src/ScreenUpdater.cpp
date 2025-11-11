@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "../ui/ui.h"
+#include "../ui/ui_themes.h"
 #include "AlarmManager.h"
 #include "Logging.h"
 #include "PullStateManager.h"
@@ -85,7 +86,9 @@ static void applyDistanceAlarmColorToLabel(lv_obj_t* label, AlarmColor color) {
 
 bool isAlarmUIRefreshing() { return alarmUiRefreshing; }
 
-static void setIndicatorColor(lv_obj_t* obj, uint8_t themeID) {
+static void setIndicatorColor(lv_obj_t* obj, uint8_t themeID, uint8_t opacity = 255) {
+  if (!obj) return;
+  
   lv_color_t color = COLOR_INDIC_DISABLED;
 
   switch (themeID) {
@@ -95,15 +98,16 @@ static void setIndicatorColor(lv_obj_t* obj, uint8_t themeID) {
     case UI_THEME_COLOR_INDICRED:
       color = COLOR_INDIC_RED;
       break;
+    case UI_THEME_COLOR_INDICYELLOW:
+      color = COLOR_INDIC_YELLOW;
+      break;
     case UI_THEME_COLOR_INDICDISABLED:
       color = COLOR_INDIC_DISABLED;
-      break;
-    case UI_THEME_COLOR_YELLOW:
-      color = COLOR_INDIC_YELLOW;
       break;
   }
 
   lv_obj_set_style_bg_color(obj, color, 0);
+  lv_obj_set_style_bg_opa(obj, opacity, 0);  // NEW LINE - sets opacity
 }
 
 void SetupJudgeSwitchHitArea() {
@@ -375,33 +379,7 @@ void updateMainScreen() {
     lastDisplayedPresetIdx = presetIdx;
   }
 
-  //
-  // Tach Alarm Indicator
-  //
-  float tach1 = StateManager::prefs().tachAlarm1;
-  float tach2 = StateManager::prefs().tachAlarm2;
-
-  if (rpm > tach1 && rpm > tach2) {
-    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_INDICRED);
-  } else if (rpm > tach1 || rpm > tach2) {
-    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_YELLOW);
-  } else {
-    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_INDICDISABLED);
-  }
-
-  //
-  // Speed Alarm Indicator
-  //
-  float speed1 = StateManager::prefs().mphAlarm1;
-  float speed2 = StateManager::prefs().mphAlarm2;
-
-  if (speed > speed1 && speed > speed2) {
-    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_INDICRED);
-  } else if (speed > speed1 || speed > speed2) {
-    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_YELLOW);
-  } else {
-    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_INDICDISABLED);
-  }
+  updateAlarmIndicators();
 
   //
   // Limit Switch Indicators
@@ -593,14 +571,23 @@ void refreshAlarmUIFromPreset(uint8_t preset) {
           snprintf(buf, sizeof(buf), "%.0f", uiValue);
           break;
       }
-      // Trim trailing zeros and decimal point for cleaner display
-      for (int i = strlen(buf) - 1; i > 0 && buf[i] == '0'; --i) {
-        buf[i] = '\0';
-        if (buf[i - 1] == '.') {
-          buf[i - 1] = '\0';
-          break;
+      
+      // For RPM (no decimals), don't trim anything
+      // For distance/speed, only trim trailing zeros AFTER decimal point
+      if (binding.ch != AlarmChannel::RPM) {
+        // Only trim if there's a decimal point
+        char* dot = strchr(buf, '.');
+        if (dot) {
+          for (int i = strlen(buf) - 1; i > 0 && buf[i] == '0'; --i) {
+            buf[i] = '\0';
+            if (buf[i - 1] == '.') {
+              buf[i - 1] = '\0';
+              break;
+            }
+          }
         }
       }
+      
       lv_textarea_set_text(binding.value, buf);
     }
 
@@ -675,4 +662,65 @@ void refreshAlarmUIFromPreset(uint8_t preset) {
   }
 
   alarmUiRefreshing = false;
+}
+
+void updateAlarmIndicators() {
+  // Helper to get indicator color INDEX based on alarm config
+  auto getAlarmColorIndex = [](AlarmColor col) -> uint8_t {
+    switch (col) {
+      case AlarmColor::RED:    return UI_THEME_COLOR_INDICRED;
+      case AlarmColor::YELLOW: return UI_THEME_COLOR_INDICYELLOW;
+      case AlarmColor::GREEN:  return UI_THEME_COLOR_INDICGREEN;
+      default:                 return UI_THEME_COLOR_INDICDISABLED;
+    }
+  };
+  
+  // Get active alarm configs
+  auto speedA1 = AlarmManager::getConfigActive(AlarmChannel::SPEED, AlarmSlot::A1);
+  auto speedA2 = AlarmManager::getConfigActive(AlarmChannel::SPEED, AlarmSlot::A2);
+  auto rpmA1 = AlarmManager::getConfigActive(AlarmChannel::RPM, AlarmSlot::A1);
+  auto rpmA2 = AlarmManager::getConfigActive(AlarmChannel::RPM, AlarmSlot::A2);
+
+  int fullOpacity = 255;
+  int faintOpacity = 30;
+  
+  // RPM/Tach Alarm 1
+  if (rpmA1.enabled) {
+    set_visible(uic_MainPanelTachAlarmIndicatorIcon1, true);
+    uint8_t colorIdx = getAlarmColorIndex(rpmA1.color);
+    uint8_t opacity = rpmA1.tripped ? fullOpacity : faintOpacity;  // Bright when tripped, very faint when not
+    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon1, colorIdx, opacity);
+  } else {
+    set_visible(uic_MainPanelTachAlarmIndicatorIcon1, false);  // HIDDEN when disabled
+  }
+  
+  // RPM/Tach Alarm 2
+  if (rpmA2.enabled) {
+    set_visible(uic_MainPanelTachAlarmIndicatorIcon2, true);
+    uint8_t colorIdx = getAlarmColorIndex(rpmA2.color);
+    uint8_t opacity = rpmA2.tripped ? fullOpacity : faintOpacity;
+    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon2, colorIdx, opacity);
+  } else {
+    set_visible(uic_MainPanelTachAlarmIndicatorIcon2, false);  // HIDDEN when disabled
+  }
+  
+  // Speed Alarm 1
+  if (speedA1.enabled) {
+    set_visible(uic_MainPanelSpeedAlarmIndicatorIcon1, true);
+    uint8_t colorIdx = getAlarmColorIndex(speedA1.color);
+    uint8_t opacity = speedA1.tripped ? fullOpacity : faintOpacity;
+    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon1, colorIdx, opacity);
+  } else {
+    set_visible(uic_MainPanelSpeedAlarmIndicatorIcon1, false);  // HIDDEN when disabled
+  }
+  
+  // Speed Alarm 2
+  if (speedA2.enabled) {
+    set_visible(uic_MainPanelSpeedAlarmIndicatorIcon2, true);
+    uint8_t colorIdx = getAlarmColorIndex(speedA2.color);
+    uint8_t opacity = speedA2.tripped ? fullOpacity : faintOpacity;
+    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon2, colorIdx, opacity);
+  } else {
+    set_visible(uic_MainPanelSpeedAlarmIndicatorIcon2, false);  // HIDDEN when disabled
+  }
 }

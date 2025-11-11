@@ -86,7 +86,7 @@ class AlarmManager {
 
   // Evaluation
   static void evaluateTick(); // call during STAGED and PULLING
-  static void resetForStateEntry(StateManager& sm); // call on STAGED entry, etc.
+  static void resetForStateEntry(); // call on STAGED entry, etc.
 
   // Horn and silence
   static void silenceForMs(uint32_t ms);
@@ -112,6 +112,8 @@ class AlarmManager {
   static AlarmPreset presets_[kPresetCount];
   static uint8_t activePreset_;
   static uint32_t buzzerSilencedUntilMs_;
+  static void triggerHorn(const AlarmConfig& A);
+
 };
 
 #endif // ALARM_MANAGER_H

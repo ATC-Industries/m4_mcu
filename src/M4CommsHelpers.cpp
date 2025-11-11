@@ -40,7 +40,7 @@ void onMessageReceived(uint8_t *senderAddress,
                        uint8_t len,
                        int rssi,
                        bool broadcast) {
-  LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
+  // LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
   // 1) Basic frame guard
   if (!incomingData || len < sizeof(M4Message)) {
     LOGE("[M4CommsHelpers] Invalid incoming data: Bad frame size");
@@ -69,18 +69,18 @@ void onMessageReceived(uint8_t *senderAddress,
   const bool hasValue = doc["value"].is<float>();
   const float value   = hasValue ? doc["value"].as<float>() : 0.0f;
 
-  LOGI("[M4CommsHelpers] Received message: action=%d, value=%.2f, from %02X:%02X:%02X:%02X:%02X:%02X, rssi=%d, broadcast=%d",
-       static_cast<int>(action),
-       value,
-       senderAddress[0], senderAddress[1], senderAddress[2],
-       senderAddress[3], senderAddress[4], senderAddress[5],
-       rssi,
-       broadcast ? 1 : 0);
+  // LOGI("[M4CommsHelpers] Received message: action=%d, value=%.2f, from %02X:%02X:%02X:%02X:%02X:%02X, rssi=%d, broadcast=%d",
+  //      static_cast<int>(action),
+  //      value,
+  //      senderAddress[0], senderAddress[1], senderAddress[2],
+  //      senderAddress[3], senderAddress[4], senderAddress[5],
+  //      rssi,
+  //      broadcast ? 1 : 0);
 
   // 6) Handle the rest of your protocol
   switch (action) {
     case PAIRING_RESPONSE: {
-      LOGI("[M4CommsHelpers] PAIRING_RESPONSE case triggered");
+      //LOGI("[M4CommsHelpers] PAIRING_RESPONSE case triggered");
       Tach::onPairingResponse(senderAddress, rssi);
       break;
     }
@@ -178,7 +178,7 @@ void processSendRPM(const float value, int rssi) {
   StateManager::setRPM(value);
   Tach::state.pairedTSSRSSI = rssi;
   Tach::state.isTSSConnected = true;
-  LOGI("[Tach] RPM updated to %.2f from TSS with RSSI %d", value, rssi);
+  //LOGI("[Tach] RPM updated to %.2f from TSS with RSSI %d", value, rssi);
 }
 
 void processRemoteAck(int rssi) {

@@ -9,5 +9,6 @@
 void updateMainScreen();  // Call this periodically to update UI elements based on state
 void updateSettingsScreen();
 bool isAlarmUIRefreshing();
+void updateAlarmIndicators();
 
 #endif  // SCREEN_UPDATER_H

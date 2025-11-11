@@ -28,6 +28,7 @@ private:
   static void triggerRelaysForState(PullState state);
   static void resetMaxValues();
   static void resetCurrentValues();
+  static const char* stateToString(PullState state);
 };
 
 #endif
