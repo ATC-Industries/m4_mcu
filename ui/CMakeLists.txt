@@ -10,6 +10,8 @@ SET(SOURCES screens/ui_ScreenMain.c
     images/ui_img_iconsettings44px_png.c
     images/ui_img_table_helemet_42x42_png.c
     images/ui_img_iconchangedriver44px_png.c
+    images/ui_img_wifi_png.c
+    images/ui_img_929997142.c
     fonts/ui_font_BIO_BOLDITALIC_10.c
     fonts/ui_font_BIO_BOLDITALIC_6.c
     fonts/ui_font_BIO_BOLDITALIC_8.c

@@ -4,6 +4,7 @@
 
 // Call up the TFT driver library
 #include "display/display.h"
+#include "Logging.h"
 // Call up touch screen library
 #include <TFT_Touch.h>
 
@@ -17,29 +18,29 @@ int X_Raw = 0, Y_Raw = 0;
 
 void init_touch() {
   if (!load_touch_calibration()) {
-    Serial.println("Touch calibration not found - running calibration...");
-    Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
+    LOGW("Touch calibration not found - running calibration...");
+    LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
 
     while (!calibrate_touch()) {
-      Serial.println("Touch calibration failed - trying again...");
-      Serial.println("Please follow the TFT screen prompts carefully.");
+      LOGE("Touch calibration failed - trying again...");
+      LOGW("Please follow the TFT screen prompts carefully.");
       delay(2000);  // Brief delay before retrying
     }
-    Serial.println("Touch calibration completed successfully");
+    LOGI("Touch calibration completed successfully");
     setRecalibrationFlag(false);  // Reset recalibration flag
   } else if (recalibrateTouch) {
-    Serial.println("Recalibration requested - running calibration...");
-    Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
+    LOGI("Recalibration requested - running calibration...");
+    LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
 
     while (!calibrate_touch()) {
-      Serial.println("Touch calibration failed - trying again...");
-      Serial.println("Please follow the TFT screen prompts carefully.");
+      LOGE("Touch calibration failed - trying again...");
+      LOGW("Please follow the TFT screen prompts carefully.");
       delay(2000);  // Brief delay before retrying
     }
-    Serial.println("Touch calibration completed successfully");
+    LOGI("Touch calibration completed successfully");
     setRecalibrationFlag(false);  // Reset recalibration flag
   } else {
-    Serial.println("Touch calibration loaded successfully.");
+    LOGI("Touch calibration loaded successfully.");
     setRecalibrationFlag(false);  // Ensure recalibration flag is reset
   }
 
@@ -235,14 +236,14 @@ bool calibrate_touch() {
 bool load_touch_calibration() {
   Preferences prefs;
   if (!prefs.begin("touch_cal", true)) {  // true = read-only mode
-    Serial.println("Failed to open preferences for touch calibration");
+    LOGE("Failed to open preferences for touch calibration");
     return false;  // Failed to open preferences
   }
 
   // Check if calibration data exists by trying to get one key
   if (!prefs.isKey("x_min")) {
     prefs.end();
-    Serial.println("No touch calibration data found");
+    LOGW("No touch calibration data found");
     return false;  // Calibration data doesn't exist
   }
 
@@ -259,13 +260,13 @@ bool load_touch_calibration() {
 
   // Validate that we got reasonable values (not all zeros)
   if (hmin == 0 && hmax == 0 && vmin == 0 && vmax == 0) {
-    Serial.println("Invalid touch calibration data found");
+    LOGE("Invalid touch calibration data found");
     return false;  // Invalid calibration data
   }
 
   // Apply calibration to touch object
   touch.setCal(hmin, hmax, vmin, vmax, h_res, v_res, false);
-  Serial.println("Touch calibration loaded successfully");
+  LOGI("Touch calibration loaded successfully");
   return true;  // Success
 }
 
@@ -406,14 +407,13 @@ bool setRecalibrationFlag(bool force) {
   recalibrateTouch = force;  // Set to true to force recalibration
   Preferences prefs;
   if (!prefs.begin("touch_cal", false)) {
-    Serial.println("Failed to open preferences for recalibration flag");
+    LOGE("Failed to open preferences for recalibration flag");
     return false;  // Failed to open preferences
   }
 
   // Store calibration values
   prefs.putBool("recalibrate", force);  // Store recalibration flag
   prefs.end();
-  Serial.print("Recalibration flag set to ");
-  Serial.println(force ? "true" : "false");
+  LOGI("Recalibration flag set to %s", force ? "true" : "false");
   return true;  // Success
 }

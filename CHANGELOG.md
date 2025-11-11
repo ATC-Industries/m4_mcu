@@ -14,12 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pull history table with clear routine
 - Pull data now saved to EEPROM (up to 255 pulls; space limitations TBD)
 - Screen rotation toggle in settings
+- TachClient module for TSS pairing and connection management with automatic RPM polling
 
 ### Changed
 
 - Improved speed calculator to reduce spikes/noise
 - Driver number now auto-increments on pull save
 - Updated RGB display pin mappings to match new PCB (Rev B) IO definitions
+- TSS pairing now uses multi-broadcast approach for improved reliability
+
+### Fixed
+
+- Linker errors for library global variables
 
 ### Notes
 

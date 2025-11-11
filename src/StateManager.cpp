@@ -1,5 +1,6 @@
 #include "StateManager.h"
 #include "peripherals/PeripheralsInit.h"
+#include <cstring>
 
 #include <Preferences.h>
 
@@ -209,11 +210,9 @@ bool StateManager::getScreenRotation() {
   return rotation180;
 }
 
-// M4 Communication methods
-bool StateManager::getIsAutoConnectTractor() {
-  return preferences.isAutoConnectTractor;
-}
 
+
+// This is a setting. this determines if the M4 will auto-connect to the Tach Tractor Should remain here in StateManager
 void StateManager::setIsAutoConnectTractor(bool autoConnect) {
   preferences.isAutoConnectTractor = autoConnect;
   savePreferences();
@@ -221,31 +220,18 @@ void StateManager::setIsAutoConnectTractor(bool autoConnect) {
   Serial.printf("[StateManager] Auto-connect to Tach Tractor set to %s\n", autoConnect ? "ENABLED" : "DISABLED");
 }
 
+bool StateManager::getIsAutoConnectTractor() {
+  return preferences.isAutoConnectTractor;
+}
+
+void StateManager::setPairedTractorAddress(const uint8_t* addr) {
+  if (!addr) return;
+  memcpy(preferences.pairedTractorAddress, addr, 6);
+  savePreferences();
+}
+
 const uint8_t* StateManager::getPairedTractorAddress() {
   return preferences.pairedTractorAddress;
-}
-
-void StateManager::setPairedTractorAddress(const uint8_t* address) {
-  memcpy(preferences.pairedTractorAddress, address, 6);
-  savePreferences();
-}
-
-const uint8_t* StateManager::getPairedRemoteDisplayAddress() {
-  return preferences.pairedRemoteDisplayAddress;
-}
-
-void StateManager::setPairedRemoteDisplayAddress(const uint8_t* address) {
-  memcpy(preferences.pairedRemoteDisplayAddress, address, 6);
-  savePreferences();
-}
-
-unsigned long StateManager::getPairingDelay() {
-  return preferences.pairingDelay;
-}
-
-void StateManager::setPairingDelay(unsigned long delay) {
-  preferences.pairingDelay = delay;
-  savePreferences();
 }
 
 void StateManager::savePullResult() {

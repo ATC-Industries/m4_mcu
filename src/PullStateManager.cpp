@@ -4,26 +4,28 @@
 #include "SpeedModule.h"
 #include "StateManager.h"
 #include "AlarmManager.h"
+#include "TachClient.h"
+#include "Logging.h"
 
 static unsigned long lastDebugPrint = 0;
-static const unsigned long debugInterval = 2000;  // Every 2 seconds
+static const unsigned long debugInterval = 5000;  // Every 5 seconds
+static PullState s_lastState = PullState::READY;
+static PullState s_lastNotifiedState = PullState::READY;
 
 void PullStateManager::enterState(PullState newState) {
+  PullState old = StateManager::getPullState();
+  LOGI("[PSM] enterState old=%d new=%d", (int)old, (int)newState);
+
   StateManager::setPullState(newState);
   updateUIForState(newState);
   triggerRelaysForState(newState);
   SpeedModule::notifyPullStateChanged(newState);
 
-  if (newState == PullState::READY) {
-    resetMaxValues();
-  }
-
-  if (newState == PullState::PULLEND) {
-    // optionally set labels to MAX
-  }
+  if (newState == PullState::READY) resetMaxValues();
 }
 
 void PullStateManager::init() {
+  LOGI("[PSM] init -> READY");
   enterState(PullState::READY);  // Always start in READY
 }
 // TODO: Somewhere here I need to Call AlarmManager::evaluateTick() while PullState is STAGED or PULLING.
@@ -32,21 +34,20 @@ void PullStateManager::init() {
 void PullStateManager::update() {
   PullState current = StateManager::getPullState();
 
-  switch (current) {
-    case PullState::STAGED:
-      detectPullStart(StateManager::getSpeed());
-      break;
-
-    case PullState::PULLING:
-      if (StateManager::getSpeed() <= 0.0f) {
-        enterState(PullState::PULLEND);
-      }
-      break;
-
-      // Future: Handle e-stop debounce / other state checks here
-
-    default:
-      break;
+  static unsigned long lastStageCheckMs = 0;
+  if (current == PullState::STAGED) {
+    float s = StateManager::getSpeed();
+    detectPullStart(s);
+    unsigned long now = millis();
+    if (now - lastStageCheckMs >= debugInterval) {
+      lastStageCheckMs = now;
+      LOGD("[PSM] STAGED: checking for pull start, speed=%.2f", s);
+    }
+  } else if (current == PullState::PULLING) {
+    if (StateManager::getSpeed() <= 0.0f) {
+      LOGI("[PSM] PULLING -> speed <= 0 -> PULLEND");
+      enterState(PullState::PULLEND);
+    }
   }
 
   unsigned long now = millis();
@@ -77,55 +78,17 @@ void PullStateManager::update() {
         break;
     }
 
-    //Serial.printf("[PullState] Current state: %s\n", stateStr);
+    LOGI("[PSM] heartbeat state=%d", (int)current);
     updateUIForState(current);
   }
 }
 
-void PullStateManager::handleStagePressed() { 
-  enterState(PullState::STAGED); 
-  // // TODO: all this is copid from the D35. I need figur it all out. commenting for now.
-  // resetBtnCB(e); //TODO change to something that will reset the tach connection indicator
-  // Serial.println("Starting pairing...");  // Log start of pairing process
-
-  // // Reset the RSSI (Received Signal Strength Indicator) value to the lowest
-  // // possible to ensure the next value received is higher.
-  // pairedTractorRSSI = INT_MIN;
-
-  // // Clear the previously paired tractor's address to start fresh.
-  // memset(pairedTractorAddress, 0, sizeof(pairedTractorAddress));
-
-  // // Flag to indicate that the pairing process has started.
-  // isPairing = true;
-  // pairingStartedMillis = millis();
-  // isWaitingForPairingDelay = true;
-
-  // // Create a JSON document for configuring the pairing message.
-  // // This document is used to specify the action and the type of device we want
-  // // to pair with.
-  // JsonDocument doc;
-  // doc["action"] =
-  //     SEND_PROXIMITY;  // Action to request proximity information from devices.
-  // doc["reqDevice"] = M4_TACH_SENSOR;  // Specify that we're interested in
-  //                                     // pairing with a tach sensor.
-
-  // // Serialize the JSON document to a string payload to be sent over the
-  // // network.
-  // String payload;
-
-  // doc.shrinkToFit();  // optional
-
-  // serializeJson(doc, payload);  // Convert the JSON document into a string.
-
-  // // Define a broadcast address to send the pairing message to all devices.
-  // uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-  // // Send the pairing message as a broadcast with high priority.
-  // sendMessage(broadcastAddress, BROADCAST, SEND_PROXIMITY, payload,
-  //             HIGH_PRIORITY);
-
-  // // Log that the pairing button was pressed and the message has been sent.
-  // Serial.println("Pair Tach button pressed");
+void PullStateManager::handleStagePressed(lv_event_t *e) {
+  LOGI("[PSM] handleStagePressed");
+  // notify TachClient once on transition
+  LOGI("[PSM] notifying TachClient due to state change -> STAGED");
+  Tach::pairTSS(e);
+  enterState(PullState::STAGED);   // this will now notify TachClient once
 }
 
 void PullStateManager::handleCancelPressed() { enterState(PullState::READY); }
@@ -152,7 +115,14 @@ void PullStateManager::handleResetPressed() { enterState(PullState::READY); }
 void PullStateManager::triggerEmergencyStop() { enterState(PullState::EMERGENCYSTOP); }
 
 void PullStateManager::detectPullStart(float currentSpeed) {
+  static unsigned long lastStageCheckMs = 0;
+  unsigned long now = millis();
+  if (now - lastStageCheckMs >= debugInterval) {
+    lastStageCheckMs = now;
+    LOGD("[PSM] detectPullStart speed=%.2f state=%d", currentSpeed, (int)StateManager::getPullState());
+  }
   if (StateManager::getPullState() == PullState::STAGED && currentSpeed > 0.5f) {
+    LOGI("[PSM] STAGED + speed>0.5 -> PULLING");
     enterState(PullState::PULLING);
   }
 }

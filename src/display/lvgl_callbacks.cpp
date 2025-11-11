@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "touch/touch.h"
 #include "StateManager.h"
+#include "Logging.h"
 
 extern TFT_Touch touch;
 
@@ -43,10 +44,7 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
     data->state = LV_INDEV_STATE_PRESSED;
 
     if (!was_pressed) {
-      Serial.print("Touch pressed at: ");
-      Serial.print(last_x);
-      Serial.print(", ");
-      Serial.println(last_y);
+      LOGD("Touch pressed at: %d, %d", last_x, last_y);
     }
     was_pressed = true;
   } else {
@@ -59,7 +57,7 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
       if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
         // Confirmed release
         data->state = LV_INDEV_STATE_RELEASED;
-        Serial.println("Touch released");
+        // LOGD("Touch released");
         was_pressed = false;
         no_touch_counter = 0;
       } else {

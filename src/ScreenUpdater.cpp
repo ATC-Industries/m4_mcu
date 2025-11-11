@@ -3,9 +3,11 @@
 #include <cstring>
 
 #include "../ui/ui.h"
+#include "AlarmManager.h"
+#include "Logging.h"
 #include "PullStateManager.h"
 #include "StateManager.h"
-#include "AlarmManager.h"
+#include "TachClient.h"
 
 // Last known values to avoid unnecessary redraws
 static float lastDisplayedSpeed = -1.0f;
@@ -24,6 +26,28 @@ static const lv_color_t kPresetColors[] = {
     lv_color_hex(0x1FA709),  // Preset 3 - Green
     lv_color_hex(0x346DE1)   // Preset 4 - Blue
 };
+
+// visibility helper
+static inline void set_visible(lv_obj_t* obj, bool on) {
+  if (!obj) return;
+  if (on) lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  else    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
+
+extern VERSION pairedTractorVersion;  // defined in M4CommsHelpers.cpp
+
+static inline void macToStr(const uint8_t* mac, char out[18]) {
+  if (!mac) { strcpy(out, "--"); return; }
+  snprintf(out, 18, "%02X:%02X:%02X:%02X:%02X:%02X",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+static inline bool macIsEmpty(const uint8_t* mac) {
+  if (!mac) return true;
+  for (int i = 0; i < 6; ++i) if (mac[i] != 0) return false;
+  return true;
+}
+
+
 
 static lv_color_t alarmColorToLv(AlarmColor color) {
   switch (color) {
@@ -198,6 +222,50 @@ void updateSettingsScreen() {
       lv_obj_clear_state(uic_Settings1SwitchTachAutoConnectToggle, LV_STATE_CHECKED);
     }
   }
+  // TSS status line
+  {
+    bool tssConnected = Tach::state.isTSSConnected;
+    int  rssi = Tach::state.lastRssi;
+    const uint8_t* mac = StateManager::getPairedTractorAddress();
+
+    // 1) Status
+    if (uic_Settings1LabelTSSPairStatus) {
+      if (tssConnected) {
+        // Show simple connected text with RSSI
+        char buf[48];
+        snprintf(buf, sizeof(buf), "Connected  RSSI %d dBm", rssi);
+        lv_label_set_text(uic_Settings1LabelTSSPairStatus, buf);
+      } else {
+        lv_label_set_text(uic_Settings1LabelTSSPairStatus, "Not connected");
+      }
+    }
+
+    // 2) Version
+    if (uic_Settings1LabelTSSPairVersion) {
+      char ver[32];
+      if (pairedTractorVersion.major == 0 && pairedTractorVersion.minor == 0 && pairedTractorVersion.patch == 0) {
+        strcpy(ver, "--");
+      } else {
+        snprintf(ver, sizeof(ver), "%d.%d.%d",
+                pairedTractorVersion.major,
+                pairedTractorVersion.minor,
+                pairedTractorVersion.patch);
+      }
+      lv_label_set_text(uic_Settings1LabelTSSPairVersion, ver);
+    }
+
+    // 3) MAC
+    if (uic_Settings1LabelTSSPairMAC) {
+      char macStr[18];
+      if (macIsEmpty(mac)) {
+        strcpy(macStr, "--");
+      } else {
+        macToStr(mac, macStr);
+      }
+      lv_label_set_text(uic_Settings1LabelTSSPairMAC, macStr);
+    }
+  }
+
 }
 
 void updateMainScreen() {
@@ -396,9 +464,18 @@ void updateMainScreen() {
   // lv_bar_set_value(ui_MainBarDistanceAlarm1, (int)alarm1, LV_ANIM_OFF);
   // lv_bar_set_value(ui_MainBarDistanceAlarm2, (int)alarm2, LV_ANIM_OFF);
 
-  if (!uic_MainLabelSpeedValue) Serial.println("❌ uic_MainLabelSpeedValue is NULL");
-  if (!uic_MainLabelDistanceValue) Serial.println("❌ uic_MainLabelDistanceValue is NULL");
-  if (!uic_MainLabelTachValue) Serial.println("❌ uic_MainLabelTachValue is NULL");
+  if (!uic_MainLabelSpeedValue) LOGE("uic_MainLabelSpeedValue is NULL");
+  if (!uic_MainLabelDistanceValue) LOGE("uic_MainLabelDistanceValue is NULL");
+  if (!uic_MainLabelTachValue) LOGE("uic_MainLabelTachValue is NULL");
+
+    // TSS connection icons
+  {
+    bool tssConnected = Tach::state.isTSSConnected;
+    // when NOT connected: show 'tachConnNo', hide 'tachConn'
+    set_visible(uic_MainImagetachConnNo, !tssConnected);
+    set_visible(uic_MainImagetachConn,    tssConnected);
+  }
+
 }
 
 static inline void set_bar_visible(lv_obj_t* bar, bool visible) {

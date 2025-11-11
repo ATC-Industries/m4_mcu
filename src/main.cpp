@@ -7,12 +7,16 @@
 #include "SpeedModule.h"
 #include "StateManager.h"
 #include "AlarmManager.h"
+#include "TachClient.h"
 #include "display/backlight.h"
 #include "display/display.h"
 #include "display/lvgl_callbacks.h"
 #include "touch/touch.h"
 #include "peripherals/PeripheralsInit.h"
 #include "peripherals/touch_inject.h"
+#include "Logging.h"
+#include <QuickEspNow.h>
+
 
 #include <nvs_flash.h>
 
@@ -26,11 +30,11 @@ void setup() {
   // NVS Safe Init
   esp_err_t err = nvs_flash_init();
   if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    Serial.println("[NVS] init needs erase, erasing...");
+    LOGE("[NVS] init needs erase, erasing...");
     ESP_ERROR_CHECK(nvs_flash_erase());
     ESP_ERROR_CHECK(nvs_flash_init());
   } else if (err != ESP_OK) {
-    Serial.printf("[NVS] init failed: %d\n", err);
+    LOGE("[NVS] init failed: %d\n", err);
   }
 
   StateManager::loadPreferences();
@@ -53,6 +57,12 @@ void setup() {
   // Initialize touch hardware
   init_touch();
 
+  initCommProtocol();
+
+  LOGI("[ESP-NOW] Initializing QuickEspNow...");
+  quickEspNow.onDataRcvd(onMessageReceived);
+  LOGI("[ESP-NOW] QuickEspNow initialized.");
+
   init_lvgl();
   ui_init();
   touch_inject_init();
@@ -63,7 +73,6 @@ void setup() {
   PullStateManager::init();
   SpeedModule::begin();
   AlarmManager::init();
-
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   // setRecalibrationFlag();
@@ -97,6 +106,7 @@ void loop() {
   updateBacklight();
   PullStateManager::update();
   SpeedModule::tick();
+  Tach::update();
 
   now = millis();
   if (isMainScreenReady() && now - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL_MS) {

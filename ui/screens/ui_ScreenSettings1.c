@@ -25,8 +25,8 @@ lv_obj_t *uic_Settings1PanelAboutInfo;
 lv_obj_t *uic_Settings1PanelDeviceTable;
 lv_obj_t *uic_Settings1LabelHelperTextTargetMCU;
 lv_obj_t *uic_Settings1ButtonHelpJudgeTargetMCU;
-lv_obj_t *uic_Settings1TextareaTargetMCUID1;
-lv_obj_t *uic_Settings1LabelTargetMCUID;
+lv_obj_t *uic_Settings1TextareaHostMCUID1;
+lv_obj_t *uic_Settings1LabelHostMCUID;
 lv_obj_t *uic_Settings1PanelSettingJudgeJudgePanel;
 lv_obj_t *uic_Settings1LabelJudgeSettingTips;
 lv_obj_t *uic_Settings1PanelSettingJudgeMCUPanel;
@@ -52,6 +52,9 @@ lv_obj_t *uic_Settings1ButtonPresetButton2;
 lv_obj_t *uic_Settings1ButtonPresetButton1;
 lv_obj_t *uic_PresetSelctionButtonGroup;
 lv_obj_t *uic_AlarmsTabContainer;
+lv_obj_t *uic_Settings1LabelTSSPairMAC;
+lv_obj_t *uic_Settings1LabelTSSPairVersion;
+lv_obj_t *uic_Settings1LabelTSSPairStatus;
 lv_obj_t *uic_Settings1ButtonTachAutoConnectHelp;
 lv_obj_t *uic_Settings1SwitchTachAutoConnectToggle;
 lv_obj_t *uic_Settings1ButtonCalculateButton;
@@ -78,7 +81,7 @@ lv_obj_t *uic_Settings1LabelM4IDNumberTitleLabel;
 lv_obj_t *uic_Settings1PanelGeneralSettings;
 lv_obj_t *uic_Settings1TabviewSettingsView;
 lv_obj_t *uic_ScreenSettings;
-lv_obj_t *ui_ScreenSettings1 = NULL;lv_obj_t *ui_Settings1TabviewSettingsView = NULL;lv_obj_t *ui_Settings1TabpageGeneral = NULL;lv_obj_t *ui_Settings1PanelGeneralSettings = NULL;lv_obj_t *ui_Settings1ContainerGeneralSettingsTitleLabel = NULL;lv_obj_t *ui_Settings1LabelLabel10 = NULL;lv_obj_t *ui_Settings1ContainerM4UnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelM4IDNumberTitleLabel = NULL;lv_obj_t *ui_Settings1TextareaM4IDNumberTitleTextArea = NULL;lv_obj_t *ui_Settings1LabelUseJudgeTitleLabel = NULL;lv_obj_t *ui_Settings1SwitchUseJudgeSwitch = NULL;lv_obj_t *ui_Settings1ButtonHelpJudge = NULL;lv_obj_t *ui_Settings1LabelLabel48 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral1 = NULL;lv_obj_t *ui_Settings1SwitchUnitsToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle1 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral2 = NULL;lv_obj_t *ui_Settings1SwitchBenchmarkToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle2 = NULL;lv_obj_t *ui_Settings1ContainerBrightnessSetting = NULL;lv_obj_t *ui_Settings1LabelBrightnessTitle = NULL;lv_obj_t *ui_Settings1SliderBrightnessSlider = NULL;lv_obj_t *ui_Settings1LabelBrightness = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral3 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle3 = NULL;lv_obj_t *ui_Settings1TextareaTrackLengthText = NULL;lv_obj_t *ui_Settings1LabelTrackLengthUnitsTitle = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral4 = NULL;lv_obj_t *ui_Settings1SwitchTachToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach = NULL;lv_obj_t *ui_Settings1LabelLabel11 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral5 = NULL;lv_obj_t *ui_Settings1SwitchLimitToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle5 = NULL;lv_obj_t *ui_Settings1ButtonHelpLimit = NULL;lv_obj_t *ui_Settings1LabelLabel12 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral6 = NULL;lv_obj_t *ui_Settings1SwitchRelaysToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle6 = NULL;lv_obj_t *ui_Settings1ButtonHelpRelay = NULL;lv_obj_t *ui_Settings1LabelLabel13 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral9 = NULL;lv_obj_t *ui_Settings1SwitchRotateScreenToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle8 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral7 = NULL;lv_obj_t *ui_Settings1SwitchHelpIconVisibiltyToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle7 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral8 = NULL;lv_obj_t *ui_Settings1ButtonButton5 = NULL;lv_obj_t *ui_Settings1LabelLabel30 = NULL;lv_obj_t *ui_Settings1TabpageSpeed_and_Distance = NULL;lv_obj_t *ui_Settings1PanelCalibrationNumberPanel = NULL;lv_obj_t *ui_Settings1LabelSpeedandDistanceTitle = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle = NULL;lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea = NULL;lv_obj_t *ui_Settings1ButtonButton4 = NULL;lv_obj_t *ui_Settings1LabelLabel15 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText = NULL;lv_obj_t *ui_Settings1LabelLabel14 = NULL;lv_obj_t *ui_Settings1PanelGearToothCalculatorPanel = NULL;lv_obj_t *ui_Settings1ContainerCalc = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle1 = NULL;lv_obj_t *ui_Settings1LabelLabel17 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel19 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel18 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea = NULL;lv_obj_t *ui_Settings1LabelGearToothCalculatorPulses = NULL;lv_obj_t *ui_Settings1ButtonCalculateButton = NULL;lv_obj_t *ui_Settings1LabelLabel29 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationCalculatorButton = NULL;lv_obj_t *ui_Settings1LabelLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText1 = NULL;lv_obj_t *ui_Settings1LabelLabel16 = NULL;lv_obj_t *ui_Settings1PanelAutoCalibration = NULL;lv_obj_t *ui_Settings1ContainerCalc1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle2 = NULL;lv_obj_t *ui_Settings1ButtonStartAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel20 = NULL;lv_obj_t *ui_Settings1LabelLabel22 = NULL;lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses = NULL;lv_obj_t *ui_Settings1ButtonFinishAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel23 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel24 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText2 = NULL;lv_obj_t *ui_Settings1LabelLabel25 = NULL;lv_obj_t *ui_Settings1PanelCalibrationPresetsPanel = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle3 = NULL;lv_obj_t *ui_Settings1ButtonButton2 = NULL;lv_obj_t *ui_Settings1LabelLabel26 = NULL;lv_obj_t *ui_Settings1ButtonButton3 = NULL;lv_obj_t *ui_Settings1LabelLabel28 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText3 = NULL;lv_obj_t *ui_Settings1LabelLabel27 = NULL;lv_obj_t *ui_Settings1TabpageTach = NULL;lv_obj_t *ui_Settings1PanelPanel2 = NULL;lv_obj_t *ui_Settings1ContainerSettingTach1 = NULL;lv_obj_t *ui_Settings1SwitchTachAutoConnectToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle9 = NULL;lv_obj_t *ui_Settings1ButtonTachAutoConnectHelp = NULL;lv_obj_t *ui_Settings1LabelLabel32 = NULL;lv_obj_t *ui_Settings1TabpageAlarmsTabContainer = NULL;lv_obj_t *ui_Settings1PanelPanel3 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral10 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle10 = NULL;lv_obj_t *ui_Settings1ContainerPresetSelctionButtonGroup = NULL;lv_obj_t *ui_Settings1ButtonPresetButton1 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel1 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton2 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel2 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton3 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel3 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton4 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach2 = NULL;lv_obj_t *ui_Settings1LabelLabel33 = NULL;lv_obj_t *ui_Settings1ContainerDistanceAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerSpeedAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerRPMAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea1 = NULL;lv_obj_t *ui_Settings1PanelPanel4 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown2 = NULL;lv_obj_t *ui_Settings1TabpageRelays_and_Limits = NULL;lv_obj_t *ui_Settings1PanelConnectionRLM = NULL;lv_obj_t *ui_Settings1ContainerContainer8 = NULL;lv_obj_t *ui_Settings1ContainerContainer9 = NULL;lv_obj_t *ui_Settings1ButtonButton1 = NULL;lv_obj_t *ui_Settings1LabelLabel6 = NULL;lv_obj_t *ui_Settings1LabelLabel7 = NULL;lv_obj_t *ui_Settings1PanelRelayLimitSettings = NULL;lv_obj_t *ui_Settings1ContainerRelaySettings = NULL;lv_obj_t *ui_Settings1LabellblRelays = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableRelay = NULL;lv_obj_t *ui_Settings1SwitchSwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel1 = NULL;lv_obj_t *ui_Settings1Containerrealayversion1 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel21 = NULL;lv_obj_t *ui_Settings1SwitchSwitch3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownDropdown2 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch2 = NULL;lv_obj_t *ui_Settings1LabelLabel5 = NULL;lv_obj_t *ui_Settings1SwitchSwitch2 = NULL;lv_obj_t *ui_Settings1DropdownDropdown3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown4 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch3 = NULL;lv_obj_t *ui_Settings1LabelLabel8 = NULL;lv_obj_t *ui_Settings1SwitchSwitch5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown6 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel9 = NULL;lv_obj_t *ui_Settings1SwitchSwitch6 = NULL;lv_obj_t *ui_Settings1DropdownDropdown7 = NULL;lv_obj_t *ui_Settings1DropdownDropdown8 = NULL;lv_obj_t *ui_Settings1ContainercontainerLimitSettings = NULL;lv_obj_t *ui_Settings1LabelLabel2 = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableLimit = NULL;lv_obj_t *ui_Settings1SwitchSwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel3 = NULL;lv_obj_t *ui_Settings1PanelPanel1 = NULL;lv_obj_t *ui_Settings1TabpageJudge = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeMCUPanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips = NULL;lv_obj_t *ui_Settings1LabelLabel54 = NULL;lv_obj_t *ui_Settings1LabelLabel53 = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeJudgePanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips1 = NULL;lv_obj_t *ui_Settings1ContainerContainer10 = NULL;lv_obj_t *ui_Settings1ContainerJudgeUnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelTargetMCUID = NULL;lv_obj_t *ui_Settings1TextareaTargetMCUID1 = NULL;lv_obj_t *ui_Settings1ButtonButton8 = NULL;lv_obj_t *ui_Settings1LabelLabel50 = NULL;lv_obj_t *ui_Settings1ButtonHelpJudgeTargetMCU = NULL;lv_obj_t *ui_Settings1LabelLabel49 = NULL;lv_obj_t *ui_Settings1LabelHelperTextTargetMCU = NULL;lv_obj_t *ui_Settings1ContainerContainer18 = NULL;lv_obj_t *ui_Settings1LabelLabel51 = NULL;lv_obj_t *ui_Settings1LabelLabel52 = NULL;lv_obj_t *ui_Settings1TabpageSafety_and_Displays = NULL;lv_obj_t *ui_Settings1PanelConnectionRemotes = NULL;lv_obj_t *ui_Settings1ContainerContainer3 = NULL;lv_obj_t *ui_Settings1ContainerContainer1 = NULL;lv_obj_t *ui_Settings1ButtonButton7 = NULL;lv_obj_t *ui_Settings1LabelLabel36 = NULL;lv_obj_t *ui_Settings1LabelLabel31 = NULL;lv_obj_t *ui_Settings1ButtonHelpPairDisplays = NULL;lv_obj_t *ui_Settings1LabelLabel34 = NULL;lv_obj_t *ui_Settings1PanelDeviceTable = NULL;lv_obj_t *ui_Settings1ContainerTable = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableHeader = NULL;lv_obj_t *ui_Settings1ContainerContainer13 = NULL;lv_obj_t *ui_Settings1LabelLabel35 = NULL;lv_obj_t *ui_Settings1ContainerContainer2 = NULL;lv_obj_t *ui_Settings1LabelLabel37 = NULL;lv_obj_t *ui_Settings1ContainerContainer4 = NULL;lv_obj_t *ui_Settings1LabelLabel38 = NULL;lv_obj_t *ui_Settings1ContainerContainer5 = NULL;lv_obj_t *ui_Settings1LabelLabel39 = NULL;lv_obj_t *ui_Settings1ContainerContainer6 = NULL;lv_obj_t *ui_Settings1LabelLabel40 = NULL;lv_obj_t *ui_Settings1ContainerContainer7 = NULL;lv_obj_t *ui_Settings1LabelLabel41 = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableRow1 = NULL;lv_obj_t *ui_Settings1ContainerTypeRow1 = NULL;lv_obj_t *ui_Settings1LabelLabel42 = NULL;lv_obj_t *ui_Settings1ContainerContainer12 = NULL;lv_obj_t *ui_Settings1LabelLabel43 = NULL;lv_obj_t *ui_Settings1ContainerContainer14 = NULL;lv_obj_t *ui_Settings1LabelLabel44 = NULL;lv_obj_t *ui_Settings1ContainerContainer15 = NULL;lv_obj_t *ui_Settings1LabelLabel45 = NULL;lv_obj_t *ui_Settings1ContainerContainer16 = NULL;lv_obj_t *ui_Settings1LabelLabel46 = NULL;lv_obj_t *ui_Settings1ContainerContainer17 = NULL;lv_obj_t *ui_Settings1LabelLabel47 = NULL;lv_obj_t *ui_Settings1TabpageAbout = NULL;lv_obj_t *ui_Settings1PanelAboutInfo = NULL;lv_obj_t *ui_Settings1LabelAboutTitle = NULL;lv_obj_t *ui_Settings1LabelVersionTitle = NULL;lv_obj_t *ui_Settings1LabelVersionData = NULL;lv_obj_t *ui_Settings1LabelBuildDateTitle = NULL;lv_obj_t *ui_Settings1LabelBuildDateData = NULL;lv_obj_t *ui_Settings1LabelDevelopedByTitle = NULL;lv_obj_t *ui_Settings1LabelDevelopedByData = NULL;lv_obj_t *ui_Settings1LabelInfoTitle = NULL;lv_obj_t *ui_Settings1LabelInfoData = NULL;lv_obj_t *ui_Settings1LabelSupportTitle = NULL;lv_obj_t *ui_Settings1LabelSupportData = NULL;lv_obj_t *ui_Settings1LabelCopyrightData = NULL;lv_obj_t *ui_Settings1TabpageExit = NULL;lv_obj_t *ui_Settings1LabelBountyMessage = NULL;lv_obj_t *ui_Settings1ButtonReturnHome = NULL;lv_obj_t *ui_Settings1LabelButtonReturnHome = NULL;lv_obj_t *ui_Settings1ContainerContainer11 = NULL;lv_obj_t *ui_Settings1KeyboardSettingsNumberKeyboard = NULL;lv_obj_t *ui_Settings1KeyboardSettingsHexKeyboard = NULL;
+lv_obj_t *ui_ScreenSettings1 = NULL;lv_obj_t *ui_Settings1TabviewSettingsView = NULL;lv_obj_t *ui_Settings1TabpageGeneral = NULL;lv_obj_t *ui_Settings1PanelGeneralSettings = NULL;lv_obj_t *ui_Settings1ContainerGeneralSettingsTitleLabel = NULL;lv_obj_t *ui_Settings1LabelLabel10 = NULL;lv_obj_t *ui_Settings1ContainerM4UnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelM4IDNumberTitleLabel = NULL;lv_obj_t *ui_Settings1TextareaM4IDNumberTitleTextArea = NULL;lv_obj_t *ui_Settings1LabelUseJudgeTitleLabel = NULL;lv_obj_t *ui_Settings1SwitchUseJudgeSwitch = NULL;lv_obj_t *ui_Settings1ButtonHelpJudge = NULL;lv_obj_t *ui_Settings1LabelLabel48 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral1 = NULL;lv_obj_t *ui_Settings1SwitchUnitsToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle1 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral2 = NULL;lv_obj_t *ui_Settings1SwitchBenchmarkToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle2 = NULL;lv_obj_t *ui_Settings1ContainerBrightnessSetting = NULL;lv_obj_t *ui_Settings1LabelBrightnessTitle = NULL;lv_obj_t *ui_Settings1SliderBrightnessSlider = NULL;lv_obj_t *ui_Settings1LabelBrightness = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral3 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle3 = NULL;lv_obj_t *ui_Settings1TextareaTrackLengthText = NULL;lv_obj_t *ui_Settings1LabelTrackLengthUnitsTitle = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral4 = NULL;lv_obj_t *ui_Settings1SwitchTachToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach = NULL;lv_obj_t *ui_Settings1LabelLabel11 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral5 = NULL;lv_obj_t *ui_Settings1SwitchLimitToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle5 = NULL;lv_obj_t *ui_Settings1ButtonHelpLimit = NULL;lv_obj_t *ui_Settings1LabelLabel12 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral6 = NULL;lv_obj_t *ui_Settings1SwitchRelaysToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle6 = NULL;lv_obj_t *ui_Settings1ButtonHelpRelay = NULL;lv_obj_t *ui_Settings1LabelLabel13 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral9 = NULL;lv_obj_t *ui_Settings1SwitchRotateScreenToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle8 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral7 = NULL;lv_obj_t *ui_Settings1SwitchHelpIconVisibiltyToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle7 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral8 = NULL;lv_obj_t *ui_Settings1ButtonButton5 = NULL;lv_obj_t *ui_Settings1LabelLabel30 = NULL;lv_obj_t *ui_Settings1TabpageSpeed_and_Distance = NULL;lv_obj_t *ui_Settings1PanelCalibrationNumberPanel = NULL;lv_obj_t *ui_Settings1LabelSpeedandDistanceTitle = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle = NULL;lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea = NULL;lv_obj_t *ui_Settings1ButtonButton4 = NULL;lv_obj_t *ui_Settings1LabelLabel15 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText = NULL;lv_obj_t *ui_Settings1LabelLabel14 = NULL;lv_obj_t *ui_Settings1PanelGearToothCalculatorPanel = NULL;lv_obj_t *ui_Settings1ContainerCalc = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle1 = NULL;lv_obj_t *ui_Settings1LabelLabel17 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel19 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea = NULL;lv_obj_t *ui_Settings1LabelLabel18 = NULL;lv_obj_t *ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea = NULL;lv_obj_t *ui_Settings1LabelGearToothCalculatorPulses = NULL;lv_obj_t *ui_Settings1ButtonCalculateButton = NULL;lv_obj_t *ui_Settings1LabelLabel29 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationCalculatorButton = NULL;lv_obj_t *ui_Settings1LabelLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText1 = NULL;lv_obj_t *ui_Settings1LabelLabel16 = NULL;lv_obj_t *ui_Settings1PanelAutoCalibration = NULL;lv_obj_t *ui_Settings1ContainerCalc1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle2 = NULL;lv_obj_t *ui_Settings1ButtonStartAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel20 = NULL;lv_obj_t *ui_Settings1LabelLabel22 = NULL;lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses = NULL;lv_obj_t *ui_Settings1ButtonFinishAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel23 = NULL;lv_obj_t *ui_Settings1ButtonSaveCalibrationAutoDriveButton = NULL;lv_obj_t *ui_Settings1LabelLabel24 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText2 = NULL;lv_obj_t *ui_Settings1LabelLabel25 = NULL;lv_obj_t *ui_Settings1PanelCalibrationPresetsPanel = NULL;lv_obj_t *ui_Settings1ContainerCalibrationNumber1 = NULL;lv_obj_t *ui_Settings1LabelCalibrationNumberTitle3 = NULL;lv_obj_t *ui_Settings1ButtonButton2 = NULL;lv_obj_t *ui_Settings1LabelLabel26 = NULL;lv_obj_t *ui_Settings1ButtonButton3 = NULL;lv_obj_t *ui_Settings1LabelLabel28 = NULL;lv_obj_t *ui_Settings1ButtonHelpCalibrationNumberText3 = NULL;lv_obj_t *ui_Settings1LabelLabel27 = NULL;lv_obj_t *ui_Settings1TabpageTach = NULL;lv_obj_t *ui_Settings1PanelPanel2 = NULL;lv_obj_t *ui_Settings1ContainerSettingTach1 = NULL;lv_obj_t *ui_Settings1SwitchTachAutoConnectToggle = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle9 = NULL;lv_obj_t *ui_Settings1ButtonTachAutoConnectHelp = NULL;lv_obj_t *ui_Settings1LabelLabel32 = NULL;lv_obj_t *ui_Settings1ContainerContainer19 = NULL;lv_obj_t *ui_Settings1LabelSupportTitle1 = NULL;lv_obj_t *ui_Settings1LabelTSSPairStatus = NULL;lv_obj_t *ui_Settings1ContainerContainer20 = NULL;lv_obj_t *ui_Settings1LabelSupportTitle2 = NULL;lv_obj_t *ui_Settings1LabelTSSPairVersion = NULL;lv_obj_t *ui_Settings1ContainerContainer21 = NULL;lv_obj_t *ui_Settings1LabelSupportTitle3 = NULL;lv_obj_t *ui_Settings1LabelTSSPairMAC = NULL;lv_obj_t *ui_Settings1TabpageAlarmsTabContainer = NULL;lv_obj_t *ui_Settings1PanelPanel3 = NULL;lv_obj_t *ui_Settings1ContainerSettingGeneral10 = NULL;lv_obj_t *ui_Settings1LabelSettingsGeneralTitle10 = NULL;lv_obj_t *ui_Settings1ContainerPresetSelctionButtonGroup = NULL;lv_obj_t *ui_Settings1ButtonPresetButton1 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel1 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton2 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel2 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton3 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel3 = NULL;lv_obj_t *ui_Settings1ButtonPresetButton4 = NULL;lv_obj_t *ui_Settings1LabelPresetButtonLabel4 = NULL;lv_obj_t *ui_Settings1ButtonHelpTach2 = NULL;lv_obj_t *ui_Settings1LabelLabel33 = NULL;lv_obj_t *ui_Settings1ContainerDistanceAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmDistance2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmDistanceToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmDistanceTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmDistanceValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmDistanceColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerSpeedAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmSpeed2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmSpeedToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmSpeedTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmSpeedValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmSpeedColorDropdown2 = NULL;lv_obj_t *ui_Settings1ContainerRPMAlarms = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM1 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle1 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle1 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea1 = NULL;lv_obj_t *ui_Settings1PanelPanel4 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown1 = NULL;lv_obj_t *ui_Settings1ContainerAlarmRPM2 = NULL;lv_obj_t *ui_Settings1SwitchAlarmRPMToggle2 = NULL;lv_obj_t *ui_Settings1LabelAlarmRPMTitle2 = NULL;lv_obj_t *ui_Settings1TextareaAlarmRPMValueTextArea2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMDropdown2 = NULL;lv_obj_t *ui_Settings1DropdownAlarmRPMColorDropdown2 = NULL;lv_obj_t *ui_Settings1TabpageRelays_and_Limits = NULL;lv_obj_t *ui_Settings1PanelConnectionRLM = NULL;lv_obj_t *ui_Settings1ContainerContainer8 = NULL;lv_obj_t *ui_Settings1ContainerContainer9 = NULL;lv_obj_t *ui_Settings1ButtonButton1 = NULL;lv_obj_t *ui_Settings1LabelLabel6 = NULL;lv_obj_t *ui_Settings1LabelLabel7 = NULL;lv_obj_t *ui_Settings1PanelRelayLimitSettings = NULL;lv_obj_t *ui_Settings1ContainerRelaySettings = NULL;lv_obj_t *ui_Settings1LabellblRelays = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableRelay = NULL;lv_obj_t *ui_Settings1SwitchSwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel1 = NULL;lv_obj_t *ui_Settings1Containerrealayversion1 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch1 = NULL;lv_obj_t *ui_Settings1LabelLabel21 = NULL;lv_obj_t *ui_Settings1SwitchSwitch3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown1 = NULL;lv_obj_t *ui_Settings1DropdownDropdown2 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch2 = NULL;lv_obj_t *ui_Settings1LabelLabel5 = NULL;lv_obj_t *ui_Settings1SwitchSwitch2 = NULL;lv_obj_t *ui_Settings1DropdownDropdown3 = NULL;lv_obj_t *ui_Settings1DropdownDropdown4 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch3 = NULL;lv_obj_t *ui_Settings1LabelLabel8 = NULL;lv_obj_t *ui_Settings1SwitchSwitch5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown5 = NULL;lv_obj_t *ui_Settings1DropdownDropdown6 = NULL;lv_obj_t *ui_Settings1ContainercontainterRelaySwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel9 = NULL;lv_obj_t *ui_Settings1SwitchSwitch6 = NULL;lv_obj_t *ui_Settings1DropdownDropdown7 = NULL;lv_obj_t *ui_Settings1DropdownDropdown8 = NULL;lv_obj_t *ui_Settings1ContainercontainerLimitSettings = NULL;lv_obj_t *ui_Settings1LabelLabel2 = NULL;lv_obj_t *ui_Settings1ContainercontainerEnableLimit = NULL;lv_obj_t *ui_Settings1SwitchSwitch4 = NULL;lv_obj_t *ui_Settings1LabelLabel3 = NULL;lv_obj_t *ui_Settings1PanelPanel1 = NULL;lv_obj_t *ui_Settings1TabpageJudge = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeMCUPanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips = NULL;lv_obj_t *ui_Settings1LabelLabel54 = NULL;lv_obj_t *ui_Settings1LabelLabel53 = NULL;lv_obj_t *ui_Settings1PanelSettingJudgeJudgePanel = NULL;lv_obj_t *ui_Settings1LabelJudgeSettingTips1 = NULL;lv_obj_t *ui_Settings1ContainerContainer10 = NULL;lv_obj_t *ui_Settings1ContainerJudgeUnitNumberContainer = NULL;lv_obj_t *ui_Settings1LabelHostMCUID = NULL;lv_obj_t *ui_Settings1TextareaHostMCUID1 = NULL;lv_obj_t *ui_Settings1ButtonButton8 = NULL;lv_obj_t *ui_Settings1LabelLabel50 = NULL;lv_obj_t *ui_Settings1ButtonHelpJudgeTargetMCU = NULL;lv_obj_t *ui_Settings1LabelLabel49 = NULL;lv_obj_t *ui_Settings1LabelHelperTextTargetMCU = NULL;lv_obj_t *ui_Settings1ContainerContainer18 = NULL;lv_obj_t *ui_Settings1LabelLabel51 = NULL;lv_obj_t *ui_Settings1LabelLabel52 = NULL;lv_obj_t *ui_Settings1TabpageSafety_and_Displays = NULL;lv_obj_t *ui_Settings1PanelConnectionRemotes = NULL;lv_obj_t *ui_Settings1ContainerContainer3 = NULL;lv_obj_t *ui_Settings1ContainerContainer1 = NULL;lv_obj_t *ui_Settings1ButtonButton7 = NULL;lv_obj_t *ui_Settings1LabelLabel36 = NULL;lv_obj_t *ui_Settings1LabelLabel31 = NULL;lv_obj_t *ui_Settings1ButtonHelpPairDisplays = NULL;lv_obj_t *ui_Settings1LabelLabel34 = NULL;lv_obj_t *ui_Settings1PanelDeviceTable = NULL;lv_obj_t *ui_Settings1ContainerTable = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableHeader = NULL;lv_obj_t *ui_Settings1ContainerContainer13 = NULL;lv_obj_t *ui_Settings1LabelLabel35 = NULL;lv_obj_t *ui_Settings1ContainerContainer2 = NULL;lv_obj_t *ui_Settings1LabelLabel37 = NULL;lv_obj_t *ui_Settings1ContainerContainer4 = NULL;lv_obj_t *ui_Settings1LabelLabel38 = NULL;lv_obj_t *ui_Settings1ContainerContainer5 = NULL;lv_obj_t *ui_Settings1LabelLabel39 = NULL;lv_obj_t *ui_Settings1ContainerContainer6 = NULL;lv_obj_t *ui_Settings1LabelLabel40 = NULL;lv_obj_t *ui_Settings1ContainerContainer7 = NULL;lv_obj_t *ui_Settings1LabelLabel41 = NULL;lv_obj_t *ui_Settings1ContainerDeviceTableRow1 = NULL;lv_obj_t *ui_Settings1ContainerTypeRow1 = NULL;lv_obj_t *ui_Settings1LabelLabel42 = NULL;lv_obj_t *ui_Settings1ContainerContainer12 = NULL;lv_obj_t *ui_Settings1LabelLabel43 = NULL;lv_obj_t *ui_Settings1ContainerContainer14 = NULL;lv_obj_t *ui_Settings1LabelLabel44 = NULL;lv_obj_t *ui_Settings1ContainerContainer15 = NULL;lv_obj_t *ui_Settings1LabelLabel45 = NULL;lv_obj_t *ui_Settings1ContainerContainer16 = NULL;lv_obj_t *ui_Settings1LabelLabel46 = NULL;lv_obj_t *ui_Settings1ContainerContainer17 = NULL;lv_obj_t *ui_Settings1LabelLabel47 = NULL;lv_obj_t *ui_Settings1TabpageAbout = NULL;lv_obj_t *ui_Settings1PanelAboutInfo = NULL;lv_obj_t *ui_Settings1LabelAboutTitle = NULL;lv_obj_t *ui_Settings1LabelVersionTitle = NULL;lv_obj_t *ui_Settings1LabelVersionData = NULL;lv_obj_t *ui_Settings1LabelBuildDateTitle = NULL;lv_obj_t *ui_Settings1LabelBuildDateData = NULL;lv_obj_t *ui_Settings1LabelDevelopedByTitle = NULL;lv_obj_t *ui_Settings1LabelDevelopedByData = NULL;lv_obj_t *ui_Settings1LabelInfoTitle = NULL;lv_obj_t *ui_Settings1LabelInfoData = NULL;lv_obj_t *ui_Settings1LabelSupportTitle = NULL;lv_obj_t *ui_Settings1LabelSupportData = NULL;lv_obj_t *ui_Settings1LabelCopyrightData = NULL;lv_obj_t *ui_Settings1TabpageExit = NULL;lv_obj_t *ui_Settings1LabelBountyMessage = NULL;lv_obj_t *ui_Settings1ButtonReturnHome = NULL;lv_obj_t *ui_Settings1LabelButtonReturnHome = NULL;lv_obj_t *ui_Settings1ContainerContainer11 = NULL;lv_obj_t *ui_Settings1KeyboardSettingsNumberKeyboard = NULL;lv_obj_t *ui_Settings1KeyboardSettingsHexKeyboard = NULL;
 // event funtions
 void ui_event_ScreenSettings1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -759,12 +762,12 @@ if ( event_code == LV_EVENT_VALUE_CHANGED) {
 }
 }
 
-void ui_event_Settings1TextareaTargetMCUID1( lv_event_t * e) {
+void ui_event_Settings1TextareaHostMCUID1( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
 
 if ( event_code == LV_EVENT_CLICKED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_REMOVE);
-      _ui_keyboard_set_target(ui_Settings1KeyboardSettingsNumberKeyboard,  ui_Settings1TextareaTargetMCUID1);
+      _ui_keyboard_set_target(ui_Settings1KeyboardSettingsNumberKeyboard,  ui_Settings1TextareaHostMCUID1);
 }
 if ( event_code == LV_EVENT_DEFOCUSED) {
       _ui_flag_modify( ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
@@ -1827,7 +1830,7 @@ ui_Settings1PanelPanel2 = lv_obj_create(ui_Settings1TabpageTach);
 lv_obj_set_width( ui_Settings1PanelPanel2, lv_pct(100));
 lv_obj_set_height( ui_Settings1PanelPanel2, lv_pct(100));
 lv_obj_set_align( ui_Settings1PanelPanel2, LV_ALIGN_CENTER );
-lv_obj_set_flex_flow(ui_Settings1PanelPanel2,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_flow(ui_Settings1PanelPanel2,LV_FLEX_FLOW_COLUMN);
 lv_obj_set_flex_align(ui_Settings1PanelPanel2, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_Settings1PanelPanel2, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
@@ -1881,6 +1884,69 @@ lv_obj_set_height( ui_Settings1LabelLabel32, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1LabelLabel32, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Settings1LabelLabel32,"?");
 lv_obj_set_style_text_font(ui_Settings1LabelLabel32, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Settings1ContainerContainer19 = lv_obj_create(ui_Settings1PanelPanel2);
+lv_obj_remove_style_all(ui_Settings1ContainerContainer19);
+lv_obj_set_width( ui_Settings1ContainerContainer19, lv_pct(100));
+lv_obj_set_height( ui_Settings1ContainerContainer19, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1ContainerContainer19, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerContainer19,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerContainer19, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1ContainerContainer19, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelSupportTitle1 = lv_label_create(ui_Settings1ContainerContainer19);
+lv_obj_set_width( ui_Settings1LabelSupportTitle1, lv_pct(24));
+lv_obj_set_height( ui_Settings1LabelSupportTitle1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelSupportTitle1, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelSupportTitle1,"Pair Status:");
+
+ui_Settings1LabelTSSPairStatus = lv_label_create(ui_Settings1ContainerContainer19);
+lv_obj_set_width( ui_Settings1LabelTSSPairStatus, lv_pct(73));
+lv_obj_set_height( ui_Settings1LabelTSSPairStatus, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelTSSPairStatus, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelTSSPairStatus,"Not Connected");
+
+ui_Settings1ContainerContainer20 = lv_obj_create(ui_Settings1PanelPanel2);
+lv_obj_remove_style_all(ui_Settings1ContainerContainer20);
+lv_obj_set_width( ui_Settings1ContainerContainer20, lv_pct(100));
+lv_obj_set_height( ui_Settings1ContainerContainer20, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1ContainerContainer20, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerContainer20,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerContainer20, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1ContainerContainer20, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelSupportTitle2 = lv_label_create(ui_Settings1ContainerContainer20);
+lv_obj_set_width( ui_Settings1LabelSupportTitle2, lv_pct(24));
+lv_obj_set_height( ui_Settings1LabelSupportTitle2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelSupportTitle2, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelSupportTitle2,"Pair Tach Version:");
+
+ui_Settings1LabelTSSPairVersion = lv_label_create(ui_Settings1ContainerContainer20);
+lv_obj_set_width( ui_Settings1LabelTSSPairVersion, lv_pct(73));
+lv_obj_set_height( ui_Settings1LabelTSSPairVersion, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelTSSPairVersion, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelTSSPairVersion,"Not Connected");
+
+ui_Settings1ContainerContainer21 = lv_obj_create(ui_Settings1PanelPanel2);
+lv_obj_remove_style_all(ui_Settings1ContainerContainer21);
+lv_obj_set_width( ui_Settings1ContainerContainer21, lv_pct(100));
+lv_obj_set_height( ui_Settings1ContainerContainer21, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1ContainerContainer21, LV_ALIGN_CENTER );
+lv_obj_set_flex_flow(ui_Settings1ContainerContainer21,LV_FLEX_FLOW_ROW);
+lv_obj_set_flex_align(ui_Settings1ContainerContainer21, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+lv_obj_clear_flag( ui_Settings1ContainerContainer21, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
+ui_Settings1LabelSupportTitle3 = lv_label_create(ui_Settings1ContainerContainer21);
+lv_obj_set_width( ui_Settings1LabelSupportTitle3, lv_pct(24));
+lv_obj_set_height( ui_Settings1LabelSupportTitle3, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelSupportTitle3, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelSupportTitle3,"Pair Tach MAC:");
+
+ui_Settings1LabelTSSPairMAC = lv_label_create(ui_Settings1ContainerContainer21);
+lv_obj_set_width( ui_Settings1LabelTSSPairMAC, lv_pct(73));
+lv_obj_set_height( ui_Settings1LabelTSSPairMAC, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_Settings1LabelTSSPairMAC, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelTSSPairMAC,"Not Connected");
 
 ui_Settings1TabpageAlarmsTabContainer = lv_tabview_add_tab(ui_Settings1TabviewSettingsView, "Alarms");
 lv_obj_clear_flag( ui_Settings1TabpageAlarmsTabContainer, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
@@ -2899,26 +2965,26 @@ lv_obj_set_style_pad_bottom(ui_Settings1ContainerJudgeUnitNumberContainer, 0, LV
 lv_obj_set_style_pad_row(ui_Settings1ContainerJudgeUnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_column(ui_Settings1ContainerJudgeUnitNumberContainer, 15, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1LabelTargetMCUID = lv_label_create(ui_Settings1ContainerJudgeUnitNumberContainer);
-lv_obj_set_width( ui_Settings1LabelTargetMCUID, 253);
-lv_obj_set_height( ui_Settings1LabelTargetMCUID, LV_SIZE_CONTENT);   /// 50
-lv_obj_set_x( ui_Settings1LabelTargetMCUID, -234 );
-lv_obj_set_y( ui_Settings1LabelTargetMCUID, 0 );
-lv_obj_set_align( ui_Settings1LabelTargetMCUID, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Settings1LabelTargetMCUID,"Target MCU ID");
-lv_obj_clear_flag( ui_Settings1LabelTargetMCUID, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
-lv_obj_set_style_text_font(ui_Settings1LabelTargetMCUID, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_Settings1LabelHostMCUID = lv_label_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1LabelHostMCUID, 253);
+lv_obj_set_height( ui_Settings1LabelHostMCUID, LV_SIZE_CONTENT);   /// 50
+lv_obj_set_x( ui_Settings1LabelHostMCUID, -234 );
+lv_obj_set_y( ui_Settings1LabelHostMCUID, 0 );
+lv_obj_set_align( ui_Settings1LabelHostMCUID, LV_ALIGN_CENTER );
+lv_label_set_text(ui_Settings1LabelHostMCUID,"Host MCU ID");
+lv_obj_clear_flag( ui_Settings1LabelHostMCUID, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+lv_obj_set_style_text_font(ui_Settings1LabelHostMCUID, &lv_font_montserrat_16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Settings1TextareaTargetMCUID1 = lv_textarea_create(ui_Settings1ContainerJudgeUnitNumberContainer);
-lv_obj_set_width( ui_Settings1TextareaTargetMCUID1, 167);
-lv_obj_set_height( ui_Settings1TextareaTargetMCUID1, LV_SIZE_CONTENT);   /// 70
-lv_obj_set_x( ui_Settings1TextareaTargetMCUID1, -340 );
-lv_obj_set_y( ui_Settings1TextareaTargetMCUID1, 0 );
-lv_obj_set_align( ui_Settings1TextareaTargetMCUID1, LV_ALIGN_RIGHT_MID );
-lv_textarea_set_text(ui_Settings1TextareaTargetMCUID1,"24");
-lv_textarea_set_placeholder_text(ui_Settings1TextareaTargetMCUID1,"Unit Number");
-lv_textarea_set_one_line(ui_Settings1TextareaTargetMCUID1,true);
-lv_obj_clear_flag( ui_Settings1TextareaTargetMCUID1, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
+ui_Settings1TextareaHostMCUID1 = lv_textarea_create(ui_Settings1ContainerJudgeUnitNumberContainer);
+lv_obj_set_width( ui_Settings1TextareaHostMCUID1, 167);
+lv_obj_set_height( ui_Settings1TextareaHostMCUID1, LV_SIZE_CONTENT);   /// 70
+lv_obj_set_x( ui_Settings1TextareaHostMCUID1, -340 );
+lv_obj_set_y( ui_Settings1TextareaHostMCUID1, 0 );
+lv_obj_set_align( ui_Settings1TextareaHostMCUID1, LV_ALIGN_RIGHT_MID );
+lv_textarea_set_text(ui_Settings1TextareaHostMCUID1,"24");
+lv_textarea_set_placeholder_text(ui_Settings1TextareaHostMCUID1,"Unit Number");
+lv_textarea_set_one_line(ui_Settings1TextareaHostMCUID1,true);
+lv_obj_clear_flag( ui_Settings1TextareaHostMCUID1, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
 
 ui_Settings1ButtonButton8 = lv_btn_create(ui_Settings1ContainerJudgeUnitNumberContainer);
 lv_obj_set_width( ui_Settings1ButtonButton8, 155);
@@ -3574,7 +3640,7 @@ lv_obj_add_event_cb(ui_Settings1SwitchAlarmRPMToggle2, ui_event_Settings1SwitchA
 lv_obj_add_event_cb(ui_Settings1TextareaAlarmRPMValueTextArea2, ui_event_Settings1TextareaAlarmRPMValueTextArea2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMDropdown2, ui_event_Settings1DropdownAlarmRPMDropdown2, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1DropdownAlarmRPMColorDropdown2, ui_event_Settings1DropdownAlarmRPMColorDropdown2, LV_EVENT_ALL, NULL);
-lv_obj_add_event_cb(ui_Settings1TextareaTargetMCUID1, ui_event_Settings1TextareaTargetMCUID1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_Settings1TextareaHostMCUID1, ui_event_Settings1TextareaHostMCUID1, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonHelpJudgeTargetMCU, ui_event_Settings1ButtonHelpJudgeTargetMCU, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonButton7, ui_event_Settings1ButtonButton7, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_Settings1ButtonHelpPairDisplays, ui_event_Settings1ButtonHelpPairDisplays, LV_EVENT_ALL, NULL);
@@ -3611,6 +3677,9 @@ uic_Settings1TextareaCalibrationCalculatorGearRatioTextArea = ui_Settings1Textar
 uic_Settings1ButtonCalculateButton = ui_Settings1ButtonCalculateButton;
 uic_Settings1SwitchTachAutoConnectToggle = ui_Settings1SwitchTachAutoConnectToggle;
 uic_Settings1ButtonTachAutoConnectHelp = ui_Settings1ButtonTachAutoConnectHelp;
+uic_Settings1LabelTSSPairStatus = ui_Settings1LabelTSSPairStatus;
+uic_Settings1LabelTSSPairVersion = ui_Settings1LabelTSSPairVersion;
+uic_Settings1LabelTSSPairMAC = ui_Settings1LabelTSSPairMAC;
 uic_AlarmsTabContainer = ui_Settings1TabpageAlarmsTabContainer;
 uic_PresetSelctionButtonGroup = ui_Settings1ContainerPresetSelctionButtonGroup;
 uic_Settings1ButtonPresetButton1 = ui_Settings1ButtonPresetButton1;
@@ -3636,8 +3705,8 @@ uic_Settings1ContainercontainerEnableLimit = ui_Settings1ContainercontainerEnabl
 uic_Settings1PanelSettingJudgeMCUPanel = ui_Settings1PanelSettingJudgeMCUPanel;
 uic_Settings1LabelJudgeSettingTips = ui_Settings1LabelJudgeSettingTips;
 uic_Settings1PanelSettingJudgeJudgePanel = ui_Settings1PanelSettingJudgeJudgePanel;
-uic_Settings1LabelTargetMCUID = ui_Settings1LabelTargetMCUID;
-uic_Settings1TextareaTargetMCUID1 = ui_Settings1TextareaTargetMCUID1;
+uic_Settings1LabelHostMCUID = ui_Settings1LabelHostMCUID;
+uic_Settings1TextareaHostMCUID1 = ui_Settings1TextareaHostMCUID1;
 uic_Settings1ButtonHelpJudgeTargetMCU = ui_Settings1ButtonHelpJudgeTargetMCU;
 uic_Settings1LabelHelperTextTargetMCU = ui_Settings1LabelHelperTextTargetMCU;
 uic_Settings1PanelDeviceTable = ui_Settings1PanelDeviceTable;
@@ -3798,6 +3867,18 @@ ui_Settings1LabelSettingsGeneralTitle9= NULL;
 uic_Settings1ButtonTachAutoConnectHelp= NULL;
 ui_Settings1ButtonTachAutoConnectHelp= NULL;
 ui_Settings1LabelLabel32= NULL;
+ui_Settings1ContainerContainer19= NULL;
+ui_Settings1LabelSupportTitle1= NULL;
+uic_Settings1LabelTSSPairStatus= NULL;
+ui_Settings1LabelTSSPairStatus= NULL;
+ui_Settings1ContainerContainer20= NULL;
+ui_Settings1LabelSupportTitle2= NULL;
+uic_Settings1LabelTSSPairVersion= NULL;
+ui_Settings1LabelTSSPairVersion= NULL;
+ui_Settings1ContainerContainer21= NULL;
+ui_Settings1LabelSupportTitle3= NULL;
+uic_Settings1LabelTSSPairMAC= NULL;
+ui_Settings1LabelTSSPairMAC= NULL;
 uic_AlarmsTabContainer= NULL;
 ui_Settings1TabpageAlarmsTabContainer= NULL;
 ui_Settings1PanelPanel3= NULL;
@@ -3927,10 +4008,10 @@ ui_Settings1PanelSettingJudgeJudgePanel= NULL;
 ui_Settings1LabelJudgeSettingTips1= NULL;
 ui_Settings1ContainerContainer10= NULL;
 ui_Settings1ContainerJudgeUnitNumberContainer= NULL;
-uic_Settings1LabelTargetMCUID= NULL;
-ui_Settings1LabelTargetMCUID= NULL;
-uic_Settings1TextareaTargetMCUID1= NULL;
-ui_Settings1TextareaTargetMCUID1= NULL;
+uic_Settings1LabelHostMCUID= NULL;
+ui_Settings1LabelHostMCUID= NULL;
+uic_Settings1TextareaHostMCUID1= NULL;
+ui_Settings1TextareaHostMCUID1= NULL;
 ui_Settings1ButtonButton8= NULL;
 ui_Settings1LabelLabel50= NULL;
 uic_Settings1ButtonHelpJudgeTargetMCU= NULL;

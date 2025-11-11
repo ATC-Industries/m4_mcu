@@ -1,5 +1,6 @@
 #include "M4CommsHelpers.h"
 #include "AlarmManager.h"
+#include "TachClient.h"
 
 #include "../ui/ui.h"
 
@@ -28,69 +29,102 @@ bool isInPull = false;
 VERSION pairedTractorVersion = {0, 0, 0};
 VERSION pairedRemoteVersion = {0, 0, 0};
 
-void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
-                       uint8_t len, int rssi, bool broadcast) {
-  M4Message message;
-  memcpy(&message, incomingData, sizeof(message));
+#include "TachClient.h"
+#include <ArduinoJson.h>
 
-  JsonDocument doc;
+// If your M4Message is larger than payload+header, adjust these checks
+static_assert(sizeof(M4Message) <= 256, "M4Message unexpectedly large");
 
-  auto error = deserializeJson(doc, message.payload);
-  if (error) {
-    Serial.print("deserializeJson() failed: ");
-    Serial.println(error.c_str());
+void onMessageReceived(uint8_t *senderAddress,
+                       uint8_t *incomingData,
+                       uint8_t len,
+                       int rssi,
+                       bool broadcast) {
+  LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
+  // 1) Basic frame guard
+  if (!incomingData || len < sizeof(M4Message)) {
+    LOGE("[M4CommsHelpers] Invalid incoming data: Bad frame size");
     return;
   }
 
-  Serial.print("Received message: ");
-  Serial.println(message.payload);
+  // 2) Copy the raw struct safely
+  M4Message message;
+  memcpy(&message, incomingData, sizeof(M4Message));
 
-  action_type action = doc["action"].is<int>() ? static_cast<action_type>(doc["action"].as<int>()) : NO_ACTION;
-  float value = doc["value"].is<float>() ? doc["value"].as<float>() : 0.0f;
-  const char* unit = doc["unit"].is<const char*>() ? doc["unit"].as<const char*>() : "";
+  // 3) Parse JSON payload
+  // Tune capacity to your payload size. 256 is safe for small messages.
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, message.payload);
+  if (error) {
+    LOGE("[M4CommsHelpers] deserializeJson() failed: %s", error.c_str());
+    return;
+  }
 
+  // 4) Extract fields defensively
+  action_type action = doc["action"].is<int>()
+                         ? static_cast<action_type>(doc["action"].as<int>())
+                         : NO_ACTION;
+
+  // value/unit are optional in most frames
+  const bool hasValue = doc["value"].is<float>();
+  const float value   = hasValue ? doc["value"].as<float>() : 0.0f;
+
+  LOGI("[M4CommsHelpers] Received message: action=%d, value=%.2f, from %02X:%02X:%02X:%02X:%02X:%02X, rssi=%d, broadcast=%d",
+       static_cast<int>(action),
+       value,
+       senderAddress[0], senderAddress[1], senderAddress[2],
+       senderAddress[3], senderAddress[4], senderAddress[5],
+       rssi,
+       broadcast ? 1 : 0);
+
+  // 6) Handle the rest of your protocol
   switch (action) {
-    case PAIRING_RESPONSE:
-      processPairingResponse(senderAddress, rssi);
+    case PAIRING_RESPONSE: {
+      LOGI("[M4CommsHelpers] PAIRING_RESPONSE case triggered");
+      Tach::onPairingResponse(senderAddress, rssi);
       break;
-    case PAIRING_REMOTE_RESPONSE:
+    }
+
+    case PAIRING_REMOTE_RESPONSE: {
       processPairingRemoteResponse(senderAddress);
       break;
-    case SEND_RPM:
+    }
+
+    case SEND_RPM: {
       processSendRPM(value, rssi);
       if (doc["version"].is<JsonObject>()) {
-        JsonObjectConst versionObj = doc["version"].as<JsonObjectConst>();
+        JsonObjectConst v = doc["version"].as<JsonObjectConst>();
         updateVersion(
           pairedTractorVersion,
-          versionObj["major"].is<int>() ? versionObj["major"].as<int>() : 0,
-          versionObj["minor"].is<int>() ? versionObj["minor"].as<int>() : 0,
-          versionObj["patch"].is<int>() ? versionObj["patch"].as<int>() : 0
+          v["major"].is<int>() ? v["major"].as<int>() : 0,
+          v["minor"].is<int>() ? v["minor"].as<int>() : 0,
+          v["patch"].is<int>() ? v["patch"].as<int>() : 0
         );
       }
       break;
-    case REMOTE_ACK:
+    }
+
+    case REMOTE_ACK: {
       processRemoteAck(rssi);
       if (doc["version"].is<JsonObject>()) {
-        JsonObjectConst versionObj = doc["version"].as<JsonObjectConst>();
+        JsonObjectConst v = doc["version"].as<JsonObjectConst>();
         updateVersion(
           pairedRemoteVersion,
-          versionObj["major"].is<int>() ? versionObj["major"].as<int>() : 0,
-          versionObj["minor"].is<int>() ? versionObj["minor"].as<int>() : 0,
-          versionObj["patch"].is<int>() ? versionObj["patch"].as<int>() : 0
+          v["major"].is<int>() ? v["major"].as<int>() : 0,
+          v["minor"].is<int>() ? v["minor"].as<int>() : 0,
+          v["patch"].is<int>() ? v["patch"].as<int>() : 0
         );
       }
       break;
-    case SEND_REMOTE_VALUE:
-      // This could be two things. but likly if the MCU is getting this message it is on broadcast.  
-      // Need to check if this MCU is in judge stand mode. If not the ignore.
-      // Need to check if Host MCU ID matches the value in message under "M4ID"
-      // If it is then that means we need to update all the state with the things we did in the broadcastJudgeStandState() function.
-      if( StateManager::getJudgeMode() ) {
+    }
+
+    case SEND_REMOTE_VALUE: {
+      // Judge Stand fan-out
+      if (StateManager::getJudgeMode()) {
         int m4id = doc["M4ID"].is<int>() ? doc["M4ID"].as<int>() : -1;
-        if( m4id == StateManager::getHostM4ID() ) {
-          // Update all the state values.
+        if (m4id == StateManager::getHostM4ID()) {
           bool pulling = doc["isPulling"].is<bool>() ? doc["isPulling"].as<bool>() : false;
-          //StateManager::setIsInPull(pulling);
+          // StateManager::setIsInPull(pulling);   // uncomment when you add it
 
           float distance = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
           StateManager::setDistance(distance);
@@ -98,16 +132,21 @@ void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
           float speed = doc["speed"].is<float>() ? doc["speed"].as<float>() : 0.0f;
           StateManager::setSpeed(speed);
 
+          // RPM here is broadcast from the host. TachClient already updates RPM from TSS.
+          // If Judge Mode should override, keep this. Otherwise, remove it.
           float rpm = doc["rpm"].is<float>() ? doc["rpm"].as<float>() : 0.0f;
           StateManager::setRPM(rpm);
         }
       }
       break;
+    }
+
     default:
       Serial.println("Unknown action received.");
       break;
   }
 }
+
 void formatMACAddress(char *macStr, const uint8_t *macAddress) {
   sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", macAddress[0], macAddress[1],
           macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
@@ -127,28 +166,6 @@ void updateDisplayWithMAC(uint8_t *macAddress, lv_obj_t *btn, lv_obj_t *label) {
   }
 }
 
-void processPairingResponse(uint8_t *senderAddress, int rssi) {
-  if (isPairing && rssi > pairedTractorRSSI) {
-    char macStr[18];
-    formatMACAddress(macStr, senderAddress);
-    Serial.println("Action: PAIRING_RESPONSE");
-    Serial.print("Found a closer tractor (Sender Address): ");
-    Serial.println(macStr);
-
-    memcpy(pairedTractorAddress, senderAddress, 6);
-    StateManager::setPairedTractorAddress(senderAddress);
-    pairedTractorRSSI = rssi;
-    //peakRPM = 0.00;
-    StateManager::resetMaxRPM();
-
-    formatMACAddress(macStr, pairedTractorAddress);
-    Serial.print("New paired tractor (pairedTractorAddress): ");
-    Serial.println(macStr);
-
-    Serial.print("New paired tractor with RSSI: ");
-    Serial.println(pairedTractorRSSI);
-  }
-}
 
 void processPairingRemoteResponse(uint8_t *senderAddress) {
   char macStr[18];
@@ -159,9 +176,9 @@ void processPairingRemoteResponse(uint8_t *senderAddress) {
 
 void processSendRPM(const float value, int rssi) {
   StateManager::setRPM(value);
-  pairedTractorRSSI = rssi;
-  isTractorConnected = true;
-  isTractorConnectedMillis = millis();
+  Tach::state.pairedTSSRSSI = rssi;
+  Tach::state.isTSSConnected = true;
+  LOGI("[Tach] RPM updated to %.2f from TSS with RSSI %d", value, rssi);
 }
 
 void processRemoteAck(int rssi) {

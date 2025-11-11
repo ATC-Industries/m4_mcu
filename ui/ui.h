@@ -31,6 +31,8 @@ extern lv_obj_t *ui_Startevents___initial_actions0;
 LV_IMG_DECLARE( ui_img_iconsettings44px_png);   // assets/iconSettings44px.png
 LV_IMG_DECLARE( ui_img_table_helemet_42x42_png);   // assets/table_helemet_42x42.png
 LV_IMG_DECLARE( ui_img_iconchangedriver44px_png);   // assets/iconChangeDriver44px.png
+LV_IMG_DECLARE( ui_img_wifi_png);   // assets/wifi.png
+LV_IMG_DECLARE( ui_img_929997142);   // assets/wifi-no.png
 
 // FONTS
 LV_FONT_DECLARE( ui_font_BIO_BOLDITALIC_10);
