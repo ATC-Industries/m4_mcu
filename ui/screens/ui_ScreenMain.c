@@ -33,12 +33,16 @@ lv_obj_t *uic_MainPanelLimitIndicatorIcon1;
 lv_obj_t *uic_MainContainerLimit;
 lv_obj_t *uic_MainLabelSpeedUnit;
 lv_obj_t *uic_MainLabelSpeedValue;
+lv_obj_t *uic_MainLabelInidNumberSpeed2;
 lv_obj_t *uic_MainPanelSpeedAlarmIndicatorIcon2;
+lv_obj_t *uic_MainLabelInidNumberSpeed1;
 lv_obj_t *uic_MainPanelSpeedAlarmIndicatorIcon1;
 lv_obj_t *uic_MainLabelSpeedTitle;
 lv_obj_t *uic_MainLabelTachUnit;
 lv_obj_t *uic_MainLabelTachValue;
+lv_obj_t *uic_MainLabelInidNumberRPM1;
 lv_obj_t *uic_MainPanelTachAlarmIndicatorIcon1;
+lv_obj_t *uic_MainLabelInidNumberRPM2;
 lv_obj_t *uic_MainPanelTachAlarmIndicatorIcon2;
 lv_obj_t *uic_MainImagetachConnNo;
 lv_obj_t *uic_MainImagetachConn;
@@ -58,7 +62,7 @@ lv_obj_t *uic_MainContainerM4UnitIDContainer;
 lv_obj_t *uic_MainButtonSettings;
 lv_obj_t *uic_MainLabelClassName;
 lv_obj_t *uic_ScreenMain;
-lv_obj_t *ui_ScreenMain = NULL;lv_obj_t *ui_MainContainerMainContainer = NULL;lv_obj_t *ui_MainContainerTop = NULL;lv_obj_t *ui_MainContainerHeader = NULL;lv_obj_t *ui_MainContainerClass = NULL;lv_obj_t *ui_MainContainerClassNameLabel = NULL;lv_obj_t *ui_MainLabelClassName = NULL;lv_obj_t *ui_MainContainerSettingsButton = NULL;lv_obj_t *ui_MainButtonSettings = NULL;lv_obj_t *ui_MainContainerM4IDNumberContainer = NULL;lv_obj_t *ui_MainLabelM4IDNumberLabel = NULL;lv_obj_t *ui_MainContainerAlarmPresetContainer = NULL;lv_obj_t *ui_MainLabelAlarmPresetLable = NULL;lv_obj_t *ui_MainContainerDriver = NULL;lv_obj_t *ui_MainButtonButton6 = NULL;lv_obj_t *ui_MainContainerDriverTitleLabel = NULL;lv_obj_t *ui_MainLabelDriverTitle = NULL;lv_obj_t *ui_MainLabelDriverNumber = NULL;lv_obj_t *ui_MainContainerDriverNameLabel = NULL;lv_obj_t *ui_MainLabelDriverName = NULL;lv_obj_t *ui_MainContainerDriverChangeButton = NULL;lv_obj_t *ui_MainButtonDriverChange = NULL;lv_obj_t *ui_MainContainerDistance = NULL;lv_obj_t *ui_MainLabelDistanceValue = NULL;lv_obj_t *ui_MainLabelDistanceUnit = NULL;lv_obj_t *ui_MainContainerMid = NULL;lv_obj_t *ui_MainContainerTach = NULL;lv_obj_t *ui_MainContainerTachTitleLabel = NULL;lv_obj_t *ui_MainContainerTachTitleSpacer = NULL;lv_obj_t *ui_MainLabelTachTitle = NULL;lv_obj_t *ui_MainContainertachTractorConnectedIconContainer = NULL;lv_obj_t *ui_MainImagetachConn = NULL;lv_obj_t *ui_MainImagetachConnNo = NULL;lv_obj_t *ui_MainContainerTachData = NULL;lv_obj_t *ui_MainContainerTachAlarmIndicator = NULL;lv_obj_t *ui_MainPanelMainPanelTachAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainPanelTachAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelTachValue = NULL;lv_obj_t *ui_MainLabelTachUnit = NULL;lv_obj_t *ui_MainContainerSpeed = NULL;lv_obj_t *ui_MainContainerSpeedTitleLabel = NULL;lv_obj_t *ui_MainLabelSpeedTitle = NULL;lv_obj_t *ui_MainContainerSpeedData = NULL;lv_obj_t *ui_MainContainerSpeedAlarmIndicator = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelSpeedValue = NULL;lv_obj_t *ui_MainLabelSpeedUnit = NULL;lv_obj_t *ui_MainContainerBottom = NULL;lv_obj_t *ui_MainContainerLimit = NULL;lv_obj_t *ui_MainContainerLimitTitleLabel = NULL;lv_obj_t *ui_MainLabelLimitTitle = NULL;lv_obj_t *ui_MainContainerLimitData = NULL;lv_obj_t *ui_MainContainerLimitIndicators1 = NULL;lv_obj_t *ui_MainLabelLimitIndicator1 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerLimitIndicators2 = NULL;lv_obj_t *ui_MainLabelLimitIndicator2 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerPullStateControls = NULL;lv_obj_t *ui_MainContainerStateREADY = NULL;lv_obj_t *ui_MainButtonREADYStage = NULL;lv_obj_t *ui_MainLabelButtonStage = NULL;lv_obj_t *ui_MainContainerStateSTAGED = NULL;lv_obj_t *ui_MainButtonSTAGEDCancel = NULL;lv_obj_t *ui_MainLabelButtonStaged = NULL;lv_obj_t *ui_MainLabelButtonStagedCancel = NULL;lv_obj_t *ui_MainContainerStatePULLING = NULL;lv_obj_t *ui_MainButtonPULLINGStop = NULL;lv_obj_t *ui_MainLabelButtonStop = NULL;lv_obj_t *ui_MainContainerStatePULLEND = NULL;lv_obj_t *ui_MainButtonPULLENDDiscard = NULL;lv_obj_t *ui_MainLabelButtonStage1 = NULL;lv_obj_t *ui_MainButtonPULLENDSave = NULL;lv_obj_t *ui_MainLabelButtonStaged2 = NULL;lv_obj_t *ui_MainContainerStateEMERGENCYSTOP = NULL;lv_obj_t *ui_MainButtonPULLINGStop1 = NULL;lv_obj_t *ui_MainLabelButtonStop1 = NULL;lv_obj_t *ui_MainContainerRelays = NULL;lv_obj_t *ui_MainContainerRelaysTitleLabel = NULL;lv_obj_t *ui_MainLabelRelaysTitle = NULL;lv_obj_t *ui_MainContainerRelaysData = NULL;lv_obj_t *ui_MainContainerRelayIndicators1 = NULL;lv_obj_t *ui_MainLabelRelayIndicator1 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerRelayIndicators2 = NULL;lv_obj_t *ui_MainLabelRelayIndicator2 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerRelayIndicators3 = NULL;lv_obj_t *ui_MainLabelRelayIndicator3 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon3 = NULL;lv_obj_t *ui_MainContainerRelayIndicators4 = NULL;lv_obj_t *ui_MainLabelRelayIndicator4 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon4 = NULL;lv_obj_t *ui_MainContainerDistanceProgression = NULL;lv_obj_t *ui_MainContainerRaceFlag = NULL;lv_obj_t *ui_MainPanelwhite = NULL;lv_obj_t *ui_MainPanelblack = NULL;lv_obj_t *ui_MainPanelwhite1 = NULL;lv_obj_t *ui_MainPanelblack1 = NULL;lv_obj_t *ui_MainPanelwhite2 = NULL;lv_obj_t *ui_MainPanelblack2 = NULL;lv_obj_t *ui_MainPanelwhite3 = NULL;lv_obj_t *ui_MainPanelblack3 = NULL;lv_obj_t *ui_MainPanelwhite4 = NULL;lv_obj_t *ui_MainPanelblack4 = NULL;lv_obj_t *ui_MainPanelwhite5 = NULL;lv_obj_t *ui_MainPanelblack5 = NULL;lv_obj_t *ui_MainPanelwhite6 = NULL;lv_obj_t *ui_MainPanelblack6 = NULL;lv_obj_t *ui_MainPanelwhite7 = NULL;lv_obj_t *ui_MainPanelblack7 = NULL;lv_obj_t *ui_MainPanelwhite8 = NULL;lv_obj_t *ui_MainPanelblack8 = NULL;lv_obj_t *ui_MainPanelwhite9 = NULL;lv_obj_t *ui_MainPanelblack9 = NULL;lv_obj_t *ui_MainPanelwhite10 = NULL;lv_obj_t *ui_MainPanelblack10 = NULL;lv_obj_t *ui_MainContainerDistanceProgressBar = NULL;lv_obj_t *ui_MainBarDistanceProgress = NULL;lv_obj_t *ui_MainBarDistanceAlarm1 = NULL;lv_obj_t *ui_MainBarDistanceAlarm2 = NULL;lv_obj_t *ui_MainContainerDistanceTitleLabel = NULL;lv_obj_t *ui_MainLabelDistanceTitle = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle1 = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle2 = NULL;
+lv_obj_t *ui_ScreenMain = NULL;lv_obj_t *ui_MainContainerMainContainer = NULL;lv_obj_t *ui_MainContainerTop = NULL;lv_obj_t *ui_MainContainerHeader = NULL;lv_obj_t *ui_MainContainerClass = NULL;lv_obj_t *ui_MainContainerClassNameLabel = NULL;lv_obj_t *ui_MainLabelClassName = NULL;lv_obj_t *ui_MainContainerSettingsButton = NULL;lv_obj_t *ui_MainButtonSettings = NULL;lv_obj_t *ui_MainContainerM4IDNumberContainer = NULL;lv_obj_t *ui_MainLabelM4IDNumberLabel = NULL;lv_obj_t *ui_MainContainerAlarmPresetContainer = NULL;lv_obj_t *ui_MainLabelAlarmPresetLable = NULL;lv_obj_t *ui_MainContainerDriver = NULL;lv_obj_t *ui_MainButtonButton6 = NULL;lv_obj_t *ui_MainContainerDriverTitleLabel = NULL;lv_obj_t *ui_MainLabelDriverTitle = NULL;lv_obj_t *ui_MainLabelDriverNumber = NULL;lv_obj_t *ui_MainContainerDriverNameLabel = NULL;lv_obj_t *ui_MainLabelDriverName = NULL;lv_obj_t *ui_MainContainerDriverChangeButton = NULL;lv_obj_t *ui_MainButtonDriverChange = NULL;lv_obj_t *ui_MainContainerDistance = NULL;lv_obj_t *ui_MainLabelDistanceValue = NULL;lv_obj_t *ui_MainLabelDistanceUnit = NULL;lv_obj_t *ui_MainContainerMid = NULL;lv_obj_t *ui_MainContainerTach = NULL;lv_obj_t *ui_MainContainerTachTitleLabel = NULL;lv_obj_t *ui_MainContainerTachTitleSpacer = NULL;lv_obj_t *ui_MainLabelTachTitle = NULL;lv_obj_t *ui_MainContainertachTractorConnectedIconContainer = NULL;lv_obj_t *ui_MainImagetachConn = NULL;lv_obj_t *ui_MainImagetachConnNo = NULL;lv_obj_t *ui_MainContainerTachData = NULL;lv_obj_t *ui_MainContainerTachAlarmIndicator = NULL;lv_obj_t *ui_MainPanelMainPanelTachAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM2 = NULL;lv_obj_t *ui_MainPanelTachAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM1 = NULL;lv_obj_t *ui_MainLabelTachValue = NULL;lv_obj_t *ui_MainLabelTachUnit = NULL;lv_obj_t *ui_MainContainerSpeed = NULL;lv_obj_t *ui_MainContainerSpeedTitleLabel = NULL;lv_obj_t *ui_MainLabelSpeedTitle = NULL;lv_obj_t *ui_MainContainerSpeedData = NULL;lv_obj_t *ui_MainContainerSpeedAlarmIndicator = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed1 = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed2 = NULL;lv_obj_t *ui_MainLabelSpeedValue = NULL;lv_obj_t *ui_MainLabelSpeedUnit = NULL;lv_obj_t *ui_MainContainerBottom = NULL;lv_obj_t *ui_MainContainerLimit = NULL;lv_obj_t *ui_MainContainerLimitTitleLabel = NULL;lv_obj_t *ui_MainLabelLimitTitle = NULL;lv_obj_t *ui_MainContainerLimitData = NULL;lv_obj_t *ui_MainContainerLimitIndicators1 = NULL;lv_obj_t *ui_MainLabelLimitIndicator1 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerLimitIndicators2 = NULL;lv_obj_t *ui_MainLabelLimitIndicator2 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerPullStateControls = NULL;lv_obj_t *ui_MainContainerStateREADY = NULL;lv_obj_t *ui_MainButtonREADYStage = NULL;lv_obj_t *ui_MainLabelButtonStage = NULL;lv_obj_t *ui_MainContainerStateSTAGED = NULL;lv_obj_t *ui_MainButtonSTAGEDCancel = NULL;lv_obj_t *ui_MainLabelButtonStaged = NULL;lv_obj_t *ui_MainLabelButtonStagedCancel = NULL;lv_obj_t *ui_MainContainerStatePULLING = NULL;lv_obj_t *ui_MainButtonPULLINGStop = NULL;lv_obj_t *ui_MainLabelButtonStop = NULL;lv_obj_t *ui_MainContainerStatePULLEND = NULL;lv_obj_t *ui_MainButtonPULLENDDiscard = NULL;lv_obj_t *ui_MainLabelButtonStage1 = NULL;lv_obj_t *ui_MainButtonPULLENDSave = NULL;lv_obj_t *ui_MainLabelButtonStaged2 = NULL;lv_obj_t *ui_MainContainerStateEMERGENCYSTOP = NULL;lv_obj_t *ui_MainButtonPULLINGStop1 = NULL;lv_obj_t *ui_MainLabelButtonStop1 = NULL;lv_obj_t *ui_MainContainerRelays = NULL;lv_obj_t *ui_MainContainerRelaysTitleLabel = NULL;lv_obj_t *ui_MainLabelRelaysTitle = NULL;lv_obj_t *ui_MainContainerRelaysData = NULL;lv_obj_t *ui_MainContainerRelayIndicators1 = NULL;lv_obj_t *ui_MainLabelRelayIndicator1 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerRelayIndicators2 = NULL;lv_obj_t *ui_MainLabelRelayIndicator2 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerRelayIndicators3 = NULL;lv_obj_t *ui_MainLabelRelayIndicator3 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon3 = NULL;lv_obj_t *ui_MainContainerRelayIndicators4 = NULL;lv_obj_t *ui_MainLabelRelayIndicator4 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon4 = NULL;lv_obj_t *ui_MainContainerDistanceProgression = NULL;lv_obj_t *ui_MainContainerRaceFlag = NULL;lv_obj_t *ui_MainPanelwhite = NULL;lv_obj_t *ui_MainPanelblack = NULL;lv_obj_t *ui_MainPanelwhite1 = NULL;lv_obj_t *ui_MainPanelblack1 = NULL;lv_obj_t *ui_MainPanelwhite2 = NULL;lv_obj_t *ui_MainPanelblack2 = NULL;lv_obj_t *ui_MainPanelwhite3 = NULL;lv_obj_t *ui_MainPanelblack3 = NULL;lv_obj_t *ui_MainPanelwhite4 = NULL;lv_obj_t *ui_MainPanelblack4 = NULL;lv_obj_t *ui_MainPanelwhite5 = NULL;lv_obj_t *ui_MainPanelblack5 = NULL;lv_obj_t *ui_MainPanelwhite6 = NULL;lv_obj_t *ui_MainPanelblack6 = NULL;lv_obj_t *ui_MainPanelwhite7 = NULL;lv_obj_t *ui_MainPanelblack7 = NULL;lv_obj_t *ui_MainPanelwhite8 = NULL;lv_obj_t *ui_MainPanelblack8 = NULL;lv_obj_t *ui_MainPanelwhite9 = NULL;lv_obj_t *ui_MainPanelblack9 = NULL;lv_obj_t *ui_MainPanelwhite10 = NULL;lv_obj_t *ui_MainPanelblack10 = NULL;lv_obj_t *ui_MainContainerDistanceProgressBar = NULL;lv_obj_t *ui_MainBarDistanceProgress = NULL;lv_obj_t *ui_MainBarDistanceAlarm1 = NULL;lv_obj_t *ui_MainBarDistanceAlarm2 = NULL;lv_obj_t *ui_MainContainerDistanceTitleLabel = NULL;lv_obj_t *ui_MainLabelDistanceTitle = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle1 = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle2 = NULL;
 // event funtions
 void ui_event_ScreenMain( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -614,6 +618,19 @@ ui_object_set_themeable_style_property(ui_MainPanelMainPanelTachAlarmIndicatorIc
 lv_obj_set_style_border_color(ui_MainPanelMainPanelTachAlarmIndicatorIcon2, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainPanelMainPanelTachAlarmIndicatorIcon2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_MainLabelInidNumberRPM2 = lv_label_create(ui_MainPanelMainPanelTachAlarmIndicatorIcon2);
+lv_obj_set_width( ui_MainLabelInidNumberRPM2, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_MainLabelInidNumberRPM2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_MainLabelInidNumberRPM2, LV_ALIGN_CENTER );
+lv_label_set_text(ui_MainLabelInidNumberRPM2,"2");
+lv_obj_set_style_text_color(ui_MainLabelInidNumberRPM2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_MainLabelInidNumberRPM2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_MainLabelInidNumberRPM2, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_MainLabelInidNumberRPM2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelInidNumberRPM2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelInidNumberRPM2, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelInidNumberRPM2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
 ui_MainPanelTachAlarmIndicatorIcon1 = lv_obj_create(ui_MainContainerTachAlarmIndicator);
 lv_obj_set_width( ui_MainPanelTachAlarmIndicatorIcon1, 50);
 lv_obj_set_height( ui_MainPanelTachAlarmIndicatorIcon1, 50);
@@ -626,6 +643,19 @@ ui_object_set_themeable_style_property(ui_MainPanelTachAlarmIndicatorIcon1, LV_P
 ui_object_set_themeable_style_property(ui_MainPanelTachAlarmIndicatorIcon1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_indicRED);
 lv_obj_set_style_border_color(ui_MainPanelTachAlarmIndicatorIcon1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainPanelTachAlarmIndicatorIcon1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_MainLabelInidNumberRPM1 = lv_label_create(ui_MainPanelTachAlarmIndicatorIcon1);
+lv_obj_set_width( ui_MainLabelInidNumberRPM1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_MainLabelInidNumberRPM1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_MainLabelInidNumberRPM1, LV_ALIGN_CENTER );
+lv_label_set_text(ui_MainLabelInidNumberRPM1,"1");
+lv_obj_set_style_text_color(ui_MainLabelInidNumberRPM1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_MainLabelInidNumberRPM1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_MainLabelInidNumberRPM1, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_MainLabelInidNumberRPM1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelInidNumberRPM1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelInidNumberRPM1, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelInidNumberRPM1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_MainLabelTachValue = lv_label_create(ui_MainContainerTachData);
 lv_obj_set_height( ui_MainLabelTachValue, LV_SIZE_CONTENT);   /// 1
@@ -718,6 +748,19 @@ ui_object_set_themeable_style_property(ui_MainPanelSpeedAlarmIndicatorIcon1, LV_
 lv_obj_set_style_border_color(ui_MainPanelSpeedAlarmIndicatorIcon1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainPanelSpeedAlarmIndicatorIcon1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_MainLabelInidNumberSpeed1 = lv_label_create(ui_MainPanelSpeedAlarmIndicatorIcon1);
+lv_obj_set_width( ui_MainLabelInidNumberSpeed1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_MainLabelInidNumberSpeed1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_MainLabelInidNumberSpeed1, LV_ALIGN_CENTER );
+lv_label_set_text(ui_MainLabelInidNumberSpeed1,"1");
+lv_obj_set_style_text_color(ui_MainLabelInidNumberSpeed1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_MainLabelInidNumberSpeed1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_MainLabelInidNumberSpeed1, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_MainLabelInidNumberSpeed1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelInidNumberSpeed1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelInidNumberSpeed1, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelInidNumberSpeed1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
 ui_MainPanelSpeedAlarmIndicatorIcon2 = lv_obj_create(ui_MainContainerSpeedAlarmIndicator);
 lv_obj_set_width( ui_MainPanelSpeedAlarmIndicatorIcon2, 50);
 lv_obj_set_height( ui_MainPanelSpeedAlarmIndicatorIcon2, 50);
@@ -730,6 +773,19 @@ ui_object_set_themeable_style_property(ui_MainPanelSpeedAlarmIndicatorIcon2, LV_
 ui_object_set_themeable_style_property(ui_MainPanelSpeedAlarmIndicatorIcon2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_indicDisabled);
 lv_obj_set_style_border_color(ui_MainPanelSpeedAlarmIndicatorIcon2, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainPanelSpeedAlarmIndicatorIcon2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_MainLabelInidNumberSpeed2 = lv_label_create(ui_MainPanelSpeedAlarmIndicatorIcon2);
+lv_obj_set_width( ui_MainLabelInidNumberSpeed2, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_MainLabelInidNumberSpeed2, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_MainLabelInidNumberSpeed2, LV_ALIGN_CENTER );
+lv_label_set_text(ui_MainLabelInidNumberSpeed2,"2");
+lv_obj_set_style_text_color(ui_MainLabelInidNumberSpeed2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_MainLabelInidNumberSpeed2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_MainLabelInidNumberSpeed2, &ui_font_BIO_BOLDITALIC_8, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_MainLabelInidNumberSpeed2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelInidNumberSpeed2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelInidNumberSpeed2, 5, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelInidNumberSpeed2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_MainLabelSpeedValue = lv_label_create(ui_MainContainerSpeedData);
 lv_obj_set_height( ui_MainLabelSpeedValue, LV_SIZE_CONTENT);   /// 1
@@ -1627,13 +1683,20 @@ lv_obj_set_height( ui_MainLabelDistanceAlarmTriangle1, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_MainLabelDistanceAlarmTriangle1, -354 );
 lv_obj_set_y( ui_MainLabelDistanceAlarmTriangle1, -228 );
 lv_obj_set_align( ui_MainLabelDistanceAlarmTriangle1, LV_ALIGN_CENTER );
-lv_label_set_text(ui_MainLabelDistanceAlarmTriangle1,"<");
+lv_label_set_text(ui_MainLabelDistanceAlarmTriangle1,"1");
 lv_obj_add_state( ui_MainLabelDistanceAlarmTriangle1, LV_STATE_CHECKED );     /// States
 lv_obj_add_flag( ui_MainLabelDistanceAlarmTriangle1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_IGNORE_LAYOUT | LV_OBJ_FLAG_FLOATING | LV_OBJ_FLAG_OVERFLOW_VISIBLE );   /// Flags
 lv_obj_clear_flag( ui_MainLabelDistanceAlarmTriangle1, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
-lv_obj_set_style_text_color(ui_MainLabelDistanceAlarmTriangle1, lv_color_hex(0xFF0000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_color(ui_MainLabelDistanceAlarmTriangle1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_MainLabelDistanceAlarmTriangle1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_MainLabelDistanceAlarmTriangle1, &ui_font_BIO_SEMIBOLD_7, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_radius(ui_MainLabelDistanceAlarmTriangle1, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_indicRED);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_indicRED);
+lv_obj_set_style_pad_left(ui_MainLabelDistanceAlarmTriangle1, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelDistanceAlarmTriangle1, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelDistanceAlarmTriangle1, -1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelDistanceAlarmTriangle1, -3, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_MainLabelDistanceAlarmTriangle2 = lv_label_create(ui_ScreenMain);
 lv_obj_set_width( ui_MainLabelDistanceAlarmTriangle2, LV_SIZE_CONTENT);  /// 1
@@ -1641,13 +1704,20 @@ lv_obj_set_height( ui_MainLabelDistanceAlarmTriangle2, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_MainLabelDistanceAlarmTriangle2, -354 );
 lv_obj_set_y( ui_MainLabelDistanceAlarmTriangle2, -72 );
 lv_obj_set_align( ui_MainLabelDistanceAlarmTriangle2, LV_ALIGN_CENTER );
-lv_label_set_text(ui_MainLabelDistanceAlarmTriangle2,"<");
+lv_label_set_text(ui_MainLabelDistanceAlarmTriangle2,"2");
 lv_obj_add_state( ui_MainLabelDistanceAlarmTriangle2, LV_STATE_CHECKED );     /// States
 lv_obj_add_flag( ui_MainLabelDistanceAlarmTriangle2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_IGNORE_LAYOUT | LV_OBJ_FLAG_FLOATING | LV_OBJ_FLAG_OVERFLOW_VISIBLE );   /// Flags
 lv_obj_clear_flag( ui_MainLabelDistanceAlarmTriangle2, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_ELASTIC | LV_OBJ_FLAG_SCROLL_MOMENTUM | LV_OBJ_FLAG_SCROLL_CHAIN );    /// Flags
-lv_obj_set_style_text_color(ui_MainLabelDistanceAlarmTriangle2, lv_color_hex(0xFF0000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_color(ui_MainLabelDistanceAlarmTriangle2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_MainLabelDistanceAlarmTriangle2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_MainLabelDistanceAlarmTriangle2, &ui_font_BIO_SEMIBOLD_7, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_radius(ui_MainLabelDistanceAlarmTriangle2, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_indicRED);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle2, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_indicRED);
+lv_obj_set_style_pad_left(ui_MainLabelDistanceAlarmTriangle2, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_MainLabelDistanceAlarmTriangle2, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_MainLabelDistanceAlarmTriangle2, -1, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_MainLabelDistanceAlarmTriangle2, -3, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_add_event_cb(ui_MainButtonSettings, ui_event_MainButtonSettings, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainContainerM4IDNumberContainer, ui_event_MainContainerM4IDNumberContainer, LV_EVENT_ALL, NULL);
@@ -1681,12 +1751,16 @@ uic_MainContainertachTractorConnectedIconContainer = ui_MainContainertachTractor
 uic_MainImagetachConn = ui_MainImagetachConn;
 uic_MainImagetachConnNo = ui_MainImagetachConnNo;
 uic_MainPanelTachAlarmIndicatorIcon2 = ui_MainPanelMainPanelTachAlarmIndicatorIcon2;
+uic_MainLabelInidNumberRPM2 = ui_MainLabelInidNumberRPM2;
 uic_MainPanelTachAlarmIndicatorIcon1 = ui_MainPanelTachAlarmIndicatorIcon1;
+uic_MainLabelInidNumberRPM1 = ui_MainLabelInidNumberRPM1;
 uic_MainLabelTachValue = ui_MainLabelTachValue;
 uic_MainLabelTachUnit = ui_MainLabelTachUnit;
 uic_MainLabelSpeedTitle = ui_MainLabelSpeedTitle;
 uic_MainPanelSpeedAlarmIndicatorIcon1 = ui_MainPanelSpeedAlarmIndicatorIcon1;
+uic_MainLabelInidNumberSpeed1 = ui_MainLabelInidNumberSpeed1;
 uic_MainPanelSpeedAlarmIndicatorIcon2 = ui_MainPanelSpeedAlarmIndicatorIcon2;
+uic_MainLabelInidNumberSpeed2 = ui_MainLabelInidNumberSpeed2;
 uic_MainLabelSpeedValue = ui_MainLabelSpeedValue;
 uic_MainLabelSpeedUnit = ui_MainLabelSpeedUnit;
 uic_MainContainerLimit = ui_MainContainerLimit;
@@ -1778,8 +1852,12 @@ ui_MainContainerTachData= NULL;
 ui_MainContainerTachAlarmIndicator= NULL;
 uic_MainPanelTachAlarmIndicatorIcon2= NULL;
 ui_MainPanelMainPanelTachAlarmIndicatorIcon2= NULL;
+uic_MainLabelInidNumberRPM2= NULL;
+ui_MainLabelInidNumberRPM2= NULL;
 uic_MainPanelTachAlarmIndicatorIcon1= NULL;
 ui_MainPanelTachAlarmIndicatorIcon1= NULL;
+uic_MainLabelInidNumberRPM1= NULL;
+ui_MainLabelInidNumberRPM1= NULL;
 uic_MainLabelTachValue= NULL;
 ui_MainLabelTachValue= NULL;
 uic_MainLabelTachUnit= NULL;
@@ -1792,8 +1870,12 @@ ui_MainContainerSpeedData= NULL;
 ui_MainContainerSpeedAlarmIndicator= NULL;
 uic_MainPanelSpeedAlarmIndicatorIcon1= NULL;
 ui_MainPanelSpeedAlarmIndicatorIcon1= NULL;
+uic_MainLabelInidNumberSpeed1= NULL;
+ui_MainLabelInidNumberSpeed1= NULL;
 uic_MainPanelSpeedAlarmIndicatorIcon2= NULL;
 ui_MainPanelSpeedAlarmIndicatorIcon2= NULL;
+uic_MainLabelInidNumberSpeed2= NULL;
+ui_MainLabelInidNumberSpeed2= NULL;
 uic_MainLabelSpeedValue= NULL;
 ui_MainLabelSpeedValue= NULL;
 uic_MainLabelSpeedUnit= NULL;

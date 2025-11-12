@@ -86,7 +86,18 @@ static void applyDistanceAlarmColor(lv_obj_t* bar, AlarmColor color) {
 static void applyDistanceAlarmColorToLabel(lv_obj_t* label, AlarmColor color) {
   if (!label) return;
   lv_color_t col = alarmColorToLv(color);
-  lv_obj_set_style_text_color(label, col, LV_PART_MAIN | LV_STATE_DEFAULT);
+  // Changes background color to col
+  lv_obj_set_style_bg_color(label, col, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_opa(label, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+  // Changes text color too col
+  // lv_obj_set_style_text_color(label, col, LV_PART_MAIN | LV_STATE_DEFAULT);
+  if (color == AlarmColor::YELLOW) {
+    // for yellow background, use black text for contrast
+    lv_obj_set_style_text_color(label, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+  } else {
+    // for red/green background, use white text for contrast
+    lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
 }
 
 

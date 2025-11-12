@@ -2718,7 +2718,7 @@ lv_obj_set_height( ui_Settings1SwitchSwitch3, 25);
 lv_obj_set_align( ui_Settings1SwitchSwitch3, LV_ALIGN_CENTER );
 
 ui_Settings1DropdownDropdown1 = lv_dropdown_create(ui_Settings1ContainercontainterRelaySwitch1);
-lv_dropdown_set_options( ui_Settings1DropdownDropdown1, "Distance Alarm 1\nDistance Alarm 2\nMPH Alarm\nTach Alarm\nLimit Switch 1\nLimit Switch 2\nPull State: READY\nPull State: STAGED\nPull State: IN PULL" );
+lv_dropdown_set_options( ui_Settings1DropdownDropdown1, "Distance Alarm 1\nDistance Alarm 2\nMPH Alarm 1\nMPH Alarm 2\nTach Alarm 1\nTach Alarm 2\nLimit Switch 1\nLimit Switch 2\nPull State: READY\nPull State: STAGED\nPull State: IN PULL\nPull State: E-STOP" );
 lv_obj_set_width( ui_Settings1DropdownDropdown1, lv_pct(34));
 lv_obj_set_height( ui_Settings1DropdownDropdown1, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_Settings1DropdownDropdown1, LV_ALIGN_CENTER );
