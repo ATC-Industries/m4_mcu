@@ -3,6 +3,9 @@
 #include "TachClient.h"
 
 #include "../ui/ui.h"
+#include "remotes/RemoteManager.h"
+
+const uint8_t kBroadcastAddress[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 // Define the global variables declared in M4CommsHelpers.h
 int CHECK_REMOTE_CONNECTION_RATE = 5000;
@@ -86,7 +89,9 @@ void onMessageReceived(uint8_t *senderAddress,
     }
 
     case PAIRING_REMOTE_RESPONSE: {
-      processPairingRemoteResponse(senderAddress);
+      if (RemoteManager::IsPairing()) {
+        RemoteManager::OnPairingRemoteResponse(senderAddress, rssi, doc);
+      }
       break;
     }
 
@@ -164,14 +169,6 @@ void updateDisplayWithMAC(uint8_t *macAddress, lv_obj_t *btn, lv_obj_t *label) {
         label,
         btnLabel);  // Set the label to the last 4 digits of the MAC address
   }
-}
-
-
-void processPairingRemoteResponse(uint8_t *senderAddress) {
-  char macStr[18];
-  formatMACAddress(macStr, senderAddress);
-  Serial.print("Found a Remote Display (Sender Address): ");
-  Serial.println(macStr);
 }
 
 void processSendRPM(const float value, int rssi) {

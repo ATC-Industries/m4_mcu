@@ -1691,8 +1691,8 @@ lv_obj_set_style_text_color(ui_MainLabelDistanceAlarmTriangle1, lv_color_hex(0xF
 lv_obj_set_style_text_opa(ui_MainLabelDistanceAlarmTriangle1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_MainLabelDistanceAlarmTriangle1, &ui_font_BIO_SEMIBOLD_7, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_radius(ui_MainLabelDistanceAlarmTriangle1, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
-ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_indicRED);
-ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_indicRED);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_IndicYELLOW);
+ui_object_set_themeable_style_property(ui_MainLabelDistanceAlarmTriangle1, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_IndicYELLOW);
 lv_obj_set_style_pad_left(ui_MainLabelDistanceAlarmTriangle1, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_MainLabelDistanceAlarmTriangle1, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_MainLabelDistanceAlarmTriangle1, -1, LV_PART_MAIN| LV_STATE_DEFAULT);

@@ -7,6 +7,7 @@
 #include "ScreenUpdater.h"
 #include "TachClient.h"
 #include "Logging.h"
+#include "remotes/RemoteManager.h"
 
 static unsigned long lastDebugPrint = 0;
 static const unsigned long debugInterval = 5000;  // Every 5 seconds
@@ -30,7 +31,11 @@ void PullStateManager::enterState(PullState newState) {
   triggerRelaysForState(newState);
   SpeedModule::notifyPullStateChanged(newState);
 
-  if (newState == PullState::READY) resetMaxValues();
+  if (newState == PullState::READY) 
+  {
+    RemoteManager::SetIsMax(false);
+    resetMaxValues();
+  }
 }
 
 void PullStateManager::init() {
@@ -93,6 +98,7 @@ void PullStateManager::handleCancelPressed() { enterState(PullState::READY); }
 void PullStateManager::handleStopPressed() { enterState(PullState::PULLEND); }
 
 void PullStateManager::handleDiscardPressed() {
+  RemoteManager::SetIsMax(false);
   resetMaxValues();
   enterState(PullState::READY);
 }

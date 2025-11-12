@@ -78,7 +78,9 @@ void AlarmRPMToggle2(lv_event_t * e);
 void AlarmRPMTripPointChange2(lv_event_t * e);
 void AlarmRPMTripStyleChange2(lv_event_t * e);
 void AlarmRPMColorChange2(lv_event_t * e);
-void enterPairingModeBtnClicked(lv_event_t * e);
+void enterRemotePairingModeBtnClicked(lv_event_t * e);
+void endRemotePairingModeBtnClicked(lv_event_t * e);
+void HELPRemotePair(lv_event_t * e);
 void PullHistoryScreenLoaded(lv_event_t * e);
 void deletePullHistoryButtonClicked(lv_event_t * e);
 

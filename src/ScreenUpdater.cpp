@@ -9,6 +9,7 @@
 #include "PullStateManager.h"
 #include "StateManager.h"
 #include "TachClient.h"
+#include "remotes/RemoteManager.h"
 
 // Last known values to avoid unnecessary redraws
 static float lastDisplayedSpeed = -1.0f;
@@ -294,6 +295,11 @@ void updateMainScreen() {
   bool JudgeMode = StateManager::prefs().isJudgeMode;
 
   bool showMax = (pullState == PullState::PULLEND);
+  RemoteManager::SetIsMax(showMax);
+
+  RemoteManager::SetTelemetry(StateManager::getSpeed(),
+                            StateManager::getRPM(),
+                            StateManager::getDistance());
 
   // Speed
   float speed = showMax ? StateManager::getMaxSpeed() : StateManager::getSpeed();

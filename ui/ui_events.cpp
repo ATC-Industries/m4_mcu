@@ -19,6 +19,7 @@
 #include "display/backlight.h"
 #include "touch/touch.h"
 #include "ui.h"
+#include "remotes/RemoteManager.h"
 
 extern void refreshAlarmUIFromPreset(uint8_t preset);
 
@@ -876,4 +877,18 @@ void EnableJudgeHelpButtonPressed(lv_event_t *e) {
 
   // Close handler
   lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void enterRemotePairingModeBtnClicked(lv_event_t* e) {
+  RemoteManager::EnterPairing();
+}
+
+void endRemotePairingModeBtnClicked(lv_event_t* e) {
+  RemoteManager::ExitPairing();
+}
+
+
+void HELPRemotePair(lv_event_t * e)
+{
+	// Your code here
 }

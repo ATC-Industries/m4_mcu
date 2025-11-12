@@ -7,6 +7,8 @@
 #include "Config.h"
 #include "StateManager.h"
 
+extern const uint8_t kBroadcastAddress[6];
+
 extern int CHECK_REMOTE_CONNECTION_RATE;
 
 extern bool isPairing;

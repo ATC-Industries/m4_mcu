@@ -16,6 +16,7 @@
 #include "peripherals/touch_inject.h"
 #include "Logging.h"
 #include <QuickEspNow.h>
+#include "remotes/RemoteManager.h"
 
 
 #include <nvs_flash.h>
@@ -73,6 +74,7 @@ void setup() {
   PullStateManager::init();
   SpeedModule::begin();
   AlarmManager::init();
+  RemoteManager::Init();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   // setRecalibrationFlag();
@@ -109,6 +111,7 @@ void loop() {
   Tach::update();
 
   AlarmManager::evaluateTick();
+  RemoteManager::Tick();
 
 
   now = millis();

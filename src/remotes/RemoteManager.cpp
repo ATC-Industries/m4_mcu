@@ -1,0 +1,415 @@
+#include "remotes/RemoteManager.h"
+
+#include <cstring>
+#include "Arduino.h"
+#include "ArduinoJson.h"
+#include "M4MessageStruct.h"
+#include "StateManager.h"
+#include "Logging.h"
+#include "ui/ui.h"
+#include "lvgl.h"
+#include "M4CommsHelpers.h"
+
+// Your existing sender
+extern esp_err_t sendMessage(const uint8_t *peerAddress,
+                             msg_type messageType,
+                             action_type messageAction,
+                             String payload,
+                             priority messagePriority);
+
+// Cadences
+static constexpr uint32_t kDiscoverEveryMs = 500;   // pairing discover
+static constexpr uint32_t kRowStaleMs      = 5000;  // remove dead entries
+static constexpr uint32_t kPurgeEveryMs    = 1000;  // clean list
+static constexpr uint32_t kValuesEveryMs   = 200;   // 5 Hz runtime broadcast
+
+void RemoteManager::Init() {
+  rows_.clear();
+  pairing_on_ = false;
+  last_discover_ms_ = last_purge_ms_ = last_values_ms_ = 0;
+  cur_speed_ = cur_rpm_ = cur_dist_ = 0.f;
+  cur_ismax_ = false;
+  table_container_ = nullptr;
+
+  // Hook UI
+  SetListContainer(uic_Settings1PanelDeviceTable);
+  SetStatusLabel(uic_Settings1LabelRemoteSearching);
+
+  // Build siblings right next to the original label inside its flex-row parent
+  if (status_label_) {
+    lv_obj_t* parent = lv_obj_get_parent(status_label_);
+
+    // Keep the original as the static word
+    lv_label_set_text(status_label_, "Searching");
+
+    // Dots
+    status_dots_ = lv_label_create(parent);
+    lv_label_set_text(status_dots_, "");
+    lv_obj_set_style_min_width(status_dots_, 24, 0);   // room for "..."
+    lv_obj_set_style_pad_left(status_dots_, 4, 0);     // small gap
+    lv_obj_set_flex_grow(status_dots_, 0);
+
+    // Found
+    status_found_ = lv_label_create(parent);
+    lv_label_set_text(status_found_, "found:0");
+    lv_obj_set_style_pad_left(status_found_, 12, 0);
+    lv_obj_set_flex_grow(status_found_, 0);
+
+    // Connected
+    status_conn_ = lv_label_create(parent);
+    lv_label_set_text(status_conn_, "connected:0");
+    lv_obj_set_style_pad_left(status_conn_, 12, 0);
+    lv_obj_set_flex_grow(status_conn_, 0);
+  }
+
+  UpdateStatusLabel();
+}
+
+void RemoteManager::EnterPairing() {
+  pairing_on_ = true;
+  last_discover_ms_ = 0;
+  last_purge_ms_ = 0;
+  rows_.clear();
+  RefreshListUI();
+  LOGI("[RemoteManager] Pairing ON");
+  UpdateStatusLabel();
+}
+
+void RemoteManager::ExitPairing() {
+  pairing_on_ = false;
+  LOGI("[RemoteManager] Pairing OFF");
+  // Leave table content frozen until next pairing
+  UpdateStatusLabel();
+}
+
+bool RemoteManager::IsPairing() { return pairing_on_; }
+
+void RemoteManager::Tick() {
+  const uint32_t now = millis();
+
+  // Pairing side
+  if (pairing_on_) {
+    if (now - last_discover_ms_ >= kDiscoverEveryMs) {
+      last_discover_ms_ = now;
+      SendDiscover();
+    }
+    if (now - last_purge_ms_ >= kPurgeEveryMs) {
+      last_purge_ms_ = now;
+      bool changed = false;
+      for (size_t i = 0; i < rows_.size();) {
+        if (now - rows_[i].last_seen_ms > kRowStaleMs) {
+          rows_.erase(rows_.begin() + i);
+          changed = true;
+        } else {
+          ++i;
+        }
+      }
+      if (changed) RefreshListUI();
+    }
+  }
+
+  if (now - last_status_ms_ >= 400) {
+    last_status_ms_ = now;
+    dots_ = (dots_ + 1) % 4;
+    if (status_dots_) {
+      static const char* kDots[] = {"", ".", "..", "..."};
+      lv_label_set_text(status_dots_, kDots[dots_]);
+    }
+  }
+  // Runtime broadcast at 5 Hz, always
+  MaybeSendValues();
+}
+
+void RemoteManager::OnPairingRemoteResponse(const uint8_t* sender_mac,
+                                            int rssi,
+                                            const JsonDocument& doc) {
+  if (!pairing_on_) return;
+
+  RemoteRow* rr = nullptr;
+  if (!FindOrAddByMac(sender_mac, &rr) || rr == nullptr) return;
+
+  rr->last_rssi = rssi;
+  rr->last_seen_ms = millis();
+
+  if (doc["pairedHost"].is<int>()) {
+    rr->paired_host = doc["pairedHost"].as<int>();
+  }
+  if (doc["type"].is<int>()) {
+    rr->type = static_cast<remote_role>(doc["type"].as<int>());
+  }
+  if (doc["digits"].is<int>()) {
+    rr->digits = static_cast<uint8_t>(doc["digits"].as<int>());
+  }
+  rr->is_this_host = (rr->paired_host == StateManager::getM4ID());
+
+  RefreshListUI();
+}
+
+bool RemoteManager::ConnectRemote(const char* mac_str) {
+  uint8_t mac[6];
+  if (!StringToMac(mac_str, mac)) return false;
+  bool ok = SendConnect(mac);
+  if (!ok) return false;
+
+  // optimistic UI
+  for (auto& r : rows_) {
+    if (strncmp(r.mac_str, mac_str, sizeof(r.mac_str)) == 0) {
+      r.paired_host = StateManager::getM4ID();
+      r.is_this_host = true;
+      break;
+    }
+  }
+  RefreshListUI();
+  return true;
+}
+
+bool RemoteManager::DisconnectRemote(const char* mac_str) {
+  uint8_t mac[6];
+  if (!StringToMac(mac_str, mac)) return false;
+  bool ok = SendDisconnect(mac);
+  if (!ok) return false;
+
+  for (auto& r : rows_) {
+    if (strncmp(r.mac_str, mac_str, sizeof(r.mac_str)) == 0) {
+      r.paired_host = 0;
+      r.is_this_host = false;
+      break;
+    }
+  }
+  RefreshListUI();
+  return true;
+}
+
+void RemoteManager::SetTelemetry(float speed, float rpm, float distance) {
+  cur_speed_ = speed;
+  cur_rpm_   = rpm;
+  cur_dist_  = distance;
+}
+
+void RemoteManager::SetIsMax(bool isMaxNow) {
+  cur_ismax_ = isMaxNow;
+}
+
+void RemoteManager::SetListContainer(lv_obj_t* container) {
+  table_container_ = container;
+  if (pairing_on_) RefreshListUI();
+}
+
+void RemoteManager::SetStatusLabel(lv_obj_t* label) {
+  status_label_ = label;
+  UpdateStatusLabel();
+}
+
+void RemoteManager::RefreshListUI() {
+  if (!pairing_on_ || !table_container_) return;
+
+  // Clear
+  while (lv_obj_get_child_cnt(table_container_) > 0) {
+    lv_obj_del(lv_obj_get_child(table_container_, 0));
+  }
+
+  for (const auto& r : rows_) {
+    lv_obj_t* row = lv_obj_create(table_container_);
+    lv_obj_set_width(row, lv_pct(100));
+    lv_obj_set_height(row, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_pad_all(row, 6, 0);
+    lv_obj_set_style_pad_column(row, 8, 0);
+
+    // MAC
+    lv_obj_t* mac = lv_label_create(row);
+    lv_label_set_text_fmt(mac, "%s", r.mac_str);
+
+    // Type
+    lv_obj_t* type = lv_label_create(row);
+    const char* t =
+      (r.type == REMOTE_SPEED) ? "Speed" :
+      (r.type == REMOTE_RPM) ? "RPM" :
+      (r.type == REMOTE_DISTANCE) ? "Distance" :
+      (r.type == REMOTE_SAFETY_LIGHT) ? "Safety" : "?";
+    lv_label_set_text_fmt(type, "type:%s", t);
+
+    // Digits (not for safety)
+    if (r.type != REMOTE_SAFETY_LIGHT) {
+      lv_obj_t* digs = lv_label_create(row);
+      if (r.digits == 3 || r.digits == 4 || r.digits == 5) {
+        lv_label_set_text_fmt(digs, "digits:%u", r.digits);
+      } else {
+        lv_label_set_text(digs, "digits:—");
+      }
+    }
+
+    // Host
+    lv_obj_t* host = lv_label_create(row);
+    if (r.paired_host > 0) {
+      lv_label_set_text_fmt(host, "host:%d%s", r.paired_host, r.is_this_host ? " (this)" : "");
+      lv_obj_set_style_text_color(host, lv_color_hex(r.is_this_host ? 0x1FA709 : 0xA70909), 0);
+    } else {
+      lv_label_set_text(host, "host:—");
+    }
+
+    // Hidden MAC to read back
+    lv_obj_t* mac_hidden = lv_label_create(row);
+    lv_obj_add_flag(mac_hidden, LV_OBJ_FLAG_HIDDEN);
+    lv_label_set_text(mac_hidden, r.mac_str);
+
+    // Button: Connect / Disconnect
+    lv_obj_t* btn = lv_btn_create(row);
+    lv_obj_t* lbl = lv_label_create(btn);
+    bool connected_to_us = r.is_this_host;
+    lv_label_set_text(lbl, connected_to_us ? "Disconnect" : "Connect");
+    lv_obj_center(lbl);
+
+    lv_obj_add_event_cb(btn,
+      [](lv_event_t* e) {
+        lv_obj_t* btn = lv_event_get_target(e);
+        lv_obj_t* row = lv_obj_get_parent(btn);
+
+        // hidden MAC
+        lv_obj_t* mac_candidate = nullptr;
+        const uint32_t cnt = lv_obj_get_child_cnt(row);
+        for (uint32_t i = 0; i < cnt; ++i) {
+          lv_obj_t* ch = lv_obj_get_child(row, i);
+          if (lv_obj_has_flag(ch, LV_OBJ_FLAG_HIDDEN)) { mac_candidate = ch; break; }
+        }
+        if (!mac_candidate) return;
+        const char* mac = lv_label_get_text(mac_candidate);
+
+        lv_obj_t* lbl = lv_obj_get_child(btn, 0);
+        const char* txt = lv_label_get_text(lbl);
+        if (strcmp(txt, "Connect") == 0) {
+          RemoteManager::ConnectRemote(mac);
+        } else {
+          RemoteManager::DisconnectRemote(mac);
+        }
+      },
+      LV_EVENT_CLICKED, nullptr);
+  }
+  UpdateStatusLabel();
+}
+
+const std::vector<RemoteRow>& RemoteManager::GetRemotes() { return rows_; }
+
+// ---------- private helpers ----------
+
+bool RemoteManager::FindOrAddByMac(const uint8_t mac[6], RemoteRow** out) {
+  char s[18];
+  MacToString(mac, s);
+  for (auto& r : rows_) {
+    if (strncmp(r.mac_str, s, sizeof(r.mac_str)) == 0) {
+      if (out) *out = &r;
+      return true;
+    }
+  }
+  RemoteRow r{};
+  memcpy(r.mac, mac, 6);
+  strncpy(r.mac_str, s, sizeof(r.mac_str) - 1);
+  r.mac_str[sizeof(r.mac_str) - 1] = '\0';
+  r.last_rssi = 0;
+  r.last_seen_ms = millis();
+  r.paired_host = 0;
+  r.type = REMOTE_SPEED;
+  r.digits = 0;
+  r.is_this_host = false;
+  rows_.push_back(r);
+  if (out) *out = &rows_.back();
+  return true;
+}
+
+void RemoteManager::MacToString(const uint8_t mac[6], char* out18) {
+  snprintf(out18, 18, "%02X:%02X:%02X:%02X:%02X:%02X",
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}
+
+bool RemoteManager::StringToMac(const char* str, uint8_t out_mac[6]) {
+  if (!str) return false;
+  unsigned int b[6];
+  if (sscanf(str, "%02x:%02x:%02x:%02x:%02x:%02x",
+             &b[0], &b[1], &b[2], &b[3], &b[4], &b[5]) != 6) {
+    return false;
+  }
+  for (int i = 0; i < 6; ++i) out_mac[i] = static_cast<uint8_t>(b[i]);
+  return true;
+}
+
+void RemoteManager::SendDiscover() {
+  StaticJsonDocument<96> doc;
+  doc["action"] = DISCOVER_REMOTES;
+  doc["host"]   = StateManager::getM4ID();
+
+  String payload;
+  serializeJson(doc, payload);
+
+  sendMessage(kBroadcastAddress, BROADCAST, DISCOVER_REMOTES, payload, HIGH_PRIORITY);
+}
+
+bool RemoteManager::SendConnect(const uint8_t mac[6]) {
+  char mac_s[18]; MacToString(mac, mac_s);
+
+  StaticJsonDocument<128> doc;
+  doc["action"] = REMOTE_CONTROL;          // << action_type we added
+  doc["op"]     = OPERATION_CONNECT;       // << operation_type you added
+  doc["target"] = mac_s;
+  doc["host"]   = StateManager::getM4ID();
+
+  String payload; serializeJson(doc, payload);
+
+  // messageAction MUST be an action_type. Use REMOTE_CONTROL (not COMMAND).
+  return sendMessage(mac, COMMAND, REMOTE_CONTROL, payload, HIGH_PRIORITY) == ESP_OK;
+}
+
+bool RemoteManager::SendDisconnect(const uint8_t mac[6]) {
+  char mac_s[18]; MacToString(mac, mac_s);
+
+  StaticJsonDocument<128> doc;
+  doc["action"] = REMOTE_CONTROL;
+  doc["op"]     = OPERATION_DISCONNECT;
+  doc["target"] = mac_s;
+  doc["host"]   = StateManager::getM4ID();
+
+  String payload; serializeJson(doc, payload);
+
+  return sendMessage(mac, COMMAND, REMOTE_CONTROL, payload, HIGH_PRIORITY) == ESP_OK;
+}
+
+void RemoteManager::MaybeSendValues() {
+  const uint32_t now = millis();
+  if (now - last_values_ms_ < kValuesEveryMs) return;
+  last_values_ms_ = now;
+
+  StaticJsonDocument<192> doc;
+  doc["action"]   = SEND_REMOTE_VALUE;
+  doc["host"]     = StateManager::getM4ID();
+  doc["speed"]    = cur_speed_;
+  doc["rpm"]      = cur_rpm_;
+  doc["distance"] = cur_dist_;
+  doc["isMax"]    = cur_ismax_;
+
+  String payload; serializeJson(doc, payload);
+
+  sendMessage(kBroadcastAddress, BROADCAST, SEND_REMOTE_VALUE, payload, HIGH_PRIORITY);
+}
+
+void RemoteManager::UpdateStatusLabel() {
+  if (!status_label_) return;
+
+  size_t found = rows_.size();
+  size_t connected = 0;
+  for (const auto& r : rows_) if (r.is_this_host) ++connected;
+
+  if (pairing_on_) {
+    lv_label_set_text(status_label_, "Searching");
+    lv_obj_set_style_text_color(status_label_, lv_color_hex(0x1E88E5), 0);
+    if (status_found_) lv_label_set_text_fmt(status_found_, "found:%u", (unsigned)found);
+    if (status_conn_)  lv_label_set_text_fmt(status_conn_,  "connected:%u", (unsigned)connected);
+  } else {
+    lv_label_set_text(status_label_, "Search stopped");
+    lv_obj_set_style_text_color(status_label_, lv_color_hex(0x808080), 0);
+    if (status_dots_) lv_label_set_text(status_dots_, "");
+    if (status_found_) lv_label_set_text_fmt(status_found_, "found:%u", (unsigned)found);
+    if (status_conn_)  lv_label_set_text_fmt(status_conn_,  "connected:%u", (unsigned)connected);
+  }
+}
+
+
+
