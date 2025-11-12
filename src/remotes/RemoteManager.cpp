@@ -239,12 +239,13 @@ void RemoteManager::RefreshListUI() {
   std::vector<RemoteRow> snapshot;
   {
     LOCK_ROWS();
-     snapshot = rows_;
+    snapshot = rows_;
     UNLOCK_ROWS();
   }
 
   // clear container safely
-  lv_obj_clean(table_container_);
+  // This was causing the LVGL crash on Connect. Disable for now.
+  // lv_obj_clean(table_container_);
 
   for (const auto& r : snapshot) {
     lv_obj_t* row = lv_obj_create(table_container_);
@@ -387,14 +388,13 @@ bool RemoteManager::SendConnect(const uint8_t mac[6]) {
   char mac_s[18]; MacToString(mac, mac_s);
 
   JsonDocument doc;;
-  doc["action"] = REMOTE_CONTROL;          // << action_type we added
-  doc["op"]     = OPERATION_CONNECT;       // << operation_type you added
+  doc["action"] = REMOTE_CONTROL;
+  doc["op"]     = OPERATION_CONNECT;
   doc["target"] = mac_s;
   doc["host"]   = StateManager::getM4ID();
 
   String payload; serializeJson(doc, payload);
 
-  // messageAction MUST be an action_type. Use REMOTE_CONTROL (not COMMAND).
   return sendMessage(mac, COMMAND, REMOTE_CONTROL, payload, HIGH_PRIORITY) == ESP_OK;
 }
 
@@ -413,6 +413,11 @@ bool RemoteManager::SendDisconnect(const uint8_t mac[6]) {
 }
 
 void RemoteManager::MaybeSendValues() {
+  // Do not broadcast remote values while pairing
+  if (pairing_on_) {
+    return;
+  }
+
   const uint32_t now = millis();
   if (now - last_values_ms_ < kValuesEveryMs) return;
   last_values_ms_ = now;
@@ -450,6 +455,3 @@ void RemoteManager::UpdateStatusLabel() {
     if (status_conn_)  lv_label_set_text_fmt(status_conn_,  "connected:%u", (unsigned)connected);
   }
 }
-
-
-
