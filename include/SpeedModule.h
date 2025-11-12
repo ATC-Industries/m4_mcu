@@ -9,6 +9,8 @@ namespace SpeedModule {
 void begin();
 void tick();
 float getAverageDeltaSec();
+void startRun();           // call on STAGED -> PULLING
+bool isWarmupActive();     // for gating alarms if you want
 
 // ---- Calibration ----
 bool isValidCalibrationNumber(int pulses);
@@ -34,6 +36,11 @@ void updateSpeedAndDistance();
 int getCurrentPulseCount();
 float getCurrentSpeed();
 float getCurrentDistance();
+
+
+
+static float clampAccel(float current, float target);
+
 }  // namespace SpeedModule
 
 #endif  // SPEED_MODULE_H

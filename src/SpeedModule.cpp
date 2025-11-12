@@ -8,6 +8,29 @@
 
 #define SPEED_TIMEOUT_MICROS 1000000  // 1s
 
+namespace {
+  constexpr uint32_t kWarmupMs = 200;       // shorter
+  constexpr int      kMinGoodIntervals = 2; // easier to satisfy
+  constexpr float    kWarmupMinDistFt = 6.0f;
+  constexpr float    kEmaAlpha = 0.25f;    // smoothing on mph
+
+  uint32_t warmupUntilMs = 0;
+  int      goodIntervals = 0;
+  float    runningDeltaSec = 0.0f;        // running avg of period
+  float    publishedMPH = 0.0f;           // smoothed
+
+    // Tuning
+  constexpr float kOutlierLow     = 0.7f;   // accept if >= 70% of running period
+  constexpr float kOutlierHigh    = 1.5f;   // accept if <= 150% of running period
+  constexpr int   kMaxRejects     = 6;      // after 6 rejects, force adapt
+  constexpr float kMaxAccelMphS   = 60.0f;  // limit MPH change rate
+  constexpr float kEMA            = 0.25f;  // speed smoothing
+
+  static int      rejectStreak = 0;
+  static uint32_t lastSpeedUpdateMs = 0;
+
+}
+
 static unsigned long lastPulseMicros = 0;
 static float currentSpeedMPH = 0.0f;
 
@@ -74,47 +97,87 @@ void SpeedModule::begin() {
   for (int i = 0; i < SPEED_BUFFER_SIZE; i++) deltaSecHistory[i] = 0.0f;
 }
 
-void SpeedModule::tick() {
-  uint64_t now = micros();
-  // Snapshot ISR data
-  uint32_t pulses = 0;
-  uint64_t sumMicros = 0;
-  uint32_t cnt = 0;
+void SpeedModule::startRun() {
+  noInterrupts();
+  isrIntervalSumMicros = 0;
+  isrIntervalCount = 0;
+  pendingPulses = 0;
+  interrupts();
 
+  warmupUntilMs = millis() + kWarmupMs;
+  goodIntervals = 0;
+  runningDeltaSec = 0.0f;
+  publishedMPH = 0.0f;
+}
+
+bool SpeedModule::isWarmupActive() {
+  bool timeOk = millis() < warmupUntilMs;
+  bool intervalsOk = goodIntervals < kMinGoodIntervals;
+  bool distOk = StateManager::getDistance() < kWarmupMinDistFt;
+  return timeOk || intervalsOk || distOk;
+}
+
+void SpeedModule::tick() {
+  const uint64_t now = micros();
+
+  // snapshot ISR batch
+  uint32_t pulses = 0, cnt = 0;
+  uint64_t sumMicros = 0;
   if (pulseReceived) {
     noInterrupts();
     pulses = pendingPulses;           pendingPulses = 0;
+    cnt    = isrIntervalCount;        isrIntervalCount = 0;
     sumMicros = isrIntervalSumMicros; isrIntervalSumMicros = 0;
-    cnt = isrIntervalCount;           isrIntervalCount = 0;
     pulseReceived = false;
     interrupts();
-  }
-
-  if (driveOffMode) {
-    if (pulses) {
-      pulseCount += pulses;
-      lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
-    }
-    return;
   }
 
   if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
     pulseCount += (int)pulses;
 
-    // Average period from ISR
     if (cnt > 0 && calibrationPulses > 0) {
-      const float avgDeltaSec = (float)sumMicros / (float)cnt / 1e6f;
-      if (avgDeltaSec > 0.0001f && avgDeltaSec < 2.0f) {
-        // optional: smooth with your small ring buffer
-        deltaSecHistory[timingIndex] = avgDeltaSec;
-        timingIndex = (timingIndex + 1) % SPEED_BUFFER_SIZE;
-        if (timingIndex == 0) bufferFull = true;
+      float avgDeltaSec = (float)sumMicros / (float)cnt / 1e6f;
 
-        const float avg = getAverageDeltaSec();
-        const float feetPerPulse = 300.0f / calibrationPulses;
-        const float fps = feetPerPulse / avg;
-        currentSpeedMPH = fps * 0.681818f;
-      }
+      // bootstrap
+if (runningDeltaSec <= 0.0f) runningDeltaSec = avgDeltaSec;
+
+// Decide accept vs reject
+bool inBand =
+  (avgDeltaSec >= runningDeltaSec * kOutlierLow) &&
+  (avgDeltaSec <= runningDeltaSec * kOutlierHigh);
+
+if (inBand) {
+  // normal adaptation
+  runningDeltaSec = 0.7f * runningDeltaSec + 0.3f * avgDeltaSec;
+  rejectStreak = 0;
+} else {
+  rejectStreak++;
+
+  // If the sim is ramping faster than our band, slowly chase it
+  // bias runningDeltaSec toward the new value a little so we do not stick forever
+  runningDeltaSec = 0.9f * runningDeltaSec + 0.1f * avgDeltaSec;
+
+  // If we have rejected too many in a row, force-accept this one
+  if (rejectStreak >= kMaxRejects) {
+    runningDeltaSec = 0.8f * runningDeltaSec + 0.2f * avgDeltaSec;
+    rejectStreak = 0;
+  }
+}
+
+// Convert to MPH using the adapted running period
+const float feetPerPulse = 300.0f / calibrationPulses;
+const float fps = feetPerPulse / runningDeltaSec;
+float rawMPH = fps * 0.681818f;
+
+// Rate limit huge jumps, then smooth
+rawMPH = clampAccel(currentSpeedMPH, rawMPH);
+publishedMPH = (1.0f - kEMA) * publishedMPH + kEMA * rawMPH;
+
+// During warmup, you can still cap if you want, otherwise publish directly
+// currentSpeedMPH = isWarmupActive() ? min(publishedMPH, 15.0f) : publishedMPH;
+currentSpeedMPH = publishedMPH;
+
+
     }
 
     if (currentPullState == PullState::STAGED) resetDistance();
@@ -122,7 +185,7 @@ void SpeedModule::tick() {
     return;
   }
 
-  // Only decay to zero if we truly have not seen pulses in a while
+  // decay on true timeout
   if (isrLastMicros > 0 && (now - isrLastMicros > SPEED_TIMEOUT_MICROS)) {
     if (currentSpeedMPH > 0.01f) {
       currentSpeedMPH = 0.0f;
@@ -130,6 +193,7 @@ void SpeedModule::tick() {
     }
   }
 }
+
 
 
 float SpeedModule::getAverageDeltaSec() {
@@ -281,6 +345,17 @@ void SpeedModule::updateSpeedAndDistance() {
                   pulseCount, distanceFeet, currentSpeedMPH);
   }
 }
+
+static float SpeedModule::clampAccel(float current, float target) {
+  uint32_t nowMs = millis();
+  float dt = (lastSpeedUpdateMs == 0) ? 0.01f : (nowMs - lastSpeedUpdateMs) / 1000.0f;
+  float maxStep = kMaxAccelMphS * dt;
+  if (target > current + maxStep) target = current + maxStep;
+  if (target < current - maxStep) target = current - maxStep;
+  lastSpeedUpdateMs = nowMs;
+  return target;
+}
+
 
 
 // ---- Optional Accessors ----

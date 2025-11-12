@@ -119,6 +119,7 @@ void PullStateManager::detectPullStart(float currentSpeed) {
   }
   if (StateManager::getPullState() == PullState::STAGED && currentSpeed > 0.5f) {
     LOGI("[PSM] STAGED + speed>0.5 -> PULLING");
+    SpeedModule::startRun();     // reset speed warmup and filters
     enterState(PullState::PULLING);
   }
 }
