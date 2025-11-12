@@ -12,6 +12,13 @@ static const unsigned long debugInterval = 5000;  // Every 5 seconds
 static PullState s_lastState = PullState::READY;
 static PullState s_lastNotifiedState = PullState::READY;
 
+namespace {
+  constexpr float  kStartSpeedMph = 0.5f;   // already using this
+  constexpr float  kEndSpeedMph   = 0.2f;   // lower than start to avoid chatter
+  constexpr uint32_t kEndHoldMs   = 300;    // must be low for 300 ms
+  uint32_t s_belowSinceMs = 0;
+}
+
 void PullStateManager::enterState(PullState newState) {
   const char* oldState = PullStateManager::stateToString(StateManager::getPullState());
   const char* newStateStr = PullStateManager::stateToString(newState);
@@ -35,22 +42,27 @@ void PullStateManager::init() {
 void PullStateManager::update() {
   PullState current = StateManager::getPullState();
 
-  static unsigned long lastStageCheckMs = 0;
   if (current == PullState::READY) {
-    AlarmManager::resetForStateEntry(); // Reset all alarms
-  }
-  else if (current == PullState::STAGED) {
+    s_belowSinceMs = 0;
+    AlarmManager::resetForStateEntry();
+  } else if (current == PullState::STAGED) {
     float s = StateManager::getSpeed();
-    detectPullStart(s);
-    unsigned long now = millis();
-    if (now - lastStageCheckMs >= debugInterval) {
-      lastStageCheckMs = now;
-      LOGD("[PSM] STAGED: checking for pull start, speed=%.2f", s);
-    }
+    detectPullStart(s); // starts at > 0.5 mph
   } else if (current == PullState::PULLING) {
-    if (StateManager::getSpeed() <= 0.0f) {
-      LOGI("[PSM] PULLING -> speed <= 0 -> PULLEND");
-      enterState(PullState::PULLEND);
+    float s = StateManager::getSpeed();
+
+    // End-of-pull hysteresis with hold time
+    uint32_t now = millis();
+    if (s <= kEndSpeedMph) {
+      if (s_belowSinceMs == 0) s_belowSinceMs = now;
+      if (now - s_belowSinceMs >= kEndHoldMs) {
+        LOGI("[PSM] PULLING -> speed low for %ums -> PULLEND", (unsigned)kEndHoldMs);
+        s_belowSinceMs = 0;
+        enterState(PullState::PULLEND);
+      }
+    } else {
+      // back above threshold, clear timer
+      s_belowSinceMs = 0;
     }
   }
 

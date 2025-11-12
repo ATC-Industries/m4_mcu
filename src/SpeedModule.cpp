@@ -4,18 +4,26 @@
 
 #include "StateManager.h"
 #include "lvgl.h"
+#include "Logging.h"
 
-#define SPEED_TIMEOUT_MICROS 500000  // 500ms
+#define SPEED_TIMEOUT_MICROS 1000000  // 1s
 
 static unsigned long lastPulseMicros = 0;
 static float currentSpeedMPH = 0.0f;
-static volatile int pendingPulses = 0;
-static volatile bool pulseReceived = false;
 
 static const int SPEED_BUFFER_SIZE = 10;
 static float deltaSecHistory[SPEED_BUFFER_SIZE];
 static volatile int timingIndex = 0;
 static volatile bool bufferFull = false;
+
+// timing
+static volatile uint32_t pendingPulses = 0;
+static volatile bool     pulseReceived = false;
+
+static volatile uint64_t isrLastMicros = 0;           // last pulse time (from ISR)
+static volatile uint64_t isrIntervalSumMicros = 0;    // sum of intervals since last tick
+static volatile uint32_t isrIntervalCount = 0;        // intervals counted since last tick
+
 
 // UI Elements (externs from UI event screen)
 extern lv_obj_t *ui_Settings1TextareaCalibrationNumberTextArea;
@@ -32,9 +40,22 @@ static bool driveOffMode = false;
 static PullState currentPullState = PullState::READY;
 
 static void IRAM_ATTR onSpeedSensorPulseISR() {
+  uint64_t now = micros();
+
+  if (isrLastMicros != 0) {
+    uint32_t delta = (uint32_t)(now - isrLastMicros);
+    // Optional sanity clamp to ignore freak spikes
+    if (delta >= 100 && delta <= 2000000) { // 100 µs to 2 s
+      isrIntervalSumMicros += delta;
+      isrIntervalCount++;
+    }
+  }
+  isrLastMicros = now;
+
   pendingPulses++;
   pulseReceived = true;
 }
+
 
 void SpeedModule::begin() {
   pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);
@@ -46,118 +67,70 @@ void SpeedModule::begin() {
   pulseCount = 0;
   currentSpeedMPH = 0.0f;
 
-  for (int i = 0; i < SPEED_BUFFER_SIZE; i++) {
-    deltaSecHistory[i] = 0.0f;
-  }
+  isrLastMicros = 0;
+  isrIntervalSumMicros = 0;
+  isrIntervalCount = 0;
+
+  for (int i = 0; i < SPEED_BUFFER_SIZE; i++) deltaSecHistory[i] = 0.0f;
 }
 
-// void SpeedModule::tick() {
-//   unsigned long now = micros();
-
-//   if (driveOffMode) {
-//     handlePulseDuringDriveOff();
-//     return;
-//   }
-
-//   // Handle pulse updates
-//   if (pulseReceived) {
-//     noInterrupts();
-//     int pulses = pendingPulses;
-//     pendingPulses = 0;
-//     pulseReceived = false;
-//     interrupts();
-
-//     if (currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) {
-//       if (pulses > 0) {
-//         pulseCount += pulses;
-
-//         if (lastPulseMicros > 0 && pulses == 1) {
-//           float deltaSec = (now - lastPulseMicros) / 1e6f;
-//           if (deltaSec > 0.0f && calibrationPulses > 0) {
-//             float feetPerPulse = 300.0f / calibrationPulses;
-//             float feetPerSecond = feetPerPulse / deltaSec;
-//             currentSpeedMPH = feetPerSecond * 0.681818f;
-//           }
-//         }
-
-//         lastPulseMicros = now;
-//       }
-
-//       updateSpeedAndDistance();
-//       if (currentPullState == PullState::STAGED) {
-//         resetDistance();
-//         //lastPulseMicros = 0;
-//       }
-//     }
-//     return;
-//   }
-
-//   // Handle speed decay if no new pulse
-//   if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
-//     if (currentSpeedMPH > 0.01f) {
-//       currentSpeedMPH = 0.0f;
-//       updateSpeedAndDistance();
-//     }
-//   }
-// }
-
-
 void SpeedModule::tick() {
-  unsigned long now = micros();
-
-
+  uint64_t now = micros();
+  // Snapshot ISR data
+  uint32_t pulses = 0;
+  uint64_t sumMicros = 0;
+  uint32_t cnt = 0;
 
   if (pulseReceived) {
     noInterrupts();
-    int pulses = pendingPulses;
-    pendingPulses = 0;
+    pulses = pendingPulses;           pendingPulses = 0;
+    sumMicros = isrIntervalSumMicros; isrIntervalSumMicros = 0;
+    cnt = isrIntervalCount;           isrIntervalCount = 0;
     pulseReceived = false;
     interrupts();
+  }
 
-    if (driveOffMode) {
-      handlePulseDuringDriveOff();
-      return;
-    }
-
-    if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
+  if (driveOffMode) {
+    if (pulses) {
       pulseCount += pulses;
-
-      for (int i = 0; i < pulses; i++) {
-        unsigned long thisPulseMicros = now;  // could add per-pulse micro timing here if needed
-        if (lastPulseMicros > 0) {
-          float deltaSec = (thisPulseMicros - lastPulseMicros) / 1e6f;
-
-          // Skip obviously bad values
-          if (deltaSec >= 0.001f && deltaSec <= 2.0f && calibrationPulses > 0) {
-            deltaSecHistory[timingIndex] = deltaSec;
-            timingIndex = (timingIndex + 1) % SPEED_BUFFER_SIZE;
-            if (timingIndex == 0) bufferFull = true;
-
-            float avgDelta = getAverageDeltaSec();
-            float feetPerPulse = 300.0f / calibrationPulses;
-            currentSpeedMPH = (feetPerPulse / avgDelta) * 0.681818f;
-          }
-        }
-
-        lastPulseMicros = thisPulseMicros;
-      }
-
-      updateSpeedAndDistance();
-      if (currentPullState == PullState::STAGED) {
-        resetDistance();
-      }
+      lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
     }
     return;
   }
 
-  // Speed decay
-  if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+  if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
+    pulseCount += (int)pulses;
+
+    // Average period from ISR
+    if (cnt > 0 && calibrationPulses > 0) {
+      const float avgDeltaSec = (float)sumMicros / (float)cnt / 1e6f;
+      if (avgDeltaSec > 0.0001f && avgDeltaSec < 2.0f) {
+        // optional: smooth with your small ring buffer
+        deltaSecHistory[timingIndex] = avgDeltaSec;
+        timingIndex = (timingIndex + 1) % SPEED_BUFFER_SIZE;
+        if (timingIndex == 0) bufferFull = true;
+
+        const float avg = getAverageDeltaSec();
+        const float feetPerPulse = 300.0f / calibrationPulses;
+        const float fps = feetPerPulse / avg;
+        currentSpeedMPH = fps * 0.681818f;
+      }
+    }
+
+    if (currentPullState == PullState::STAGED) resetDistance();
+    updateSpeedAndDistance();
+    return;
+  }
+
+  // Only decay to zero if we truly have not seen pulses in a while
+  if (isrLastMicros > 0 && (now - isrLastMicros > SPEED_TIMEOUT_MICROS)) {
     if (currentSpeedMPH > 0.01f) {
       currentSpeedMPH = 0.0f;
       updateSpeedAndDistance();
     }
   }
 }
+
 
 float SpeedModule::getAverageDeltaSec() {
   int count = bufferFull ? SPEED_BUFFER_SIZE : timingIndex;
@@ -293,14 +266,22 @@ void SpeedModule::resetDistance() {
 }
 
 void SpeedModule::updateSpeedAndDistance() {
-  float distanceFeet = (300.0f * static_cast<float>(pulseCount)) / calibrationPulses;
+  static uint32_t lastLogMs = 0;
+  const float distanceFeet = (300.0f * (float)pulseCount) / calibrationPulses;
 
-  Serial.printf("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n", pulseCount, distanceFeet,
-                currentSpeedMPH);
+  // push to state
+  StateManager::setSpeed(currentSpeedMPH);
+  StateManager::setDistance(distanceFeet);
 
-  StateManager::setSpeed(currentSpeedMPH);  // Always track live speed
-  StateManager::setDistance(distanceFeet);  // Always track live distance
+  // log at ~10 Hz max
+  uint32_t ms = millis();
+  if (ms - lastLogMs >= 100) {
+    lastLogMs = ms;
+    LOGD("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n",
+                  pulseCount, distanceFeet, currentSpeedMPH);
+  }
 }
+
 
 // ---- Optional Accessors ----
 int SpeedModule::getCurrentPulseCount() { return pulseCount; }

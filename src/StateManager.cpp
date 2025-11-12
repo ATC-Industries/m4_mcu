@@ -1,6 +1,7 @@
 #include "StateManager.h"
 #include "peripherals/PeripheralsInit.h"
 #include <cstring>
+#include <SpeedModule.h>
 
 #include <Preferences.h>
 
@@ -328,6 +329,8 @@ void StateManager::setLimitSwitchEnabled(int index, bool enabled) {
 // ----- Preferences -----
 
 void StateManager::loadPreferences() {
+  PullState ps = getPullState();
+  if (ps == PullState::PULLING || SpeedModule::isDriveOffModeActive()) return;
   storage.begin("m4prefs", false);
 
   preferences.unitSystem =
@@ -409,6 +412,8 @@ void StateManager::loadPreferences() {
 }
 
 void StateManager::savePreferences() {
+  PullState ps = getPullState();
+  if (ps == PullState::PULLING || SpeedModule::isDriveOffModeActive()) return;
   storage.begin("m4prefs", false);
 
   storage.putUChar("unitSystem", static_cast<uint8_t>(preferences.unitSystem));
