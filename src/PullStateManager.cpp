@@ -4,6 +4,7 @@
 #include "SpeedModule.h"
 #include "StateManager.h"
 #include "AlarmManager.h"
+#include "ScreenUpdater.h"
 #include "TachClient.h"
 #include "Logging.h"
 
@@ -125,6 +126,8 @@ void PullStateManager::detectPullStart(float currentSpeed) {
 }
 
 void PullStateManager::resetMaxValues() { 
+  primeMainScreenValues();
+  PullStateManager::resetCurrentValues();
   StateManager::resetAllMaxValues(); 
   AlarmManager::resetForStateEntry(); // Reset all alarms
 }
