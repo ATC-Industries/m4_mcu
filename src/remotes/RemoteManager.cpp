@@ -9,6 +9,14 @@
 #include "ui/ui.h"
 #include "lvgl.h"
 #include "M4CommsHelpers.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
+
+static portMUX_TYPE s_rows_mux = portMUX_INITIALIZER_UNLOCKED;
+#define LOCK_ROWS()   portENTER_CRITICAL(&s_rows_mux)
+#define UNLOCK_ROWS() portEXIT_CRITICAL(&s_rows_mux)
+
+static volatile bool s_needs_ui_refresh = false;
 
 // Your existing sender
 extern esp_err_t sendMessage(const uint8_t *peerAddress,
@@ -87,7 +95,6 @@ bool RemoteManager::IsPairing() { return pairing_on_; }
 void RemoteManager::Tick() {
   const uint32_t now = millis();
 
-  // Pairing side
   if (pairing_on_) {
     if (now - last_discover_ms_ >= kDiscoverEveryMs) {
       last_discover_ms_ = now;
@@ -96,6 +103,8 @@ void RemoteManager::Tick() {
     if (now - last_purge_ms_ >= kPurgeEveryMs) {
       last_purge_ms_ = now;
       bool changed = false;
+
+      LOCK_ROWS();
       for (size_t i = 0; i < rows_.size();) {
         if (now - rows_[i].last_seen_ms > kRowStaleMs) {
           rows_.erase(rows_.begin() + i);
@@ -104,7 +113,9 @@ void RemoteManager::Tick() {
           ++i;
         }
       }
-      if (changed) RefreshListUI();
+      UNLOCK_ROWS();
+
+      if (changed) s_needs_ui_refresh = true;
     }
   }
 
@@ -116,19 +127,31 @@ void RemoteManager::Tick() {
       lv_label_set_text(status_dots_, kDots[dots_]);
     }
   }
-  // Runtime broadcast at 5 Hz, always
+
+  // If any RX updated the list, rebuild UI here
+  if (pairing_on_ && s_needs_ui_refresh) {
+    s_needs_ui_refresh = false;
+    RefreshListUI();
+  }
+
+  // 5 Hz telemetry
   MaybeSendValues();
 }
+
 
 void RemoteManager::OnPairingRemoteResponse(const uint8_t* sender_mac,
                                             int rssi,
                                             const JsonDocument& doc) {
   if (!pairing_on_) return;
 
+  LOCK_ROWS();
   RemoteRow* rr = nullptr;
-  if (!FindOrAddByMac(sender_mac, &rr) || rr == nullptr) return;
+  if (!FindOrAddByMac(sender_mac, &rr) || rr == nullptr) {
+    UNLOCK_ROWS();
+    return;
+  }
 
-  rr->last_rssi = rssi;
+  rr->last_rssi   = rssi;
   rr->last_seen_ms = millis();
 
   if (doc["pairedHost"].is<int>()) {
@@ -141,9 +164,12 @@ void RemoteManager::OnPairingRemoteResponse(const uint8_t* sender_mac,
     rr->digits = static_cast<uint8_t>(doc["digits"].as<int>());
   }
   rr->is_this_host = (rr->paired_host == StateManager::getM4ID());
+  UNLOCK_ROWS();
 
-  RefreshListUI();
+  // Defer UI work to the main loop
+  s_needs_ui_refresh = true;
 }
+
 
 bool RemoteManager::ConnectRemote(const char* mac_str) {
   uint8_t mac[6];
@@ -152,6 +178,7 @@ bool RemoteManager::ConnectRemote(const char* mac_str) {
   if (!ok) return false;
 
   // optimistic UI
+  LOCK_ROWS();
   for (auto& r : rows_) {
     if (strncmp(r.mac_str, mac_str, sizeof(r.mac_str)) == 0) {
       r.paired_host = StateManager::getM4ID();
@@ -159,7 +186,9 @@ bool RemoteManager::ConnectRemote(const char* mac_str) {
       break;
     }
   }
-  RefreshListUI();
+  UNLOCK_ROWS();
+  s_needs_ui_refresh = true;
+
   return true;
 }
 
@@ -169,14 +198,17 @@ bool RemoteManager::DisconnectRemote(const char* mac_str) {
   bool ok = SendDisconnect(mac);
   if (!ok) return false;
 
+  LOCK_ROWS();
   for (auto& r : rows_) {
     if (strncmp(r.mac_str, mac_str, sizeof(r.mac_str)) == 0) {
-      r.paired_host = 0;
-      r.is_this_host = false;
+      r.paired_host = StateManager::getM4ID();
+      r.is_this_host = true;
       break;
     }
   }
-  RefreshListUI();
+  UNLOCK_ROWS();
+  s_needs_ui_refresh = true;
+
   return true;
 }
 
@@ -203,12 +235,18 @@ void RemoteManager::SetStatusLabel(lv_obj_t* label) {
 void RemoteManager::RefreshListUI() {
   if (!pairing_on_ || !table_container_) return;
 
-  // Clear
-  while (lv_obj_get_child_cnt(table_container_) > 0) {
-    lv_obj_del(lv_obj_get_child(table_container_, 0));
+  // snapshot rows_ under lock
+  std::vector<RemoteRow> snapshot;
+  {
+    LOCK_ROWS();
+     snapshot = rows_;
+    UNLOCK_ROWS();
   }
 
-  for (const auto& r : rows_) {
+  // clear container safely
+  lv_obj_clean(table_container_);
+
+  for (const auto& r : snapshot) {
     lv_obj_t* row = lv_obj_create(table_container_);
     lv_obj_set_width(row, lv_pct(100));
     lv_obj_set_height(row, LV_SIZE_CONTENT);
@@ -216,11 +254,9 @@ void RemoteManager::RefreshListUI() {
     lv_obj_set_style_pad_all(row, 6, 0);
     lv_obj_set_style_pad_column(row, 8, 0);
 
-    // MAC
     lv_obj_t* mac = lv_label_create(row);
     lv_label_set_text_fmt(mac, "%s", r.mac_str);
 
-    // Type
     lv_obj_t* type = lv_label_create(row);
     const char* t =
       (r.type == REMOTE_SPEED) ? "Speed" :
@@ -229,31 +265,29 @@ void RemoteManager::RefreshListUI() {
       (r.type == REMOTE_SAFETY_LIGHT) ? "Safety" : "?";
     lv_label_set_text_fmt(type, "type:%s", t);
 
-    // Digits (not for safety)
     if (r.type != REMOTE_SAFETY_LIGHT) {
       lv_obj_t* digs = lv_label_create(row);
       if (r.digits == 3 || r.digits == 4 || r.digits == 5) {
         lv_label_set_text_fmt(digs, "digits:%u", r.digits);
       } else {
-        lv_label_set_text(digs, "digits:—");
+        lv_label_set_text(digs, "digits:-");
       }
     }
 
-    // Host
     lv_obj_t* host = lv_label_create(row);
     if (r.paired_host > 0) {
       lv_label_set_text_fmt(host, "host:%d%s", r.paired_host, r.is_this_host ? " (this)" : "");
       lv_obj_set_style_text_color(host, lv_color_hex(r.is_this_host ? 0x1FA709 : 0xA70909), 0);
     } else {
-      lv_label_set_text(host, "host:—");
+      lv_label_set_text(host, "host:-");
     }
 
-    // Hidden MAC to read back
+    // hidden MAC
     lv_obj_t* mac_hidden = lv_label_create(row);
     lv_obj_add_flag(mac_hidden, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(mac_hidden, r.mac_str);
 
-    // Button: Connect / Disconnect
+    // connect/disconnect
     lv_obj_t* btn = lv_btn_create(row);
     lv_obj_t* lbl = lv_label_create(btn);
     bool connected_to_us = r.is_this_host;
@@ -265,7 +299,6 @@ void RemoteManager::RefreshListUI() {
         lv_obj_t* btn = lv_event_get_target(e);
         lv_obj_t* row = lv_obj_get_parent(btn);
 
-        // hidden MAC
         lv_obj_t* mac_candidate = nullptr;
         const uint32_t cnt = lv_obj_get_child_cnt(row);
         for (uint32_t i = 0; i < cnt; ++i) {
@@ -285,8 +318,10 @@ void RemoteManager::RefreshListUI() {
       },
       LV_EVENT_CLICKED, nullptr);
   }
+
   UpdateStatusLabel();
 }
+
 
 const std::vector<RemoteRow>& RemoteManager::GetRemotes() { return rows_; }
 
@@ -295,9 +330,12 @@ const std::vector<RemoteRow>& RemoteManager::GetRemotes() { return rows_; }
 bool RemoteManager::FindOrAddByMac(const uint8_t mac[6], RemoteRow** out) {
   char s[18];
   MacToString(mac, s);
+
+  LOCK_ROWS();
   for (auto& r : rows_) {
     if (strncmp(r.mac_str, s, sizeof(r.mac_str)) == 0) {
       if (out) *out = &r;
+      UNLOCK_ROWS();
       return true;
     }
   }
@@ -313,8 +351,10 @@ bool RemoteManager::FindOrAddByMac(const uint8_t mac[6], RemoteRow** out) {
   r.is_this_host = false;
   rows_.push_back(r);
   if (out) *out = &rows_.back();
+  UNLOCK_ROWS();
   return true;
 }
+
 
 void RemoteManager::MacToString(const uint8_t mac[6], char* out18) {
   snprintf(out18, 18, "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -333,7 +373,7 @@ bool RemoteManager::StringToMac(const char* str, uint8_t out_mac[6]) {
 }
 
 void RemoteManager::SendDiscover() {
-  StaticJsonDocument<96> doc;
+  JsonDocument doc;;
   doc["action"] = DISCOVER_REMOTES;
   doc["host"]   = StateManager::getM4ID();
 
@@ -346,7 +386,7 @@ void RemoteManager::SendDiscover() {
 bool RemoteManager::SendConnect(const uint8_t mac[6]) {
   char mac_s[18]; MacToString(mac, mac_s);
 
-  StaticJsonDocument<128> doc;
+  JsonDocument doc;;
   doc["action"] = REMOTE_CONTROL;          // << action_type we added
   doc["op"]     = OPERATION_CONNECT;       // << operation_type you added
   doc["target"] = mac_s;
@@ -361,7 +401,7 @@ bool RemoteManager::SendConnect(const uint8_t mac[6]) {
 bool RemoteManager::SendDisconnect(const uint8_t mac[6]) {
   char mac_s[18]; MacToString(mac, mac_s);
 
-  StaticJsonDocument<128> doc;
+  JsonDocument doc;;
   doc["action"] = REMOTE_CONTROL;
   doc["op"]     = OPERATION_DISCONNECT;
   doc["target"] = mac_s;
@@ -377,7 +417,7 @@ void RemoteManager::MaybeSendValues() {
   if (now - last_values_ms_ < kValuesEveryMs) return;
   last_values_ms_ = now;
 
-  StaticJsonDocument<192> doc;
+  JsonDocument doc;;
   doc["action"]   = SEND_REMOTE_VALUE;
   doc["host"]     = StateManager::getM4ID();
   doc["speed"]    = cur_speed_;

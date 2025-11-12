@@ -56,7 +56,7 @@ void onMessageReceived(uint8_t *senderAddress,
 
   // 3) Parse JSON payload
   // Tune capacity to your payload size. 256 is safe for small messages.
-  StaticJsonDocument<256> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, message.payload);
   if (error) {
     LOGE("[M4CommsHelpers] deserializeJson() failed: %s", error.c_str());
@@ -332,7 +332,7 @@ void broadcastJudgeStandState() {
   const auto &systemState = StateManager::state();
   const auto &preferences = StateManager::prefs();
 
-  StaticJsonDocument<512> doc;
+  JsonDocument doc;
   String payload;
   payload.reserve(256);
 
@@ -388,6 +388,10 @@ void broadcastJudgeStandState() {
 }
 
 void updateRemoteDisplay(float value) {
+  // If in remote pairing mode exit immedietly
+  if (RemoteManager::IsPairing()) {
+    return;
+  }
   // Create a JSON object and populate it
   JsonDocument doc;
   String payload;
