@@ -28,6 +28,12 @@ static const lv_color_t kPresetColors[] = {
     lv_color_hex(0x346DE1)   // Preset 4 - Blue
 };
 
+void primeMainScreenValues() {
+  lastDisplayedSpeed = NAN;
+  lastDisplayedDistance = NAN;
+  lastDisplayedRPM = NAN;
+}
+
 // visibility helper
 static inline void set_visible(lv_obj_t* obj, bool on) {
   if (!obj) return;

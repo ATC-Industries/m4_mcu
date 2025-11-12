@@ -43,6 +43,7 @@ void applyMainScreenPreferences() {
 }
 
 void loadMainScreen(lv_event_t *e) {
+  primeMainScreenValues();
   applyMainScreenPreferences();
   float distance = StateManager::getDistance();
   float speed = StateManager::getSpeed();
