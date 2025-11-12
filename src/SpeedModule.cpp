@@ -277,7 +277,7 @@ void SpeedModule::updateSpeedAndDistance() {
   uint32_t ms = millis();
   if (ms - lastLogMs >= 100) {
     lastLogMs = ms;
-    LOGD("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n",
+    LOGD("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.1f MPH\n",
                   pulseCount, distanceFeet, currentSpeedMPH);
   }
 }
