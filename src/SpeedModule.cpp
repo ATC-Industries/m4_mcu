@@ -12,7 +12,6 @@ namespace {
   constexpr uint32_t kWarmupMs = 200;       // shorter
   constexpr int      kMinGoodIntervals = 2; // easier to satisfy
   constexpr float    kWarmupMinDistFt = 6.0f;
-  constexpr float    kEmaAlpha = 0.25f;    // smoothing on mph
 
   uint32_t warmupUntilMs = 0;
   int      goodIntervals = 0;
@@ -194,19 +193,6 @@ currentSpeedMPH = publishedMPH;
   }
 }
 
-
-
-float SpeedModule::getAverageDeltaSec() {
-  int count = bufferFull ? SPEED_BUFFER_SIZE : timingIndex;
-  if (count == 0) return 1.0f;  // prevent div/0 on boot
-
-  float sum = 0.0f;
-  for (int i = 0; i < count; i++) {
-    sum += deltaSecHistory[i];
-  }
-  return sum / count;
-}
-
 // ---- Validation ----
 bool SpeedModule::isValidCalibrationNumber(int pulses) {
   return pulses >= CALIBRATION_MIN && pulses <= CALIBRATION_MAX;
@@ -358,7 +344,7 @@ static float SpeedModule::clampAccel(float current, float target) {
 
 
 
-// ---- Optional Accessors ----
+// ---- Accessors ----
 int SpeedModule::getCurrentPulseCount() { return pulseCount; }
 float SpeedModule::getCurrentDistance() { return (300.0f * static_cast<float>(pulseCount)) / calibrationPulses; }
 float SpeedModule::getCurrentSpeed() { return 0.0f; }  // Placeholder
