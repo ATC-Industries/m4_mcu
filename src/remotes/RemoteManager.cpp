@@ -37,41 +37,18 @@ void RemoteManager::Init() {
   last_discover_ms_ = last_purge_ms_ = last_values_ms_ = 0;
   cur_speed_ = cur_rpm_ = cur_dist_ = 0.f;
   cur_ismax_ = false;
+  cur_safety_ = false;
   table_container_ = nullptr;
 
-  // Hook UI
-  SetListContainer(uic_Settings1PanelDeviceTable);
-  SetStatusLabel(uic_Settings1LabelRemoteSearching);
+  status_label_   = uic_Settings1LabelRemoteSearching;
+  status_spinner_ = uic_Settings1SpinnerRemoteSearchingSpinner;
 
-  // Build siblings right next to the original label inside its flex-row parent
-  if (status_label_) {
-    lv_obj_t* parent = lv_obj_get_parent(status_label_);
-
-    // Keep the original as the static word
-    lv_label_set_text(status_label_, "Searching");
-
-    // Dots
-    status_dots_ = lv_label_create(parent);
-    lv_label_set_text(status_dots_, "");
-    lv_obj_set_style_min_width(status_dots_, 24, 0);   // room for "..."
-    lv_obj_set_style_pad_left(status_dots_, 4, 0);     // small gap
-    lv_obj_set_flex_grow(status_dots_, 0);
-
-    // Found
-    status_found_ = lv_label_create(parent);
-    lv_label_set_text(status_found_, "found:0");
-    lv_obj_set_style_pad_left(status_found_, 12, 0);
-    lv_obj_set_flex_grow(status_found_, 0);
-
-    // Connected
-    status_conn_ = lv_label_create(parent);
-    lv_label_set_text(status_conn_, "connected:0");
-    lv_obj_set_style_pad_left(status_conn_, 12, 0);
-    lv_obj_set_flex_grow(status_conn_, 0);
-  }
+  if (status_label_)   lv_obj_add_flag(status_label_, LV_OBJ_FLAG_HIDDEN);
+  if (status_spinner_) lv_obj_add_flag(status_spinner_, LV_OBJ_FLAG_HIDDEN);
 
   UpdateStatusLabel();
 }
+
 
 void RemoteManager::EnterPairing() {
   pairing_on_ = true;
@@ -119,13 +96,9 @@ void RemoteManager::Tick() {
     }
   }
 
-  if (now - last_status_ms_ >= 400) {
-    last_status_ms_ = now;
-    dots_ = (dots_ + 1) % 4;
-    if (status_dots_) {
-      static const char* kDots[] = {"", ".", "..", "..."};
-      lv_label_set_text(status_dots_, kDots[dots_]);
-    }
+  if (remotes_dirty_) {
+    remotes_dirty_ = false;
+    RefreshListUI();
   }
 
   // If any RX updated the list, rebuild UI here
@@ -168,6 +141,7 @@ void RemoteManager::OnPairingRemoteResponse(const uint8_t* sender_mac,
 
   // Defer UI work to the main loop
   s_needs_ui_refresh = true;
+  remotes_dirty_ = true;
 }
 
 
@@ -222,14 +196,14 @@ void RemoteManager::SetIsMax(bool isMaxNow) {
   cur_ismax_ = isMaxNow;
 }
 
+// TODO: Set when cahnging safety Status
+void RemoteManager::SetSafety(bool isSafetyNow) {
+  cur_safety_ = isSafetyNow;
+}
+
 void RemoteManager::SetListContainer(lv_obj_t* container) {
   table_container_ = container;
   if (pairing_on_) RefreshListUI();
-}
-
-void RemoteManager::SetStatusLabel(lv_obj_t* label) {
-  status_label_ = label;
-  UpdateStatusLabel();
 }
 
 void RemoteManager::RefreshListUI() {
@@ -240,15 +214,19 @@ void RemoteManager::RefreshListUI() {
   {
     LOCK_ROWS();
     snapshot = rows_;
-    UNLOCK_ROWS();
+    UNLOCK_ROWS();  // important
   }
 
-  // clear container safely
-  // This was causing the LVGL crash on Connect. Disable for now.
-  // lv_obj_clean(table_container_);
+  // Clear old rows once before rebuilding
+  lv_obj_clean(table_container_);
 
   for (const auto& r : snapshot) {
     lv_obj_t* row = lv_obj_create(table_container_);
+    if (!row) {
+      LOGE("[RemoteManager] lv_obj_create failed");
+      return;
+    }
+
     lv_obj_set_width(row, lv_pct(100));
     lv_obj_set_height(row, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
@@ -260,9 +238,9 @@ void RemoteManager::RefreshListUI() {
 
     lv_obj_t* type = lv_label_create(row);
     const char* t =
-      (r.type == REMOTE_SPEED) ? "Speed" :
-      (r.type == REMOTE_RPM) ? "RPM" :
-      (r.type == REMOTE_DISTANCE) ? "Distance" :
+      (r.type == REMOTE_SPEED)        ? "Speed" :
+      (r.type == REMOTE_RPM)          ? "RPM" :
+      (r.type == REMOTE_DISTANCE)     ? "Distance" :
       (r.type == REMOTE_SAFETY_LIGHT) ? "Safety" : "?";
     lv_label_set_text_fmt(type, "type:%s", t);
 
@@ -277,8 +255,13 @@ void RemoteManager::RefreshListUI() {
 
     lv_obj_t* host = lv_label_create(row);
     if (r.paired_host > 0) {
-      lv_label_set_text_fmt(host, "host:%d%s", r.paired_host, r.is_this_host ? " (this)" : "");
-      lv_obj_set_style_text_color(host, lv_color_hex(r.is_this_host ? 0x1FA709 : 0xA70909), 0);
+      lv_label_set_text_fmt(host, "host:%d%s",
+                            r.paired_host,
+                            r.is_this_host ? " (this)" : "");
+      lv_obj_set_style_text_color(
+        host,
+        lv_color_hex(r.is_this_host ? 0x1FA709 : 0xA70909),
+        0);
     } else {
       lv_label_set_text(host, "host:-");
     }
@@ -288,14 +271,15 @@ void RemoteManager::RefreshListUI() {
     lv_obj_add_flag(mac_hidden, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(mac_hidden, r.mac_str);
 
-    // connect/disconnect
+    // connect / disconnect button
     lv_obj_t* btn = lv_btn_create(row);
     lv_obj_t* lbl = lv_label_create(btn);
     bool connected_to_us = r.is_this_host;
     lv_label_set_text(lbl, connected_to_us ? "Disconnect" : "Connect");
     lv_obj_center(lbl);
 
-    lv_obj_add_event_cb(btn,
+    lv_obj_add_event_cb(
+      btn,
       [](lv_event_t* e) {
         lv_obj_t* btn = lv_event_get_target(e);
         lv_obj_t* row = lv_obj_get_parent(btn);
@@ -304,7 +288,10 @@ void RemoteManager::RefreshListUI() {
         const uint32_t cnt = lv_obj_get_child_cnt(row);
         for (uint32_t i = 0; i < cnt; ++i) {
           lv_obj_t* ch = lv_obj_get_child(row, i);
-          if (lv_obj_has_flag(ch, LV_OBJ_FLAG_HIDDEN)) { mac_candidate = ch; break; }
+          if (lv_obj_has_flag(ch, LV_OBJ_FLAG_HIDDEN)) {
+            mac_candidate = ch;
+            break;
+          }
         }
         if (!mac_candidate) return;
         const char* mac = lv_label_get_text(mac_candidate);
@@ -317,11 +304,12 @@ void RemoteManager::RefreshListUI() {
           RemoteManager::DisconnectRemote(mac);
         }
       },
-      LV_EVENT_CLICKED, nullptr);
+      LV_EVENT_CLICKED,
+      nullptr);
   }
-
-  UpdateStatusLabel();
 }
+
+
 
 
 const std::vector<RemoteRow>& RemoteManager::GetRemotes() { return rows_; }
@@ -429,6 +417,7 @@ void RemoteManager::MaybeSendValues() {
   doc["rpm"]      = cur_rpm_;
   doc["distance"] = cur_dist_;
   doc["isMax"]    = cur_ismax_;
+  doc["isSafery"] = cur_safety_;
 
   String payload; serializeJson(doc, payload);
 
@@ -436,22 +425,35 @@ void RemoteManager::MaybeSendValues() {
 }
 
 void RemoteManager::UpdateStatusLabel() {
-  if (!status_label_) return;
+  if (!status_label_ || !status_spinner_) return;
 
-  size_t found = rows_.size();
-  size_t connected = 0;
-  for (const auto& r : rows_) if (r.is_this_host) ++connected;
+  bool labelHidden   = lv_obj_has_flag(status_label_,   LV_OBJ_FLAG_HIDDEN);
+  bool spinnerHidden = lv_obj_has_flag(status_spinner_, LV_OBJ_FLAG_HIDDEN);
 
   if (pairing_on_) {
-    lv_label_set_text(status_label_, "Searching");
-    lv_obj_set_style_text_color(status_label_, lv_color_hex(0x1E88E5), 0);
-    if (status_found_) lv_label_set_text_fmt(status_found_, "found:%u", (unsigned)found);
-    if (status_conn_)  lv_label_set_text_fmt(status_conn_,  "connected:%u", (unsigned)connected);
+    // Only do work if they are not already in "searching" state
+    if (labelHidden || spinnerHidden) {
+      lv_label_set_text(status_label_, "Searching");
+      lv_obj_clear_flag(status_label_,   LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(status_spinner_, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_set_style_text_color(status_label_, lv_color_hex(0x1E88E5), 0);
+    }
   } else {
-    lv_label_set_text(status_label_, "Search stopped");
-    lv_obj_set_style_text_color(status_label_, lv_color_hex(0x808080), 0);
-    if (status_dots_) lv_label_set_text(status_dots_, "");
-    if (status_found_) lv_label_set_text_fmt(status_found_, "found:%u", (unsigned)found);
-    if (status_conn_)  lv_label_set_text_fmt(status_conn_,  "connected:%u", (unsigned)connected);
+    // Only do work if they are not already hidden
+    if (!labelHidden || !spinnerHidden) {
+      lv_label_set_text(status_label_, "");
+      lv_obj_set_style_text_color(status_label_, lv_color_hex(0x808080), 0);
+      lv_obj_add_flag(status_label_,   LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(status_spinner_, LV_OBJ_FLAG_HIDDEN);
+    }
   }
 }
+
+void RemoteManager::SetTableContainer(lv_obj_t* parent) {
+  table_container_ = parent;
+  if (table_container_) {
+    lv_obj_clean(table_container_);
+  }
+  remotes_dirty_ = true;  // force one rebuild when we come back
+}
+

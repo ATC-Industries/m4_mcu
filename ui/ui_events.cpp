@@ -892,3 +892,13 @@ void HELPRemotePair(lv_event_t * e)
 {
 	// Your code here
 }
+
+void Settings1Screen_OnLoad(lv_event_t * e)
+{
+  RemoteManager::SetTableContainer(uic_Settings1PanelDeviceTable);
+}
+
+void Settings1Screen_OnUnload(lv_event_t * e)
+{
+  RemoteManager::SetTableContainer(nullptr);
+}

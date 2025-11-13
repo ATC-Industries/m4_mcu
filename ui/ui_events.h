@@ -21,6 +21,8 @@ void PULLENDSaveBtnPressed(lv_event_t * e);
 void EMERGENCYSTOPResetBtnPressed(lv_event_t * e);
 void SettingsScreenLoaded(lv_event_t * e);
 void CreateDeviceTable(lv_event_t * e);
+void Settings1Screen_OnLoad(lv_event_t * e);
+void Settings1Screen_OnUnload(lv_event_t * e);
 void SettingsUnitIDText(lv_event_t * e);
 void SettingsSwitchJudgeChange(lv_event_t * e);
 void EnableJudgeHelpButtonPressed(lv_event_t * e);

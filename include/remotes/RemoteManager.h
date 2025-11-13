@@ -10,11 +10,9 @@ struct _lv_obj_t;
 typedef _lv_obj_t lv_obj_t;
 
 // status label bits
-static inline lv_obj_t* status_label_ = nullptr;      // your existing uic_Settings1LabelRemoteSearching
+static inline lv_obj_t* status_label_ = nullptr;      // existing uic_Settings1LabelRemoteSearching
+static inline lv_obj_t* status_spinner_ = nullptr;    // existing uic_Settings1SpinnerRemoteSearchingSpinner
 static inline lv_obj_t* status_row_ = nullptr;        // container for the trio
-static inline lv_obj_t* status_dots_ = nullptr;       // separate dots label
-static inline lv_obj_t* status_found_ = nullptr;      // "found:X"
-static inline lv_obj_t* status_conn_  = nullptr;      // "connected:Y"
 
 
 struct RemoteRow {
@@ -52,12 +50,14 @@ class RemoteManager {
   // Telemetry setters. Call these whenever values change.
   static void SetTelemetry(float speed, float rpm, float distance);
   static void SetIsMax(bool isMaxNow);     // true only during your 1s “max blast”
+  static void SetSafety(bool isSafetyNow); // true only when sign green
+
 
   // UI
   static void SetListContainer(lv_obj_t* container);
   static void RefreshListUI();  // only updates while pairing is ON
 
-  static void SetStatusLabel(lv_obj_t* label);
+  static void SetTableContainer(lv_obj_t* parent);
 
   static const std::vector<RemoteRow>& GetRemotes();
 
@@ -85,13 +85,14 @@ class RemoteManager {
   static inline float cur_rpm_   = 0.f;
   static inline float cur_dist_  = 0.f;
   static inline bool  cur_ismax_ = false;
+  static inline bool  cur_safety_ = false;
 
   static inline lv_obj_t* table_container_ = nullptr;
+  static inline bool remotes_dirty_ = false;
 
   // status label + simple dot animation
   static inline lv_obj_t* status_label_ = nullptr;
   static inline uint32_t last_status_ms_ = 0;
-  static inline uint8_t dots_ = 0;
 
   static void UpdateStatusLabel();
 };
