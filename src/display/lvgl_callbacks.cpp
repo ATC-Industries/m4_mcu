@@ -1,6 +1,7 @@
 #include "display/lvgl_callbacks.h"
 
 #include <TFT_Touch.h>
+#include "esp_heap_caps.h"
 
 #include "Config.h"
 #include "touch/touch.h"
@@ -8,6 +9,8 @@
 #include "Logging.h"
 
 extern TFT_Touch touch;
+
+static lv_color_t *buf1 = nullptr;
 
 //========================================================================
 // LVGL Callbacks
@@ -86,9 +89,22 @@ void lvgl_task(void *parameter) {
 void init_lvgl() {
   lv_init();
 
-  // Initialize display buffer
-  // lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
-  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, SCREEN_WIDTH * 10);
+  // Allocate draw buffer in internal DMA capable RAM
+  const uint32_t buf_lines = 40;                       // tweak if you want
+  const uint32_t buf_pixels = SCREEN_WIDTH * buf_lines;
+
+  buf1 = (lv_color_t *) heap_caps_malloc(
+      buf_pixels * sizeof(lv_color_t),
+      MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+
+  if (!buf1) {
+    LOGE("Failed to allocate LVGL draw buffer");
+    while (true) {
+      delay(1000);  // hard fail, nothing good will happen without this
+    }
+  }
+
+  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, buf_pixels);
 
   // Initialize display driver
   lv_disp_drv_init(&disp_drv);
@@ -100,7 +116,7 @@ void init_lvgl() {
   // Enable software rotation
   disp_drv.sw_rotate = 1;
   bool rotation180 = StateManager::getScreenRotation();
-  disp_drv.rotated = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;;
+  disp_drv.rotated = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
   disp_drv.full_refresh = 1;
 
   lv_disp_drv_register(&disp_drv);
@@ -111,3 +127,4 @@ void init_lvgl() {
   indev_drv.read_cb = my_touchpad_read;
   lv_indev_drv_register(&indev_drv);
 }
+

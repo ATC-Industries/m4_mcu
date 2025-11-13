@@ -25,8 +25,14 @@
 #include "../ui/ui.h"
 
 void setup() {
-  Serial.begin(SERIAL_BAUD_RATE);
-  delay(1000);
+  Serial.begin(115200);
+  delay(2000);
+  Serial.printf("PSRAM found: %s\n", psramFound() ? "YES" : "NO");
+  Serial.printf("PSRAM size: %d bytes\n", ESP.getPsramSize());
+  Serial.printf("Free internal heap: %d bytes\n",
+                heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+  Serial.printf("Free PSRAM heap: %d bytes\n",
+                heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
 
   // NVS Safe Init
   esp_err_t err = nvs_flash_init();
