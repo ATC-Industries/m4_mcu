@@ -902,3 +902,33 @@ void Settings1Screen_OnUnload(lv_event_t * e)
 {
   RemoteManager::SetTableContainer(nullptr);
 }
+
+void DeviceRowActionButtonCB1(lv_event_t * e)
+{
+	// Your code here
+}
+
+void DeviceRowActionButtonCB2(lv_event_t * e)
+{
+	// Your code here
+}
+
+void DeviceRowActionButtonCB3(lv_event_t * e)
+{
+	// Your code here
+}
+
+void DeviceRowActionButtonCB4(lv_event_t * e)
+{
+	// Your code here
+}
+
+void DeviceRowActionButtonCB5(lv_event_t * e)
+{
+	// Your code here
+}
+
+void DeviceRowActionButtonCB6(lv_event_t * e)
+{
+	// Your code here
+}

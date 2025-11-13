@@ -83,6 +83,12 @@ void AlarmRPMColorChange2(lv_event_t * e);
 void enterRemotePairingModeBtnClicked(lv_event_t * e);
 void endRemotePairingModeBtnClicked(lv_event_t * e);
 void HELPRemotePair(lv_event_t * e);
+void DeviceRowActionButtonCB1(lv_event_t * e);
+void DeviceRowActionButtonCB2(lv_event_t * e);
+void DeviceRowActionButtonCB3(lv_event_t * e);
+void DeviceRowActionButtonCB4(lv_event_t * e);
+void DeviceRowActionButtonCB5(lv_event_t * e);
+void DeviceRowActionButtonCB6(lv_event_t * e);
 void PullHistoryScreenLoaded(lv_event_t * e);
 void deletePullHistoryButtonClicked(lv_event_t * e);
 
