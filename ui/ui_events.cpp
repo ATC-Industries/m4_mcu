@@ -99,11 +99,6 @@ void SettingsSwitchUnitsChange(lv_event_t *e) {
   }
 }
 
-void SettingsSwitchBenchmarkChange(lv_event_t *e) {
-  lv_obj_t *sw = lv_event_get_target(e);
-  StateManager::setBenchmarkMode(lv_obj_has_state(sw, LV_STATE_CHECKED));
-}
-
 void SettingsSliderBrightnessChange(lv_event_t *e) {
   lv_obj_t *slider = lv_event_get_target(e);
   uint8_t level = (uint8_t)lv_slider_get_value(slider); // expect 0..255
@@ -407,14 +402,6 @@ void SaveRadarCalibration(lv_event_t *e) { SpeedModule::applyRadarCalibration();
 void FinishAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
 
 void SaveGPSCalibration(lv_event_t *e) { SpeedModule::applyGPSCalibration(); }
-
-void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
-  int teeth = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorNumTeethTextArea));
-  float diameter = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorWheelDiameterTextArea));
-  float ratio = atof(lv_textarea_get_text(ui_Settings1TextareaCalibrationCalculatorGearRatioTextArea));
-  int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
-  lv_label_set_text_fmt(ui_Settings1LabelGearToothCalculatorPulses, "%d", result);
-}
 
 void RecalibrateTouch(lv_event_t *e) { setRecalibrationFlag(); }
 

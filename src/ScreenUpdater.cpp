@@ -151,9 +151,6 @@ void updateSettingsScreen() {
         ? lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED)
         : lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED);
     // Toggle switches
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_Settings1SwitchBenchmarkToggle, LV_STATE_CHECKED);
-
     StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
                                       : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
 

@@ -54,7 +54,6 @@ struct SystemPreferences {
 
   float trackLengthFeet = 300.0f;
 
-  bool benchmarkMode = false;
   uint8_t screenBrightness = 100;
   bool screenRotation180 = false;  // false = 0°, true = 180°
   bool tachEnabled = true;
@@ -120,7 +119,6 @@ public:
 
   // State accessors
   static void setUnitSystem(UnitSystem system);
-  static void setBenchmarkMode(bool on);
   static void setScreenBrightness(uint8_t level);      // 0..255
   static void setTrackLengthFeet(float feet);          // > 0
   static void setTachEnabled(bool on);

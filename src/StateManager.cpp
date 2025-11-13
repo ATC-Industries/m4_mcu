@@ -167,12 +167,6 @@ bool StateManager::getJudgeModePreference() {
   return preferences.isJudgeMode;
 }
 
-void StateManager::setBenchmarkMode(bool on) {
-  if (preferences.benchmarkMode == on) return;
-  preferences.benchmarkMode = on;
-  savePreferences();
-}
-
 void StateManager::setScreenBrightness(uint8_t level) {
   if (preferences.screenBrightness == level) return;
   preferences.screenBrightness = level;
@@ -361,7 +355,6 @@ void StateManager::loadPreferences() {
 
   preferences.trackLengthFeet = storage.getFloat("trackLength", 300.0f);
 
-  preferences.benchmarkMode = storage.getBool("benchmark", false);
   preferences.screenBrightness = storage.getUChar("brightness", 100);
   preferences.screenRotation180 = storage.getBool("screenRot180", false);
   preferences.tachEnabled = storage.getBool("tachEnabled", true);
@@ -440,7 +433,6 @@ void StateManager::savePreferences() {
   storage.putFloat("mphAlarm2", preferences.mphAlarm2);
 
   storage.putFloat("trackLength", preferences.trackLengthFeet);
-  storage.putBool("benchmark", preferences.benchmarkMode);
   storage.putUChar("brightness", preferences.screenBrightness);
   storage.putBool("screenRot180", preferences.screenRotation180);
   storage.putBool("tachEnabled", preferences.tachEnabled);
