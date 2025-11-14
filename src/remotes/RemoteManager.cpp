@@ -170,6 +170,8 @@ void RemoteManager::EnterPairing() {
 
 void RemoteManager::ExitPairing() {
   s_pairing_on = false;
+  ClearAllRemotes();
+  s_needs_ui_refresh = true;
   LOGI("[RemoteManager] Pairing OFF");
   UpdateStatusLabel();
 }
@@ -619,10 +621,13 @@ void RemoteManager::MaybeSendValues() {
   doc["rpm"]      = s_cur_rpm;
   doc["distance"] = s_cur_dist;
   doc["isMax"]    = s_cur_ismax;
-  doc["isSafery"] = s_cur_safety;  // keeping your current field spelling
+  doc["isSafety"] = s_cur_safety;  // keeping your current field spelling
 
   String payload;
   serializeJson(doc, payload);
+
+  LOGD("Broadcasting remote values: speed=%.1f rpm=%.1f dist=%.1f isMax=%d isSafety=%d", 
+       s_cur_speed, s_cur_rpm, s_cur_dist, s_cur_ismax, s_cur_safety);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,

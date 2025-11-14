@@ -177,7 +177,7 @@ void processSendRPM(const float value, int rssi) {
   StateManager::setRPM(value);
   Tach::state.pairedTSSRSSI = rssi;
   Tach::state.isTSSConnected = true;
-  //LOGI("[Tach] RPM updated to %.2f from TSS with RSSI %d", value, rssi);
+  LOGI("[Tach] RPM updated to %.2f from TSS with RSSI %d", value, rssi);
 }
 
 void processRemoteAck(int rssi) {
