@@ -353,7 +353,7 @@ void broadcastJudgeStandState() {
   doc["maxRpm"] = systemState.maxRpm;
   doc["m4Id"] = preferences.M4IDNumber;
 
-  JsonArray alarmsArray = doc.createNestedArray("alarms");
+  JsonArray alarmsArray = doc["alarms"].to<JsonArray>();
   for (uint8_t channel = 0; channel < kChannels; ++channel) {
     for (uint8_t slot = 0; slot < kSlots; ++slot) {
       const AlarmConfig config = AlarmManager::getConfigActive(
@@ -362,7 +362,7 @@ void broadcastJudgeStandState() {
       if (!config.enabled || !config.tripped) {
         continue;
       }
-      JsonObject alarm = alarmsArray.createNestedObject();
+    JsonObject alarm = alarmsArray.add<JsonObject>();
       alarm["channel"] = kChannelNames[channel];
       alarm["slot"] = slot + 1;
       alarm["tripPoint"] = config.tripPoint;
