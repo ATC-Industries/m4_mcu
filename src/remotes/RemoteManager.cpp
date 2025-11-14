@@ -168,6 +168,7 @@ void RemoteManager::EnterPairing() {
   UpdateStatusLabel();
 }
 
+//TODO: Bug, not clearing remote lists items after ending Pair.
 void RemoteManager::ExitPairing() {
   s_pairing_on = false;
   ClearAllRemotes();
