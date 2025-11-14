@@ -4,6 +4,7 @@
 
 #include "../ui/ui.h"
 #include "remotes/RemoteManager.h"
+#include "JudgeModule.h"
 
 const uint8_t kBroadcastAddress[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
@@ -43,7 +44,7 @@ void onMessageReceived(uint8_t *senderAddress,
                        uint8_t len,
                        int rssi,
                        bool broadcast) {
-  // LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
+  LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
   // 1) Basic frame guard
   if (!incomingData || len < sizeof(M4Message)) {
     LOGE("[M4CommsHelpers] Invalid incoming data: Bad frame size");
@@ -126,25 +127,66 @@ void onMessageReceived(uint8_t *senderAddress,
     }
 
     case SEND_REMOTE_VALUE: {
-      // Judge Stand fan-out
-      if (StateManager::getJudgeMode()) {
-        int m4id = doc["M4ID"].is<int>() ? doc["M4ID"].as<int>() : -1;
-        if (m4id == StateManager::getHostM4ID()) {
-          bool pulling = doc["isPulling"].is<bool>() ? doc["isPulling"].as<bool>() : false;
-          // StateManager::setIsInPull(pulling);   // uncomment when you add it
+      // REMED out for now TODO probably need to delete at somepoint. or actually use it
+      // // Judge Stand fan-out
+      // if (StateManager::getJudgeMode()) {
+      //   int m4id = doc["M4ID"].is<int>() ? doc["M4ID"].as<int>() : -1;
+      //   if (m4id == StateManager::getHostM4ID()) {
+      //     bool pulling = doc["isPulling"].is<bool>() ? doc["isPulling"].as<bool>() : false;
+      //     // StateManager::setIsInPull(pulling);   // uncomment when you add it
 
-          float distance = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
-          StateManager::setDistance(distance);
+      //     float distance = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
+      //     StateManager::setDistance(distance);
 
-          float speed = doc["speed"].is<float>() ? doc["speed"].as<float>() : 0.0f;
-          StateManager::setSpeed(speed);
+      //     float speed = doc["speed"].is<float>() ? doc["speed"].as<float>() : 0.0f;
+      //     StateManager::setSpeed(speed);
 
-          // RPM here is broadcast from the host. TachClient already updates RPM from TSS.
-          // If Judge Mode should override, keep this. Otherwise, remove it.
-          float rpm = doc["rpm"].is<float>() ? doc["rpm"].as<float>() : 0.0f;
-          StateManager::setRPM(rpm);
-        }
+      //     // RPM here is broadcast from the host. TachClient already updates RPM from TSS.
+      //     // If Judge Mode should override, keep this. Otherwise, remove it.
+      //     float rpm = doc["rpm"].is<float>() ? doc["rpm"].as<float>() : 0.0f;
+      //     StateManager::setRPM(rpm);
+      //   }
+      // }
+      break;
+    }
+    case SEND_JUDGE_DATA: {
+      LOGD("[RX] SEND_JUDGE_DATA received");
+
+      // Only care when we are in Judge Mode
+      if (!StateManager::getJudgeMode()) {
+        break;
       }
+
+      int hostPref  = StateManager::getHostM4ID();
+      int hostFromMsg = doc["host"].is<int>() ? doc["host"].as<int>() : -1;
+
+      LOGD("[RX] Judge hostPref=%d msgHost=%d", hostPref, hostFromMsg);
+
+      if (hostPref > 0 && hostFromMsg != hostPref) {
+        LOGD("[RX] Ignoring judge data, not our host");
+        break;
+      }
+
+      JudgeModule::HostSnapshot snap{};
+      snap.host_id = static_cast<uint8_t>(hostFromMsg);
+
+      int stateInt = doc["pullState"].is<int>()
+                      ? doc["pullState"].as<int>()
+                      : static_cast<int>(PullState::READY);
+      snap.pull_state = static_cast<PullState>(stateInt);
+
+      snap.distanceFeet = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
+      snap.speedMph     = doc["speed"].is<float>()    ? doc["speed"].as<float>()    : 0.0f;
+      snap.rpm          = doc["rpm"].is<float>()      ? doc["rpm"].as<float>()      : 0.0f;
+
+      snap.maxDistanceFeet = doc["maxDistance"].is<float>() ? doc["maxDistance"].as<float>() : snap.distanceFeet;
+      snap.maxSpeedMph     = doc["maxSpeed"].is<float>()    ? doc["maxSpeed"].as<float>()    : snap.speedMph;
+      snap.maxRpm          = doc["maxRpm"].is<float>()      ? doc["maxRpm"].as<float>()      : snap.rpm;
+
+      LOGD("[RX] Judge data host=%d state=%d dist=%.2f speed=%.2f rpm=%.1f",
+          snap.host_id, stateInt, snap.distanceFeet, snap.speedMph, snap.rpm);
+
+      JudgeModule::onHostStatusBroadcast(snap);
       break;
     }
 

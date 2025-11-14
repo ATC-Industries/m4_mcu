@@ -21,10 +21,11 @@ public:
   // External triggers
   static void triggerEmergencyStop();
   static void detectPullStart(float currentSpeed);  // Can be called periodically to detect transition to PULLING
+  static void updateUIForState(PullState state);
+
 
 private:
   static void enterState(PullState newState);
-  static void updateUIForState(PullState state);
   static void triggerRelaysForState(PullState state);
   static void resetMaxValues();
   static void resetCurrentValues();

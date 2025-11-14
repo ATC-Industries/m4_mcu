@@ -10,6 +10,7 @@
 #include "StateManager.h"
 #include "TachClient.h"
 #include "remotes/RemoteManager.h"
+#include "JudgeModule.h"
 
 // Last known values to avoid unnecessary redraws
 static float lastDisplayedSpeed = -1.0f;
@@ -145,7 +146,6 @@ void SetupJudgeSwitchHitArea() {
 }
 
 void updateSettingsScreen() {
-
     // Set units toggle to match current preference
     (StateManager::getUnitSystem() == UnitSystem::METRIC)
         ? lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED)
@@ -180,49 +180,6 @@ void updateSettingsScreen() {
     snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
     lv_textarea_set_text(uic_Settings1TextareaTrackLengthText, buf);
  
-    // when in judge mode enable and disable some elements of the settings screen
-    bool JudgeMode = StateManager::prefs().isJudgeMode;
-    lv_obj_t* tabview = ui_Settings1TabviewSettingsView;
-    lv_obj_t* tab_btns = lv_tabview_get_tab_btns(tabview);
-
-    // Manually list which tabs to disable (1, 2, 3, 4, 6)
-    int disable_tabs[] = {1, 2, 3, 4, 6};
-    int disable_count = sizeof(disable_tabs) / sizeof(disable_tabs[0]);
-    if (JudgeMode) {
-      Serial.println("[SettingsScreen] Judge Mode active - disabling certain settings");
-
-      // Disable various settings controls
-      lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_DISABLED);
-      lv_obj_add_state(uic_M4IDNumberTitleTextArea, LV_STATE_DISABLED);
-      lv_obj_add_state(uic_Settings1TextareaTrackLengthText, LV_STATE_DISABLED);
-      lv_obj_add_state(ui_Settings1TextareaCalibrationNumberTextArea, LV_STATE_DISABLED);
-      lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_DISABLED);
-      lv_obj_add_state(uic_Settings1SwitchLimitToggle, LV_STATE_DISABLED);
-      lv_obj_add_state(uic_Settings1SwitchRelaysToggle, LV_STATE_DISABLED);
-
-      // Disable tabs
-      // Loop through and disable each one
-      for (int i = 0; i < disable_count; i++) {
-        lv_btnmatrix_set_btn_ctrl(tab_btns, disable_tabs[i], LV_BTNMATRIX_CTRL_DISABLED);
-      }
-
-    } else {
-      Serial.println("[SettingsScreen] Sled Pull Mode active - enabling all settings");
-
-      // Enable various settings controls
-      lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_DISABLED);
-      lv_obj_clear_state(uic_M4IDNumberTitleTextArea, LV_STATE_DISABLED);
-      lv_obj_clear_state(uic_Settings1TextareaTrackLengthText, LV_STATE_DISABLED);
-      lv_obj_clear_state(ui_Settings1TextareaCalibrationNumberTextArea, LV_STATE_DISABLED);
-      lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_DISABLED);
-      lv_obj_clear_state(uic_Settings1SwitchLimitToggle, LV_STATE_DISABLED);
-      lv_obj_clear_state(uic_Settings1SwitchRelaysToggle, LV_STATE_DISABLED);
-
-      // Enable tabs
-      for (int i = 0; i < disable_count; i++) {
-        lv_btnmatrix_clear_btn_ctrl(tab_btns, disable_tabs[i], LV_BTNMATRIX_CTRL_DISABLED);
-      }
-    }
   // Judge Mode Switch
   bool isJudgeMode = StateManager::prefs().isJudgeMode;
   if (uic_Settings1SwitchUseJudgeSwitch) {
@@ -284,12 +241,12 @@ void updateSettingsScreen() {
       lv_label_set_text(uic_Settings1LabelTSSPairMAC, macStr);
     }
   }
-
+  // let JudgeModule lock or unlock the judge related parts
+  JudgeModule::applyJudgeModeToSettingsScreen();
 }
 
 void updateMainScreen() {
   PullState pullState = StateManager::getPullState();
-  bool JudgeMode = StateManager::prefs().isJudgeMode;
 
   bool showMax = (pullState == PullState::PULLEND);
   RemoteManager::SetIsMax(showMax);
@@ -474,6 +431,8 @@ void updateMainScreen() {
     set_visible(uic_MainImagetachConn,    tssConnected);
   }
 
+  // Apply judge locks for the main screen buttons and alarm preset container
+  JudgeModule::applyJudgeModeToMainScreen();
 }
 
 static inline void set_bar_visible(lv_obj_t* bar, bool visible) {

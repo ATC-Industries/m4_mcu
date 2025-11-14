@@ -201,6 +201,7 @@ extern lv_obj_t *uic_MainContainerStatePULLEND;
 extern lv_obj_t *uic_MainButtonPULLENDDiscard;
 extern lv_obj_t *uic_MainButtonPULLENDSave;
 extern lv_obj_t *uic_MainContainerStateEMERGENCYSTOP;
+extern lv_obj_t *uic_MainButtonPULLINGStop1;
 extern lv_obj_t *uic_MainContainerRelays;
 extern lv_obj_t *uic_MainPanelRelayIndicatorIcon1;
 extern lv_obj_t *uic_MainPanelRelayIndicatorIcon2;

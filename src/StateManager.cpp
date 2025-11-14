@@ -338,6 +338,8 @@ void StateManager::loadPreferences() {
   preferences.M4IDNumber = storage.getInt("M4ID", 0);
   preferences.HostM4IDNumber = storage.getInt("HostM4ID", 0);
   preferences.isJudgeMode = storage.getBool("isJudgeMode", false);
+  systemState.judgeMode = preferences.isJudgeMode;
+
 
   preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
   preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);

@@ -5,6 +5,7 @@
 
 #include "../ui.h"
 
+lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton1;
 lv_obj_t *uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
 lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton;
 lv_obj_t *uic_PullHistoryScreenContainerButtonContainer;
@@ -118,6 +119,7 @@ uic_PullHistoryScreenPanelTablePanel = ui_PullHistoryScreenPanelTablePanel;
 uic_PullHistoryScreenContainerButtonContainer = ui_PullHistoryScreenContainerButtonContainer;
 uic_PullHistoryScreenButtondeletePullHistoryButton = ui_PullHistoryScreenButtondeletePullHistoryButton;
 uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel = ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
+uic_PullHistoryScreenButtondeletePullHistoryButton1 = ui_PullHistoryScreenButtondeletePullHistoryButton1;
 
 }
 
@@ -135,6 +137,7 @@ uic_PullHistoryScreenButtondeletePullHistoryButton= NULL;
 ui_PullHistoryScreenButtondeletePullHistoryButton= NULL;
 uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel= NULL;
 ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel= NULL;
+uic_PullHistoryScreenButtondeletePullHistoryButton1= NULL;
 ui_PullHistoryScreenButtondeletePullHistoryButton1= NULL;
 ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1= NULL;
 

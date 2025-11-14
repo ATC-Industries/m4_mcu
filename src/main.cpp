@@ -17,6 +17,8 @@
 #include "Logging.h"
 #include <QuickEspNow.h>
 #include "remotes/RemoteManager.h"
+#include "JudgeModule.h"
+
 
 
 #include <nvs_flash.h>
@@ -76,6 +78,8 @@ void setup() {
   
   // Apply saved screen rotation
   StateManager::setScreenRotation(StateManager::prefs().screenRotation180);
+
+  JudgeModule::begin();
   
   PullStateManager::init();
   SpeedModule::begin();
@@ -85,6 +89,7 @@ void setup() {
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
   // setRecalibrationFlag();
   Serial.println("Setup complete");
+  LOGD("M4ID: %d HostID: %d", StateManager::getM4ID(), StateManager::getHostM4ID());
 }
 
 bool isMainScreenReady() {
@@ -113,11 +118,15 @@ void loop() {
   lv_timer_handler();           // non-blocking
   updateBacklight();
   PullStateManager::update();
-  SpeedModule::tick();
-  Tach::update();
+  
+  if (!StateManager::getJudgeMode()) {
+    SpeedModule::tick();
+    Tach::update();
+    RemoteManager::Tick();
+  }
 
+  JudgeModule::tick();
   AlarmManager::evaluateTick();
-  RemoteManager::Tick();
 
 
   now = millis();

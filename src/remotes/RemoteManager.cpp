@@ -609,6 +609,11 @@ void RemoteManager::MaybeSendValues() {
     return;
   }
 
+  // Do not broadcast in Judemode
+  if (StateManager::getJudgeMode()) {
+    return;
+  }
+
   const uint32_t now = millis();
   if (now - s_last_values_ms < kValuesEveryMs) {
     return;
@@ -627,8 +632,8 @@ void RemoteManager::MaybeSendValues() {
   String payload;
   serializeJson(doc, payload);
 
-  LOGD("Broadcasting remote values: speed=%.1f rpm=%.1f dist=%.1f isMax=%d isSafety=%d", 
-       s_cur_speed, s_cur_rpm, s_cur_dist, s_cur_ismax, s_cur_safety);
+  // LOGD("Broadcasting remote values: speed=%.1f rpm=%.1f dist=%.1f isMax=%d isSafety=%d", 
+  //      s_cur_speed, s_cur_rpm, s_cur_dist, s_cur_ismax, s_cur_safety);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,

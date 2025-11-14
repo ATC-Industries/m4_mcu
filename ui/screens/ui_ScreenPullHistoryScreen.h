@@ -28,6 +28,7 @@ extern lv_obj_t *uic_PullHistoryScreenPanelTablePanel;
 extern lv_obj_t *uic_PullHistoryScreenContainerButtonContainer;
 extern lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton;
 extern lv_obj_t *uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
+extern lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton1;
 
 #ifdef __cplusplus
 } /*extern "C"*/

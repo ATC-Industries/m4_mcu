@@ -46,6 +46,13 @@ void PullStateManager::init() {
 
 
 void PullStateManager::update() {
+  if (StateManager::getJudgeMode()) {
+    // Judge mode - pull state is driven by JudgeModule from host broadcasts.
+    // We still want UI to reflect state, but JudgeModule already calls
+    // updateUIForState when it pushes a snapshot into StateManager.
+    return;
+  }
+
   PullState current = StateManager::getPullState();
 
   if (current == PullState::READY) {
