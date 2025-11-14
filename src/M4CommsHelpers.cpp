@@ -68,7 +68,7 @@ void onMessageReceived(uint8_t *senderAddress,
                          ? static_cast<action_type>(doc["action"].as<int>())
                          : NO_ACTION;
 
-  LOGD("[Action Extraction Jackson] Action: %d", action);
+  LOGD("[Action Extraction] Action: %d", action);
 
   // value/unit are optional in most frames
   const bool hasValue = doc["value"].is<float>();

@@ -867,13 +867,14 @@ void EnableJudgeHelpButtonPressed(lv_event_t *e) {
 }
 
 void enterRemotePairingModeBtnClicked(lv_event_t* e) {
+  (void)e;
   RemoteManager::EnterPairing();
 }
 
 void endRemotePairingModeBtnClicked(lv_event_t* e) {
+  (void)e;
   RemoteManager::ExitPairing();
 }
-
 
 void HELPRemotePair(lv_event_t * e)
 {
@@ -882,40 +883,59 @@ void HELPRemotePair(lv_event_t * e)
 
 void Settings1Screen_OnLoad(lv_event_t * e)
 {
+  (void)e;
+  LOGI("[Settings1] OnLoad");
   RemoteManager::SetTableContainer(uic_Settings1PanelDeviceTable);
 }
 
 void Settings1Screen_OnUnload(lv_event_t * e)
 {
+  (void)e;
+  // Turn off pairing and clear table wiring
+  RemoteManager::ExitPairing();
   RemoteManager::SetTableContainer(nullptr);
+
+  // Reset buttons: show "Enter pairing", hide "End pairing"
+  lv_obj_clear_flag(uic_Settings1ButtonEnterRemotePairtingButton, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(uic_Settings1ButtonEndRemotePairtingButton, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void handleDeviceRowButton(int index) {
+  RemoteManager::HandleRowButtonClicked(index);
 }
 
 void DeviceRowActionButtonCB1(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(0);
 }
 
 void DeviceRowActionButtonCB2(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(1);
 }
 
 void DeviceRowActionButtonCB3(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(2);
 }
 
 void DeviceRowActionButtonCB4(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(3);
 }
 
 void DeviceRowActionButtonCB5(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(4);
 }
 
 void DeviceRowActionButtonCB6(lv_event_t * e)
 {
-	// Your code here
+  (void)e;
+  handleDeviceRowButton(5);
 }
