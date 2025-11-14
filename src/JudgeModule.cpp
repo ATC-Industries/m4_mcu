@@ -119,30 +119,40 @@ void tick() {
   }
   s_last_judge_values_ms = now;
 
+  // Pull all values once so logs and payload always match
+  const int       hostId        = StateManager::getM4ID();
+  const PullState pullState     = StateManager::getPullState();
+  const float     curDistFeet   = StateManager::getDistance();
+  const float     curSpeedMph   = StateManager::getSpeed();
+  const float     curRpm        = StateManager::getRPM();
+  const float     maxDistFeet   = StateManager::getMaxDistance();
+  const float     maxSpeedMph   = StateManager::getMaxSpeed();
+  const float     maxRpm        = StateManager::getMaxRPM();
+
   JsonDocument doc;
-  doc["action"]    = SEND_JUDGE_DATA;
-  doc["host"]      = StateManager::getM4ID();
+  doc["action"]      = SEND_JUDGE_DATA;
+  doc["host"]        = hostId;
+  doc["pullState"]   = static_cast<int>(pullState);
 
-  PullState ps = StateManager::getPullState();
-  doc["pullState"] = static_cast<int>(ps);
+  // Live values
+  doc["distance"]    = curDistFeet;
+  doc["speed"]       = curSpeedMph;
+  doc["rpm"]         = curRpm;
 
-  const SystemState& st = StateManager::state();
-  doc["distance"]    = st.distanceInFeet;
-  doc["speed"]       = st.speedInMPH;
-  doc["rpm"]         = st.rpm;
-  doc["maxDistance"] = st.maxDistanceInFeet;
-  doc["maxSpeed"]    = st.maxSpeedInMPH;
-  doc["maxRpm"]      = st.maxRpm;
+  // Max values
+  doc["maxDistance"] = maxDistFeet;
+  doc["maxSpeed"]    = maxSpeedMph;
+  doc["maxRpm"]      = maxRpm;
 
   String payload;
   serializeJson(doc, payload);
 
-  LOGD("[JudgeModule] Broadcast judge data host=%d state=%d dist=%.2f speed=%.2f rpm=%.1f",
-       StateManager::getM4ID(),
-       static_cast<int>(ps),
-       st.distanceInFeet,
-       st.speedInMPH,
-       st.rpm);
+  LOGD("[JudgeModule] Broadcast judge data host=%d state=%d "
+       "dist=%.2f speed=%.2f rpm=%.1f maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
+       hostId,
+       static_cast<int>(pullState),
+       curDistFeet, curSpeedMph, curRpm,
+       maxDistFeet, maxSpeedMph, maxRpm);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,
@@ -181,25 +191,37 @@ uint8_t getTrackedHostId() {
   return s_tracked_host_id;
 }
 
-void onHostStatusBroadcast(const HostSnapshot& snapshot) {
-  if (!s_judge_mode_active) {
-    return;
+void onHostStatusBroadcast(const HostSnapshot& snap) {
+  LOGD("[JudgeModule] Host %d state=%d dist=%.2f speed=%.2f rpm=%.1f "
+       "maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
+       snap.host_id,
+       static_cast<int>(snap.pull_state),
+       snap.distanceFeet, snap.speedMph, snap.rpm,
+       snap.maxDistanceFeet, snap.maxSpeedMph, snap.maxRpm);
+
+  // 1) Mirror pull state into StateManager so updateMainScreen()
+  //    can decide when to show MAX labels.
+  StateManager::setPullState(snap.pull_state);
+
+  // 2) Decide whether we want live or max on the judge screen
+  const bool showMax = (snap.pull_state == PullState::PULLEND);
+
+  const float distToShow  = showMax ? snap.maxDistanceFeet : snap.distanceFeet;
+  const float speedToShow = showMax ? snap.maxSpeedMph     : snap.speedMph;
+  const float rpmToShow   = showMax ? snap.maxRpm          : snap.rpm;
+
+  // 3) Push into StateManager so the existing UI path keeps working.
+  //    Max tracking will still run while host is in PULLING, which is fine.
+  StateManager::setDistance(distToShow);
+  StateManager::setSpeed(speedToShow);
+  StateManager::setRPM(rpmToShow);
+
+  PullStateManager::enterState(snap.pull_state);
+
+
+  if (snap.pull_state == PullState::READY) {
+    StateManager::resetAllMaxValues();
   }
-
-  if (s_tracked_host_id != 0 && snapshot.host_id != s_tracked_host_id) {
-    return;
-  }
-
-  s_last_snapshot = snapshot;
-
-  LOGD("[JudgeModule] Host %u state=%d dist=%.2f speed=%.2f rpm=%.1f",
-       snapshot.host_id,
-       static_cast<int>(snapshot.pull_state),
-       snapshot.distanceFeet,
-       snapshot.speedMph,
-       snapshot.rpm);
-
-  pushSnapshotIntoStateManager(snapshot);
 }
 
 

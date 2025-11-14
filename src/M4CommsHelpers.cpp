@@ -44,7 +44,7 @@ void onMessageReceived(uint8_t *senderAddress,
                        uint8_t len,
                        int rssi,
                        bool broadcast) {
-  LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
+  //LOGI("[M4CommsHelpers] onMessageReceived called with len=%d", len);
   // 1) Basic frame guard
   if (!incomingData || len < sizeof(M4Message)) {
     LOGE("[M4CommsHelpers] Invalid incoming data: Bad frame size");
@@ -69,7 +69,7 @@ void onMessageReceived(uint8_t *senderAddress,
                          ? static_cast<action_type>(doc["action"].as<int>())
                          : NO_ACTION;
 
-  LOGD("[Action Extraction] Action: %d", action);
+  //LOGD("[Action Extraction] Action: %d", action);
 
   // value/unit are optional in most frames
   const bool hasValue = doc["value"].is<float>();

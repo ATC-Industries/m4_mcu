@@ -40,7 +40,7 @@ void setTrackedHostId(uint8_t host_id);
 uint8_t getTrackedHostId();
 
 // Called by comms when the sled host broadcasts a status packet
-void onHostStatusBroadcast(const HostSnapshot& snapshot);
+void onHostStatusBroadcast(const HostSnapshot& snap);
 
 // Pull history sync - from host to judge
 void applyRemotePullHistory(const PullResult* pulls, int count);
