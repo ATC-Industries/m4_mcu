@@ -4,26 +4,43 @@
 
 #include <Arduino.h>
 #include <Preferences.h>
-#include <TFT_Touch.h>  // Bodmer's library
+#include <TFT_Touch.h>  // Bodmer's library (raw axis reads only)
 
 #include "Config.h"
 
+// ----------------------------------------------------------------------------
+// Public API
+// ----------------------------------------------------------------------------
+
 extern bool recalibrateTouch;
 
-void init_touch();
-bool calibrate_touch();
-bool load_touch_calibration();
-bool save_touch_calibration(int hmin, int hmax, int vmin, int vmax);
-void mapRawTouchToScreen(int raw_x, int raw_y, uint16_t *x, uint16_t *y);
-bool readTouchMapped(uint16_t *x, uint16_t *y);
+// 3x3 grid calibration: 9 nodes, each storing the raw (x,y) measured at a known
+// screen location. Runtime uses inverse-bilinear interpolation within the grid
+// cell containing the touch. This handles resistive-panel nonlinearity and
+// axis cross-coupling that a single affine transform cannot.
+struct TouchCalibration {
+  int rawX[9];   // measured raw X at each of the 9 grid nodes (row-major)
+  int rawY[9];   // measured raw Y at each node
+  bool valid;
+};
 
-void drawCross(int x, int y, unsigned int color);
-void test(void);
-void drawPrompt(void);
-void drawCross(int x, int y, unsigned int color);
-bool getCoord();
+// Call once in setup(), AFTER init_display() and BEFORE init_lvgl().
+void init_touch();
+
+// Interactive 9-point grid calibration. Saves on success.
+bool calibrate_touch();
+
+bool load_touch_calibration();
+bool save_touch_calibration(const TouchCalibration &cal);
 bool setRecalibrationFlag(bool force = true);
 
-void debugRawTouchFor30Seconds();
+// LVGL read path: true with mapped screen coords when pressed.
+bool readTouchMapped(uint16_t *x, uint16_t *y);
 
-#endif
+// Accuracy test: tap 9 targets, logs intended-vs-actual error.
+void touch_accuracy_test();
+
+// Clean raw read (discard first conversion per axis, median of samples).
+bool readTouchRaw(int *rx, int *ry, int samples);
+
+#endif  // INCLUDE_TOUCH_H_

@@ -147,12 +147,12 @@ void tick() {
   String payload;
   serializeJson(doc, payload);
 
-  LOGD("[JudgeModule] Broadcast judge data host=%d state=%d "
-       "dist=%.2f speed=%.2f rpm=%.1f maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
-       hostId,
-       static_cast<int>(pullState),
-       curDistFeet, curSpeedMph, curRpm,
-       maxDistFeet, maxSpeedMph, maxRpm);
+  // LOGD("[JudgeModule] Broadcast judge data host=%d state=%d "
+  //      "dist=%.2f speed=%.2f rpm=%.1f maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
+  //      hostId,
+  //      static_cast<int>(pullState),
+  //      curDistFeet, curSpeedMph, curRpm,
+  //      maxDistFeet, maxSpeedMph, maxRpm);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,

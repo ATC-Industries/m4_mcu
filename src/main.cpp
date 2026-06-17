@@ -53,7 +53,7 @@ void setup() {
   // Touch calibration is loaded by init_touch().
   // To force recalibration, use setRecalibrationFlag(true) from a UI event
   // or temporarily call it here during development.
-  // setRecalibrationFlag(true);
+  setRecalibrationFlag(true);
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
@@ -66,6 +66,8 @@ void setup() {
 
   // Initialize touch hardware
   init_touch();
+  touch_accuracy_test();   // TEMP diagnostic - remove after
+  // debugSettleSweep();
   // debugRawTouchFor30Seconds();
 
   initCommProtocol();
