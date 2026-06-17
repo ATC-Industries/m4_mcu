@@ -49,10 +49,11 @@ void setup() {
   StateManager::loadPreferences();
 
   PeripheralsInit();
-  // Preferences prefs;
-  // prefs.begin("touch_cal", false);
-  // prefs.clear();  // ⚠️ This erases everything in "touch_cal"
-  // prefs.end();
+
+  // Touch calibration is loaded by init_touch().
+  // To force recalibration, use setRecalibrationFlag(true) from a UI event
+  // or temporarily call it here during development.
+  // setRecalibrationFlag(true);
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
@@ -65,6 +66,7 @@ void setup() {
 
   // Initialize touch hardware
   init_touch();
+  // debugRawTouchFor30Seconds();
 
   initCommProtocol();
 

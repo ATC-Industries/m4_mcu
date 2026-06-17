@@ -16,36 +16,53 @@ extern LGFX lcd;
 
 int X_Raw = 0, Y_Raw = 0;
 
+// void init_touch() {
+//   if (!load_touch_calibration()) {
+//     LOGW("Touch calibration not found - running calibration...");
+//     LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
+
+//     while (!calibrate_touch()) {
+//       LOGE("Touch calibration failed - trying again...");
+//       LOGW("Please follow the TFT screen prompts carefully.");
+//       delay(2000);  // Brief delay before retrying
+//     }
+//     LOGI("Touch calibration completed successfully");
+//     setRecalibrationFlag(false);  // Reset recalibration flag
+//   } else if (recalibrateTouch) {
+//     LOGI("Recalibration requested - running calibration...");
+//     LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
+
+//     while (!calibrate_touch()) {
+//       LOGE("Touch calibration failed - trying again...");
+//       LOGW("Please follow the TFT screen prompts carefully.");
+//       delay(2000);  // Brief delay before retrying
+//     }
+//     LOGI("Touch calibration completed successfully");
+//     setRecalibrationFlag(false);  // Reset recalibration flag
+//   } else {
+//     LOGI("Touch calibration loaded successfully.");
+//     setRecalibrationFlag(false);  // Ensure recalibration flag is reset
+//   }
+
+//   // Set Touch screen to the same landscape orientation
+//   // touch.setRotation(1);
+
+//   // Keep TFT_Touch configured only well enough to read stable raw values.
+//   // M4 performs its own raw-to-screen mapping in readTouchMapped().
+//   touch.setCal(0, 4095, 0, 4095, HRES, VRES, false);
+//   touch.setRotation(1);
+// }
+
 void init_touch() {
-  if (!load_touch_calibration()) {
-    LOGW("Touch calibration not found - running calibration...");
-    LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
+  // TEMP DEBUG MODE:
+  // Do not run the old calibration routine at startup.
+  // M4 is currently testing its own raw-to-screen mapper in readTouchMapped().
+  recalibrateTouch = false;
 
-    while (!calibrate_touch()) {
-      LOGE("Touch calibration failed - trying again...");
-      LOGW("Please follow the TFT screen prompts carefully.");
-      delay(2000);  // Brief delay before retrying
-    }
-    LOGI("Touch calibration completed successfully");
-    setRecalibrationFlag(false);  // Reset recalibration flag
-  } else if (recalibrateTouch) {
-    LOGI("Recalibration requested - running calibration...");
-    LOGI("TFT_Touch Calibration, follow TFT screen prompts..");
-
-    while (!calibrate_touch()) {
-      LOGE("Touch calibration failed - trying again...");
-      LOGW("Please follow the TFT screen prompts carefully.");
-      delay(2000);  // Brief delay before retrying
-    }
-    LOGI("Touch calibration completed successfully");
-    setRecalibrationFlag(false);  // Reset recalibration flag
-  } else {
-    LOGI("Touch calibration loaded successfully.");
-    setRecalibrationFlag(false);  // Ensure recalibration flag is reset
-  }
-
-  // Set Touch screen to the same landscape orientation
+  touch.setCal(0, 4095, 0, 4095, HRES, VRES, false);
   touch.setRotation(1);
+
+  LOGI("Touch initialized in TEMP raw-mapping debug mode");
 }
 
 bool calibrate_touch() {
@@ -403,6 +420,40 @@ bool getCoord() {
     return 1;
 }
 
+void mapRawTouchToScreen(int raw_x, int raw_y, uint16_t *x, uint16_t *y) {
+  if (x == nullptr || y == nullptr) {
+    return;
+  }
+
+  // TEMP TEST VALUES from raw corner debug.
+  constexpr int kRawXMin = 450;
+  constexpr int kRawXMax = 3850;
+  constexpr int kRawYMin = 500;
+  constexpr int kRawYMax = 3560;
+
+  int mapped_x = map(raw_x, kRawXMin, kRawXMax, 0, SCREEN_WIDTH - 1);
+  int mapped_y = map(raw_y, kRawYMin, kRawYMax, 0, SCREEN_HEIGHT - 1);
+
+  mapped_x = constrain(mapped_x, 0, SCREEN_WIDTH - 1);
+  mapped_y = constrain(mapped_y, 0, SCREEN_HEIGHT - 1);
+
+  *x = static_cast<uint16_t>(mapped_x);
+  *y = static_cast<uint16_t>(mapped_y);
+}
+
+bool readTouchMapped(uint16_t *x, uint16_t *y) {
+  if (x == nullptr || y == nullptr) {
+    return false;
+  }
+
+  if (!touch.Pressed()) {
+    return false;
+  }
+
+  mapRawTouchToScreen(touch.RawX(), touch.RawY(), x, y);
+  return true;
+}
+
 bool setRecalibrationFlag(bool force) {
   recalibrateTouch = force;  // Set to true to force recalibration
   Preferences prefs;
@@ -416,4 +467,47 @@ bool setRecalibrationFlag(bool force) {
   prefs.end();
   LOGI("Recalibration flag set to %s", force ? "true" : "false");
   return true;  // Success
+}
+
+void debugRawTouchFor30Seconds() {
+  Serial.println("RAW TOUCH DEBUG START");
+  Serial.println("Touch these points in order:");
+  Serial.println("1. Top left");
+  Serial.println("2. Top right");
+  Serial.println("3. Bottom right");
+  Serial.println("4. Bottom left");
+  Serial.println("5. Center");
+
+  unsigned long start = millis();
+  while (millis() - start < 30000) {
+    if (touch.Pressed()) {
+      uint16_t m4_x = 0;
+      uint16_t m4_y = 0;
+
+      int raw_x = touch.RawX();
+      int raw_y = touch.RawY();
+
+      mapRawTouchToScreen(raw_x, raw_y, &m4_x, &m4_y);
+
+      Serial.printf(
+          "rawX=%d rawY=%d libX=%d libY=%d m4X=%d m4Y=%d cal=[%d,%d,%d,%d] res=[%d,%d] axis=%d\n",
+          raw_x,
+          raw_y,
+          touch.X(),
+          touch.Y(),
+          m4_x,
+          m4_y,
+          touch.ReadCal(1),
+          touch.ReadCal(2),
+          touch.ReadCal(3),
+          touch.ReadCal(4),
+          touch.ReadCal(5),
+          touch.ReadCal(6),
+          touch.ReadCal(7));
+      delay(250);
+    }
+    delay(10);
+  }
+
+  Serial.println("RAW TOUCH DEBUG END");
 }

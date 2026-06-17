@@ -29,19 +29,64 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
   lv_disp_flush_ready(disp);
 }
 
+// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
+//   static uint16_t last_x = 0, last_y = 0;
+//   static bool was_pressed = false;
+//   static uint8_t no_touch_counter = 0;
+//   const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
+
+//   bool currently_pressed = touch.Pressed();
+
+//   if (currently_pressed) {
+//     // Touch detected - reset counter
+//     no_touch_counter = 0;
+//     last_x = touch.X();
+//     last_y = touch.Y();
+//     data->point.x = last_x;
+//     data->point.y = last_y;
+//     data->state = LV_INDEV_STATE_PRESSED;
+
+//     if (!was_pressed) {
+//       LOGD("Touch pressed at: %d, %d", last_x, last_y);
+//     }
+//     was_pressed = true;
+//   } else {
+//     // No touch detected
+//     data->point.x = last_x;
+//     data->point.y = last_y;
+
+//     if (was_pressed) {
+//       no_touch_counter++;
+//       if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
+//         // Confirmed release
+//         data->state = LV_INDEV_STATE_RELEASED;
+//         // LOGD("Touch released");
+//         was_pressed = false;
+//         no_touch_counter = 0;
+//       } else {
+//         // Still counting - maintain pressed state
+//         data->state = LV_INDEV_STATE_PRESSED;
+//       }
+//     } else {
+//       data->state = LV_INDEV_STATE_RELEASED;
+//     }
+//   }
+// }
+
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-  static uint16_t last_x = 0, last_y = 0;
+  (void)indev_drv;
+
+  static uint16_t last_x = 0;
+  static uint16_t last_y = 0;
   static bool was_pressed = false;
-  static uint8_t no_touch_counter = 0;
-  const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
 
-  bool currently_pressed = touch.Pressed();
+  uint16_t x = 0;
+  uint16_t y = 0;
 
-  if (currently_pressed) {
-    // Touch detected - reset counter
-    no_touch_counter = 0;
-    last_x = touch.X();
-    last_y = touch.Y();
+  if (readTouchMapped(&x, &y)) {
+    last_x = x;
+    last_y = y;
+
     data->point.x = last_x;
     data->point.y = last_y;
     data->state = LV_INDEV_STATE_PRESSED;
@@ -49,27 +94,13 @@ void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
     if (!was_pressed) {
       LOGD("Touch pressed at: %d, %d", last_x, last_y);
     }
+
     was_pressed = true;
   } else {
-    // No touch detected
     data->point.x = last_x;
     data->point.y = last_y;
-
-    if (was_pressed) {
-      no_touch_counter++;
-      if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
-        // Confirmed release
-        data->state = LV_INDEV_STATE_RELEASED;
-        // LOGD("Touch released");
-        was_pressed = false;
-        no_touch_counter = 0;
-      } else {
-        // Still counting - maintain pressed state
-        data->state = LV_INDEV_STATE_PRESSED;
-      }
-    } else {
-      data->state = LV_INDEV_STATE_RELEASED;
-    }
+    data->state = LV_INDEV_STATE_RELEASED;
+    was_pressed = false;
   }
 }
 
