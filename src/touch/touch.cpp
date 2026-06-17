@@ -38,8 +38,8 @@
 // Inset from the true corners so the targets are visible and tappable. Touches
 // in the strip outside these nodes are reached by extrapolation (the bounds in
 // mapRawBilinear are loose enough to extend to the physical screen edges).
-static const int kGridX[3] = {0, HRES / 2, HRES - 0};   // 30, 400, 770
-static const int kGridY[3] = {0, VRES / 2, VRES - 0};   // 30, 240, 450
+static const int kGridX[3] = {30, HRES / 2, HRES - 30};   // 30, 400, 770
+static const int kGridY[3] = {30, VRES / 2, VRES - 30};   // 30, 240, 450
 // Aliases used by the calibration draw loop (same coordinates).
 #define kGridDrawX kGridX
 #define kGridDrawY kGridY
@@ -98,9 +98,9 @@ bool readTouchRaw(int *rx, int *ry, int samples) {
 static inline int nodeRawX(int col, int row) { return g_cal.rawX[row * 3 + col]; }
 static inline int nodeRawY(int col, int row) { return g_cal.rawY[row * 3 + col]; }
 
-// Solve, within one grid cell, for normalized (u,v) in [0,1] such that the
-// bilinear blend of the cell's four raw corners equals (rx,ry). Newton iteration.
-// Returns true if the point falls inside (with a small tolerance) this cell.
+// Solve, within one grid cell, for normalized (u,v) such that the bilinear
+// blend of the cell's four raw corners equals (rx,ry). For border touches we
+// intentionally allow u/v outside [0,1] so the edge strips extrapolate.
 static bool solveCell(int cellCol, int cellRow, double rx, double ry,
                       double *u_out, double *v_out) {
   double X00 = nodeRawX(cellCol,   cellRow),   X10 = nodeRawX(cellCol+1, cellRow);
@@ -122,25 +122,47 @@ static bool solveCell(int cellCol, int cellRow, double rx, double ry,
     u -= ( dyv*fx - dxv*fy) / det;
     v -= (-dyu*fx + dxu*fy) / det;
   }
-  // Accept with tolerance so points near/just outside an edge still resolve.
-  if (u >= -0.05 && u <= 1.05 && v >= -0.05 && v <= 1.05) {
-    *u_out = u; *v_out = v;
-    return true;
-  }
-  return false;
+  if (!isfinite(u) || !isfinite(v)) return false;
+  *u_out = u;
+  *v_out = v;
+  return true;
+}
+
+static double cellPenalty(double u, double v) {
+  double penalty = 0.0;
+  if (u < 0.0) penalty += -u;
+  else if (u > 1.0) penalty += u - 1.0;
+  if (v < 0.0) penalty += -v;
+  else if (v > 1.0) penalty += v - 1.0;
+  return penalty;
 }
 
 static bool mapRawBilinear(int rx, int ry, uint16_t *x, uint16_t *y) {
-  // Pick the grid cell directly by comparing against the CENTER node's raw
-  // value -- no cell search, no goto. col/row are 0 or 1. Then solve the inverse
-  // bilinear once for that cell. u,v are allowed outside [0,1] (so border touches
-  // extrapolate to the true panel edge) but bounded so a bad read can't fling
-  // off-screen.
-  int cc = (rx < nodeRawX(1, 1)) ? 0 : 1;
-  int cr = (ry < nodeRawY(1, 1)) ? 0 : 1;
+  // Solve all four cells and pick the one requiring the least extrapolation.
+  // This keeps border touches stable instead of relying on a single center-node
+  // split that can pick the wrong cell near an edge.
+  bool found = false;
+  int cc = 0, cr = 0;
+  double u = 0.0, v = 0.0;
+  double bestPenalty = 1e30;
 
-  double u, v;
-  solveCell(cc, cr, rx, ry, &u, &v);
+  for (int row = 0; row < 2; row++) {
+    for (int col = 0; col < 2; col++) {
+      double cu, cv;
+      if (!solveCell(col, row, rx, ry, &cu, &cv)) continue;
+      double penalty = cellPenalty(cu, cv);
+      if (!found || penalty < bestPenalty) {
+        found = true;
+        bestPenalty = penalty;
+        cc = col;
+        cr = row;
+        u = cu;
+        v = cv;
+      }
+    }
+  }
+
+  if (!found) return false;
 
   if (u < -2.0) u = -2.0; if (u > 3.0) u = 3.0;
   if (v < -2.0) v = -2.0; if (v > 3.0) v = 3.0;
