@@ -111,8 +111,8 @@ void SettingsSliderBrightnessChange(lv_event_t *e) {
   setBacklightFast(level);
 
   lv_event_code_t code = lv_event_get_code(e);
-  if (code == LV_EVENT_VALUE_CHANGED || code == LV_EVENT_RELEASED) {
-    StateManager::setScreenBrightness(level); // setter saves only if changed
+  if (code == LV_EVENT_RELEASED) {
+    StateManager::setScreenBrightness(level); // persist only when drag is done
   }
 }
 

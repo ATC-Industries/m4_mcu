@@ -108,9 +108,9 @@ void setup() {
   AlarmManager::init();
   RemoteManager::Init();
 
-  // Run the LVGL worker task on its own core so screen drawing stays responsive
-  // without blocking the rest of the control loop.
-  xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
+  // Do not run a second LVGL task here. This project updates LVGL objects from
+  // the main Arduino loop, so driving `lv_timer_handler()` from two tasks can
+  // cause occasional tearing/flicker and one-frame jumps.
   LOGI("Setup complete");
   LOGD("M4ID: %d HostID: %d", StateManager::getM4ID(), StateManager::getHostM4ID());
 }

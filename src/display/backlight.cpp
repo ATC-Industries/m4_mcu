@@ -59,21 +59,13 @@ void updateBacklight() {
 
 // Fast mode for UI interactions like sliders
 void setBacklightFast(uint8_t brightness) {
-  // For UI sliders, we want immediate feedback
-  // Use a larger step size but still avoid an abrupt change
-  int difference = abs((int)brightness - (int)current_brightness);
-
-  // For small changes (like during slider movement), make it faster
-  if (difference < 20) {
-    current_brightness = brightness;
-    ledcWrite(LCD_BL_CHANNEL, brightness);
-    target_brightness = brightness;
-    transition_active = false;
-  } else {
-    // For larger changes, use smooth transition but faster
-    target_brightness = brightness;
-    transition_active = true;
-  }
+  // Slider drags should update immediately. Falling back to the smooth-ramp
+  // path here creates a stream of intermediate PWM duty changes while the user
+  // is still moving the slider, which can make panel jitter worse.
+  current_brightness = brightness;
+  target_brightness = brightness;
+  transition_active = false;
+  ledcWrite(LCD_BL_CHANNEL, brightness);
 }
 
 // Fade backlight without blocking (just initiates the fade)
