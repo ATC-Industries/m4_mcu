@@ -53,6 +53,19 @@
  * If LOG_LEVEL is lower than a given macro's level, that macro compiles out.
  * This is better than a runtime `if` because unused log calls disappear from
  * the build entirely.
+ *
+ * Optional per-file debug disable:
+ *   If one file is too noisy, you can disable only that file's `LOGD(...)`
+ *   output without changing the global log level.
+ *
+ *     #define LOG_TAG "SomeModule"
+ *     #define LOG_DEBUG_DISABLE true
+ *     #include "Logging.h"
+ *
+ *   Behavior:
+ *   - If `LOG_DEBUG_DISABLE` is missing, debug logs stay enabled.
+ *   - If `LOG_DEBUG_DISABLE` is `false`, debug logs stay enabled.
+ *   - If `LOG_DEBUG_DISABLE` is `true`, `LOGD(...)` compiles out for that file.
  */
 
 #ifndef LOG_LEVEL
@@ -65,6 +78,17 @@
  */
 #ifndef LOG_TAG
 #define LOG_TAG nullptr
+#endif
+
+/*
+ * Per-file override for debug logs.
+ *
+ * Default behavior is "debug logs allowed". A file can opt out by defining:
+ *   #define LOG_DEBUG_DISABLE true
+ * before including this header.
+ */
+#ifndef LOG_DEBUG_DISABLE
+#define LOG_DEBUG_DISABLE false
 #endif
 
 /*
@@ -153,10 +177,22 @@ static inline void log_printf_impl(const char *level,
 #define LOGI(...) do {} while (0)
 #endif
 
-#if LOG_LEVEL >= 4
-#define LOGD(fmt, ...) do { log_printf_impl("D", LOG_TAG, fmt, ##__VA_ARGS__); } while (0)
-#else
-#define LOGD(...) do {} while (0)
-#endif
+/*
+ * Debug logging uses a file-level gate at the call site instead of a `#if`
+ * gate at header-parse time.
+ *
+ * Why this is more robust:
+ * - Each `.cpp` file can say `#define LOG_DEBUG_DISABLE 1` or `true`.
+ * - The decision to print happens where `LOGD(...)` is used, using that
+ *   file's current setting.
+ * - This avoids the "header was included earlier so the wrong version of LOGD
+ *   got baked in" problem.
+ */
+#define LOGD(fmt, ...) \
+  do { \
+    if ((LOG_LEVEL >= 4) && !(LOG_DEBUG_DISABLE)) { \
+      log_printf_impl("D", LOG_TAG, fmt, ##__VA_ARGS__); \
+    } \
+  } while (0)
 
 #endif

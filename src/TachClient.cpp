@@ -4,6 +4,9 @@
 #include "ui/ui.h"
 #include <climits>
 
+#define LOG_TAG "TachClient"
+#include "Logging.h"
+
 namespace Tach {
     State state = {
         .isTSSConnected = false,
@@ -13,7 +16,7 @@ namespace Tach {
 }
 
 void Tach::pairTSS(lv_event_t *e) {
-    LOGI("[Tach] Starting TSS pairing process");
+    LOGI("Starting TSS pairing process");
 
     state.pairedTSSRSSI = INT_MIN;
     memset(state.pairedTSSAddress, 0, 6);
@@ -25,7 +28,7 @@ void Tach::pairTSS(lv_event_t *e) {
     state.lastPairingBroadcastMillis = 0;  // Force immediate first broadcast
     state.pairingBroadcastCount = 0;
 
-    LOGI("[Tach] Pairing mode activated - will broadcast for 5 seconds");
+    LOGI("Pairing mode activated - will broadcast for 5 seconds");
 }
 
 // Call this from your main loop or a timer
@@ -38,10 +41,10 @@ void Tach::updatePairing() {
         state.isPairing = false;
         
         if (state.pairedTSSRSSI == INT_MIN) {
-            LOGW("[Tach] Pairing timeout - no TSS found");
+            LOGW("Pairing timeout - no TSS found");
             state.isTSSConnected = false;
         } else {
-            LOGI("[Tach] Pairing complete - locked onto TSS at %02X:%02X:%02X:%02X:%02X:%02X with RSSI: %d",
+            LOGI("Pairing complete - locked onto TSS at %02X:%02X:%02X:%02X:%02X:%02X with RSSI: %d",
                  state.pairedTSSAddress[0], state.pairedTSSAddress[1], state.pairedTSSAddress[2],
                  state.pairedTSSAddress[3], state.pairedTSSAddress[4], state.pairedTSSAddress[5],
                  state.pairedTSSRSSI);
@@ -66,7 +69,7 @@ void Tach::updatePairing() {
         doc.shrinkToFit();
         serializeJson(doc, payload);
 
-        //LOGD("[Tach] Pairing broadcast #%d: %s", state.pairingBroadcastCount, payload.c_str());
+        //LOGD("Pairing broadcast #%d: %s", state.pairingBroadcastCount, payload.c_str());
 
         uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
         sendMessage(broadcastAddress, BROADCAST, SEND_PROXIMITY, payload, HIGH_PRIORITY);
@@ -75,7 +78,7 @@ void Tach::updatePairing() {
 
 void Tach::requestRPM() {
     if (!state.isTSSConnected) {
-        LOGW("[Tach] Cannot request RPM - not connected to TSS");
+        LOGW("Cannot request RPM - not connected to TSS");
         return;
     }
 
@@ -86,7 +89,7 @@ void Tach::requestRPM() {
     doc.shrinkToFit();
     serializeJson(doc, payload);
 
-    //LOGD("[Tach] Requesting RPM from locked TSS");
+    //LOGD("Requesting RPM from locked TSS");
 
     // Send to the paired TSS address
     sendMessage(state.pairedTSSAddress, REQUEST, SEND_RPM, "{}", HIGH_PRIORITY);
@@ -95,7 +98,7 @@ void Tach::requestRPM() {
 // Call this when you receive a PAIRING_RESPONSE
 void Tach::onPairingResponse(uint8_t *senderAddress, int rssi) {
     if (!state.isPairing) {
-        LOGD("[Tach] Ignoring pairing response - already locked to a TSS");
+        LOGD("Ignoring pairing response - already locked to a TSS");
         return;
     }
 
@@ -103,7 +106,7 @@ void Tach::onPairingResponse(uint8_t *senderAddress, int rssi) {
         state.pairedTSSRSSI = rssi;
         memcpy(state.pairedTSSAddress, senderAddress, 6);
         
-        LOGI("[Tach] Better TSS candidate - RSSI: %d, Address: %02X:%02X:%02X:%02X:%02X:%02X",
+        LOGI("Better TSS candidate - RSSI: %d, Address: %02X:%02X:%02X:%02X:%02X:%02X",
              rssi,
              senderAddress[0], senderAddress[1], senderAddress[2],
              senderAddress[3], senderAddress[4], senderAddress[5]);

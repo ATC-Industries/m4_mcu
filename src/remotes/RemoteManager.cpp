@@ -5,7 +5,11 @@
 #include "ArduinoJson.h"
 #include "M4MessageStruct.h"
 #include "StateManager.h"
+
+#define LOG_TAG "RemoteManager"
+#define LOG_DEBUG_DISABLE 1
 #include "Logging.h"
+
 #include "ui/ui.h"
 #include "lvgl.h"
 #include "M4CommsHelpers.h"
@@ -164,7 +168,7 @@ void RemoteManager::EnterPairing() {
   ClearAllRemotes();
   s_needs_ui_refresh = true;
 
-  LOGI("[RemoteManager] Pairing ON");
+  LOGI("Pairing ON");
   UpdateStatusLabel();
 }
 
@@ -173,7 +177,7 @@ void RemoteManager::ExitPairing() {
   s_pairing_on = false;
   ClearAllRemotes();
   s_needs_ui_refresh = true;
-  LOGI("[RemoteManager] Pairing OFF");
+  LOGI("Pairing OFF");
   UpdateStatusLabel();
 }
 
@@ -632,8 +636,8 @@ void RemoteManager::MaybeSendValues() {
   String payload;
   serializeJson(doc, payload);
 
-  // LOGD("Broadcasting remote values: speed=%.1f rpm=%.1f dist=%.1f isMax=%d isSafety=%d", 
-  //      s_cur_speed, s_cur_rpm, s_cur_dist, s_cur_ismax, s_cur_safety);
+  LOGD("Broadcasting remote values: speed=%.1f rpm=%.1f dist=%.1f isMax=%d isSafety=%d", 
+       s_cur_speed, s_cur_rpm, s_cur_dist, s_cur_ismax, s_cur_safety);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,

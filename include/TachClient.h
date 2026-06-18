@@ -5,7 +5,6 @@
 #include <lvgl/lvgl.h>
 #include "M4CommsHelpers.h"
 #include "StateManager.h"
-#include "Logging.h"
 
 namespace Tach {
     struct State {

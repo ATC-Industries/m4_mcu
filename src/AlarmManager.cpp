@@ -1,6 +1,7 @@
 #include "AlarmManager.h"
 #include "../ui/ui.h"
 
+#define LOG_TAG "AlarmManager"
 #include "Logging.h"
 
 
@@ -25,14 +26,14 @@ void AlarmManager::init() {
 }
 
 void AlarmManager::loadPrefs() {
-  Serial.println("[AlarmManager] Loading preferences...");
+  LOGI("Loading preferences...");
   
   if (!prefs_.begin("m4alarms", false)) {
-    Serial.println("[AlarmManager] prefs begin failed, using defaults");
+    LOGW("prefs begin failed, using defaults");
     // Seed a simple default
     for (int p = 0; p < kPresetCount; ++p) {
       snprintf(presets_[p].name, sizeof(presets_[p].name), "Preset %d", p + 1);
-      Serial.printf("  Default preset %d: '%s'\n", p, presets_[p].name);
+      LOGD("Default preset %d: '%s'", p, presets_[p].name);
       
       for (int c = 0; c < kChannels; ++c) {
         for (int s = 0; s < kSlots; ++s) {
@@ -45,13 +46,13 @@ void AlarmManager::loadPrefs() {
       }
     }
     activePreset_ = 0;
-    Serial.println("[AlarmManager] Defaults initialized");
+    LOGI("Defaults initialized");
     return;
   }
 
   activePreset_ = prefs_.getUChar("active", 0);
   if (activePreset_ >= kPresetCount) activePreset_ = 0;
-  Serial.printf("[AlarmManager] Active preset: %d\n", activePreset_);
+  LOGI("Active preset: %d", activePreset_);
 
   for (int p = 0; p < kPresetCount; ++p) {
     char key[24];
@@ -61,7 +62,7 @@ void AlarmManager::loadPrefs() {
     String nm = prefs_.getString(key, String("Preset ") + String(p + 1));
     strncpy(presets_[p].name, nm.c_str(), sizeof(presets_[p].name));
     presets_[p].name[sizeof(presets_[p].name) - 1] = '\0';
-    Serial.printf("  Preset %d name: '%s'\n", p, presets_[p].name);
+    LOGD("Preset %d name: '%s'", p, presets_[p].name);
 
     for (int c = 0; c < kChannels; ++c) {
       for (int s = 0; s < kSlots; ++s) {
@@ -81,8 +82,8 @@ void AlarmManager::loadPrefs() {
 
         // Log if this alarm is enabled or has non-zero trip point
         if (A.enabled || A.tripPoint != 0.0f) {
-          Serial.printf("    P%d Ch%d Slot%d: en=%d tp=%.2f st=%d co=%d\n",
-                        p, c, s, A.enabled, A.tripPoint, (int)A.style, (int)A.color);
+          LOGD("P%d Ch%d Slot%d: en=%d tp=%.2f st=%d co=%d",
+               p, c, s, A.enabled, A.tripPoint, (int)A.style, (int)A.color);
         }
 
         // runtime cleared
@@ -97,12 +98,12 @@ void AlarmManager::loadPrefs() {
   refreshAlarmUIFromPreset(getActivePreset());
 
   prefs_.end();
-  Serial.println("[AlarmManager] prefs loaded successfully");
+  LOGI("prefs loaded successfully");
 }
 
 void AlarmManager::savePrefs() {
   if (!prefs_.begin("m4alarms", false)) {
-    Serial.println("[AlarmManager] prefs save begin failed");
+    LOGE("prefs save begin failed");
     return;
   }
 
@@ -135,7 +136,7 @@ void AlarmManager::savePrefs() {
 
   prefs_.end();
   refreshAlarmUIFromPreset(getActivePreset());
-  Serial.println("[AlarmManager] prefs saved");
+  LOGI("prefs saved");
 }
 
 // ----------------------------
@@ -166,13 +167,13 @@ void AlarmManager::setEnabled(uint8_t preset, AlarmChannel ch, AlarmSlot sl, boo
 }
 
 void AlarmManager::setTripPoint(uint8_t preset, AlarmChannel ch, AlarmSlot sl, float baseValue) {
-  LOGI("[AlarmManager] setTripPoint called");
+  LOGI("setTripPoint called");
   if (preset >= kPresetCount) preset = 0;
   float v = baseValue;
   clampAndValidate(ch, v);
   presets_[preset].alarms[(int)ch][(int)sl].tripPoint = v;
   savePrefs();
-  LOGI("[AlarmManager] Trip point set to %.2f for preset %d", v, preset);
+  LOGI("Trip point set to %.2f for preset %d", v, preset);
 }
 
 void AlarmManager::setStyle(uint8_t preset, AlarmChannel ch, AlarmSlot sl, AlarmStyle st) {
@@ -211,7 +212,7 @@ void AlarmManager::evaluateTick() {
   // Log current values occasionally (every 50 calls to avoid spam)
   static int logCounter = 0;
   if (++logCounter >= 500) {
-    LOGD("[AlarmManager] Current values: RPM=%.0f, Speed=%.1f, Dist=%.2f", rpm, speedMph, distFt);
+    LOGD("Current values: RPM=%.0f, Speed=%.1f, Dist=%.2f", rpm, speedMph, distFt);
     logCounter = 0;
   }
   
@@ -252,7 +253,7 @@ void AlarmManager::evaluateTick() {
             A.tripped = true;
             A.firedOnce = true;
             A.trippedAtMs = now;
-            LOGI("[AlarmManager] TRIP_ONCE fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+            LOGI("TRIP_ONCE fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                  (int)ch, s, currentValue, A.tripPoint);
             triggerHorn(A);
           } else if (!shouldTrip) {
@@ -264,7 +265,7 @@ void AlarmManager::evaluateTick() {
           if (shouldTrip) {
             if (!A.tripped) {
               A.trippedAtMs = now;
-              LOGI("[AlarmManager] HOLD_AUTORESET fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+              LOGI("HOLD_AUTORESET fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                    (int)ch, s, currentValue, A.tripPoint);
               triggerHorn(A);
             }
@@ -272,7 +273,7 @@ void AlarmManager::evaluateTick() {
           } else {
             // Auto-reset when value drops below trip point
             if (A.tripped) {
-              LOGD("[AlarmManager] HOLD_AUTORESET reset: ch=%d slot=%d", (int)ch, s);
+              LOGD("HOLD_AUTORESET reset: ch=%d slot=%d", (int)ch, s);
             }
             A.tripped = false;
             A.firedOnce = false;
@@ -283,7 +284,7 @@ void AlarmManager::evaluateTick() {
           if (shouldTrip && !A.tripped) {
             A.tripped = true;
             A.trippedAtMs = now;
-            LOGI("[AlarmManager] HOLD_PERSISTENT fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+            LOGI("HOLD_PERSISTENT fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                  (int)ch, s, currentValue, A.tripPoint);
             triggerHorn(A);
           }
@@ -294,7 +295,7 @@ void AlarmManager::evaluateTick() {
           if (shouldTrip && !A.tripped) {
             A.tripped = true;
             A.trippedAtMs = now;
-            LOGI("[AlarmManager] AUTO_END_RUN_DQ fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+            LOGI("AUTO_END_RUN_DQ fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                  (int)ch, s, currentValue, A.tripPoint);
             triggerHorn(A);
             // TODO: Call StateManager to end the pull and mark as DQ
@@ -341,7 +342,7 @@ static int getActivePresetFromButtons() {
   if (lv_obj_has_state(uic_Settings1ButtonPresetButton3, LV_STATE_CHECKED)) return 2;
   if (lv_obj_has_state(uic_Settings1ButtonPresetButton4, LV_STATE_CHECKED)) return 3;
 
-  Serial.println("[AlarmManager] Warning: no preset button checked!");
+  LOGW("no preset button checked");
 
   // fallback: none checked, return last known preset
   return AlarmManager::getActivePreset();
@@ -381,8 +382,8 @@ void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField f
     } break;
 
     case AlarmField::TRIPPOINT: {
-      LOGI("[AlarmManager] TRIPPOINT case entered");
-      LOGI("[AlarmManager] Preset: %d, Channel: %d, Slot: %d", preset, (int)ch, (int)sl);
+      LOGI("TRIPPOINT case entered");
+      LOGI("Preset: %d, Channel: %d, Slot: %d", preset, (int)ch, (int)sl);
       
       const char* txt = lv_textarea_get_text(target);
       if (!txt) {
@@ -393,12 +394,12 @@ void AlarmManager::handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField f
       char* endp = nullptr;
       float v = strtof(txt, &endp);
       if (endp == txt || isnan(v)) {
-        LOGW("[AlarmManager] Invalid parse, refreshing UI");
+        LOGW("Invalid parse, refreshing UI");
         refreshAlarmUIFromPreset(preset);
         return;
       }
       
-      LOGI("[AlarmManager] Parsed value: %.2f", v);
+      LOGI("Parsed value: %.2f", v);
       
       // convert UI units to base
       float base = uiToBase(ch, v);
@@ -523,13 +524,13 @@ void AlarmManager::triggerHorn(const AlarmConfig& A) {
   
   // Check global silence
   if (now < buzzerSilencedUntilMs_) {
-    LOGD("[AlarmManager] Horn silenced globally until %lu ms", buzzerSilencedUntilMs_);
+    LOGD("Horn silenced globally until %lu ms", buzzerSilencedUntilMs_);
     return;
   }
   
   // Check per-alarm silence
   if (now < A.silencedUntilMs) {
-    LOGD("[AlarmManager] Horn silenced for this alarm until %lu ms", A.silencedUntilMs);
+    LOGD("Horn silenced for this alarm until %lu ms", A.silencedUntilMs);
     return;
   }
   
@@ -550,7 +551,7 @@ void AlarmManager::triggerHorn(const AlarmConfig& A) {
     case AlarmColor::GREEN: colorName = "GREEN"; break;
   }
   
-  LOGI("[AlarmManager] 🔊 HORN TRIGGERED! TripPoint=%.2f Style=%s Color=%s Enabled=%d", 
+  LOGI("HORN TRIGGERED: TripPoint=%.2f Style=%s Color=%s Enabled=%d", 
        A.tripPoint, styleName, colorName, A.enabled);
   
   // TODO: Trigger actual horn/buzzer hardware

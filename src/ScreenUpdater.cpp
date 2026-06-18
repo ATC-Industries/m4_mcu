@@ -5,6 +5,7 @@
 #include "../ui/ui.h"
 #include "../ui/ui_themes.h"
 #include "AlarmManager.h"
+#define LOG_TAG "ScreenUpdater"
 #include "Logging.h"
 #include "PullStateManager.h"
 #include "StateManager.h"
@@ -591,7 +592,7 @@ void refreshAlarmUIFromPreset(uint8_t preset) {
   int maxv = (int)trackLength;
 
   if (ui_MainBarDistanceAlarm1) {
-    Serial.printf("[UI] Setting alarm1 bar visible=%d\n", en1);
+    LOGD("Setting alarm1 bar visible=%d", en1);
     set_bar_visible(ui_MainBarDistanceAlarm1, en1);
     if (en1) {
       applyDistanceAlarmColor(ui_MainBarDistanceAlarm1, cfgD1.color);
@@ -611,14 +612,14 @@ void refreshAlarmUIFromPreset(uint8_t preset) {
 
   // Update triangle labels for distance alarms
   if (ui_MainLabelDistanceAlarmTriangle1) {
-    Serial.printf("[UI] Updating Alarm1 triangle, enabled=%d\n", en1);
+    LOGD("Updating Alarm1 triangle, enabled=%d", en1);
     if (en1) {
       lv_obj_move_foreground(ui_MainLabelDistanceAlarmTriangle1);
       lv_obj_clear_flag(ui_MainLabelDistanceAlarmTriangle1, LV_OBJ_FLAG_HIDDEN);
       applyDistanceAlarmColorToLabel(ui_MainLabelDistanceAlarmTriangle1, cfgD1.color);
       float percentage = (alarm1 / trackLength) * 100.0f;
       int yPos = 240 - (int)(percentage * 4.67f);
-      Serial.printf("[UI] Alarm1 percentage: %.2f%%, yPos: %d\n", percentage, yPos);
+      LOGD("Alarm1 percentage: %.2f%%, yPos: %d", percentage, yPos);
       lv_obj_set_pos(ui_MainLabelDistanceAlarmTriangle1, -354, yPos);
     } else {
       lv_obj_add_flag(ui_MainLabelDistanceAlarmTriangle1, LV_OBJ_FLAG_HIDDEN);
@@ -626,14 +627,14 @@ void refreshAlarmUIFromPreset(uint8_t preset) {
   }
 
   if (ui_MainLabelDistanceAlarmTriangle2) {
-    Serial.printf("[UI] Updating Alarm2 triangle, enabled=%d\n", en2);
+    LOGD("Updating Alarm2 triangle, enabled=%d", en2);
     if (en2) {
       lv_obj_move_foreground(ui_MainLabelDistanceAlarmTriangle2);
       lv_obj_clear_flag(ui_MainLabelDistanceAlarmTriangle2, LV_OBJ_FLAG_HIDDEN);
       applyDistanceAlarmColorToLabel(ui_MainLabelDistanceAlarmTriangle2, cfgD2.color);
       float percentage = (alarm2 / trackLength) * 100.0f;
       int yPos = 239 - (int)(percentage * 4.67f);
-      Serial.printf("[UI] Alarm2 percentage: %.2f%%, yPos: %d\n", percentage, yPos);
+      LOGD("Alarm2 percentage: %.2f%%, yPos: %d", percentage, yPos);
       lv_obj_set_pos(ui_MainLabelDistanceAlarmTriangle2, -354, yPos);
     } else {
       lv_obj_add_flag(ui_MainLabelDistanceAlarmTriangle2, LV_OBJ_FLAG_HIDDEN);

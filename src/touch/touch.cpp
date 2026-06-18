@@ -52,9 +52,24 @@ bool recalibrateTouch = false;
 
 static TouchCalibration g_cal;
 static const char *kPrefsNamespace = "touch_cal";
+static const char *kPrefsBlobKey = "cal";
+static const char *kPrefsLegacyGridXKey = "gridX";
+static const char *kPrefsLegacyGridYKey = "gridY";
+static const char *kPrefsLegacyValidKey = "valid";
+static const char *kPrefsRecalKey = "recalibrate";
 
 // Settle time before a deliberate calibration/test capture (ms).
 static const uint32_t kCaptureSettleMs = 80;
+
+static void logTouchPrefsLayout() {
+  LOGD("prefs layout: ns='%s' len=%u blob='%s' len=%u legacyX='%s' len=%u legacyY='%s' len=%u valid='%s' len=%u recal='%s' len=%u",
+       kPrefsNamespace, (unsigned)strlen(kPrefsNamespace),
+       kPrefsBlobKey, (unsigned)strlen(kPrefsBlobKey),
+       kPrefsLegacyGridXKey, (unsigned)strlen(kPrefsLegacyGridXKey),
+       kPrefsLegacyGridYKey, (unsigned)strlen(kPrefsLegacyGridYKey),
+       kPrefsLegacyValidKey, (unsigned)strlen(kPrefsLegacyValidKey),
+       kPrefsRecalKey, (unsigned)strlen(kPrefsRecalKey));
+}
 
 // ----------------------------------------------------------------------------
 // Raw reading
@@ -294,27 +309,84 @@ bool calibrate_touch() {
 
 bool save_touch_calibration(const TouchCalibration &cal) {
   Preferences prefs;
+  logTouchPrefsLayout();
   if (!prefs.begin(kPrefsNamespace, false)) { LOGE("prefs write open failed"); return false; }
-  prefs.putBytes("gridX", cal.rawX, sizeof(cal.rawX));
-  prefs.putBytes("gridY", cal.rawY, sizeof(cal.rawY));
-  prefs.putBool("valid", cal.valid);
+  size_t freeBefore = prefs.freeEntries();
+  size_t existingBlobLen = prefs.getBytesLength(kPrefsBlobKey);
+  bool hadBlobKey = prefs.isKey(kPrefsBlobKey);
+  bool hadLegacyX = prefs.isKey(kPrefsLegacyGridXKey);
+  bool hadLegacyY = prefs.isKey(kPrefsLegacyGridYKey);
+  bool hadLegacyValid = prefs.isKey(kPrefsLegacyValidKey);
+  LOGD("save open ok: freeEntries=%u hadBlob=%d blobLen=%u hadLegacyX=%d hadLegacyY=%d hadLegacyValid=%d calSize=%u",
+       (unsigned)freeBefore, hadBlobKey ? 1 : 0, (unsigned)existingBlobLen,
+       hadLegacyX ? 1 : 0, hadLegacyY ? 1 : 0, hadLegacyValid ? 1 : 0,
+       (unsigned)sizeof(cal));
+  size_t wroteCal = prefs.putBytes(kPrefsBlobKey, &cal, sizeof(cal));
+  size_t freeAfter = prefs.freeEntries();
   prefs.end();
+
+  if (wroteCal != sizeof(cal)) {
+    LOGE("touch calibration save incomplete: key='%s' keyLen=%u cal=%u/%u freeBefore=%u freeAfter=%u",
+         kPrefsBlobKey, (unsigned)strlen(kPrefsBlobKey),
+         (unsigned)wroteCal, (unsigned)sizeof(cal),
+         (unsigned)freeBefore, (unsigned)freeAfter);
+    return false;
+  }
+
+  LOGI("Touch calibration saved to flash.");
+  LOGD("save complete: key='%s' wrote=%u freeBefore=%u freeAfter=%u",
+       kPrefsBlobKey, (unsigned)wroteCal, (unsigned)freeBefore, (unsigned)freeAfter);
   return true;
 }
 
 bool load_touch_calibration() {
   Preferences prefs;
+  logTouchPrefsLayout();
   if (!prefs.begin(kPrefsNamespace, true)) { LOGW("no touch_cal namespace"); return false; }
-  if (!prefs.isKey("valid") || !prefs.getBool("valid", false)) {
-    prefs.end(); LOGW("no valid calibration stored"); return false;
+  size_t freeNow = prefs.freeEntries();
+  bool hasBlobKey = prefs.isKey(kPrefsBlobKey);
+  size_t blobLen = prefs.getBytesLength(kPrefsBlobKey);
+  LOGD("load open ok: freeEntries=%u hasBlob=%d blobLen=%u hasLegacyX=%d hasLegacyY=%d hasLegacyValid=%d",
+       (unsigned)freeNow, hasBlobKey ? 1 : 0, (unsigned)blobLen,
+       prefs.isKey(kPrefsLegacyGridXKey) ? 1 : 0,
+       prefs.isKey(kPrefsLegacyGridYKey) ? 1 : 0,
+       prefs.isKey(kPrefsLegacyValidKey) ? 1 : 0);
+
+  TouchCalibration storedCal;
+  size_t gotCal = prefs.getBytes(kPrefsBlobKey, &storedCal, sizeof(storedCal));
+  if (gotCal == sizeof(storedCal)) {
+    prefs.end();
+    storedCal.valid = true;
+    g_cal = storedCal;
+    LOGI("Touch calibration loaded from flash.");
+    return true;
   }
-  size_t gotX = prefs.getBytes("gridX", g_cal.rawX, sizeof(g_cal.rawX));
-  size_t gotY = prefs.getBytes("gridY", g_cal.rawY, sizeof(g_cal.rawY));
+
+  size_t gotX = prefs.getBytes(kPrefsLegacyGridXKey, g_cal.rawX, sizeof(g_cal.rawX));
+  size_t gotY = prefs.getBytes(kPrefsLegacyGridYKey, g_cal.rawY, sizeof(g_cal.rawY));
+  bool hasValidKey = prefs.isKey(kPrefsLegacyValidKey);
+  bool validFlag = prefs.getBool(kPrefsLegacyValidKey, false);
   prefs.end();
+
+  LOGD("blob load miss: gotCal=%u/%u legacyX=%u/%u legacyY=%u/%u hasValid=%d valid=%d",
+       (unsigned)gotCal, (unsigned)sizeof(storedCal),
+       (unsigned)gotX, (unsigned)sizeof(g_cal.rawX),
+       (unsigned)gotY, (unsigned)sizeof(g_cal.rawY),
+       hasValidKey ? 1 : 0, validFlag ? 1 : 0);
+
   if (gotX != sizeof(g_cal.rawX) || gotY != sizeof(g_cal.rawY)) {
-    LOGE("stored calibration wrong size"); g_cal.valid = false; return false;
+    LOGW("no valid calibration stored");
+    g_cal.valid = false;
+    return false;
   }
+
+  LOGW("using legacy touch calibration storage format");
   g_cal.valid = true;
+  if (!hasValidKey) {
+    LOGW("touch calibration grid found but valid flag missing; accepting stored calibration");
+  } else if (!validFlag) {
+    LOGW("touch calibration grid found but valid flag is false; accepting stored calibration");
+  }
   LOGI("Touch calibration loaded from flash.");
   return true;
 }
@@ -322,18 +394,32 @@ bool load_touch_calibration() {
 bool setRecalibrationFlag(bool force) {
   recalibrateTouch = force;
   Preferences prefs;
+  logTouchPrefsLayout();
   if (!prefs.begin(kPrefsNamespace, false)) { LOGE("prefs flag open failed"); return false; }
-  prefs.putBool("recalibrate", force);
+  size_t freeBefore = prefs.freeEntries();
+  size_t wroteFlag = prefs.putBool(kPrefsRecalKey, force);
+  size_t freeAfter = prefs.freeEntries();
   prefs.end();
+  if (!wroteFlag) {
+    LOGE("failed to save recalibration flag: key='%s' keyLen=%u value=%d freeBefore=%u freeAfter=%u",
+         kPrefsRecalKey, (unsigned)strlen(kPrefsRecalKey), force ? 1 : 0,
+         (unsigned)freeBefore, (unsigned)freeAfter);
+    return false;
+  }
   LOGI("Recalibration flag set to %s", force ? "true" : "false");
+  LOGD("recal flag saved: key='%s' wrote=%u freeBefore=%u freeAfter=%u",
+       kPrefsRecalKey, (unsigned)wroteFlag, (unsigned)freeBefore, (unsigned)freeAfter);
   return true;
 }
 
 static bool loadRecalibrationFlag() {
   Preferences prefs;
   if (!prefs.begin(kPrefsNamespace, true)) return false;
-  bool f = prefs.getBool("recalibrate", false);
+  bool hasKey = prefs.isKey(kPrefsRecalKey);
+  bool f = prefs.getBool(kPrefsRecalKey, false);
   prefs.end();
+  LOGD("recal flag load: key='%s' hasKey=%d value=%d",
+       kPrefsRecalKey, hasKey ? 1 : 0, f ? 1 : 0);
   return f;
 }
 

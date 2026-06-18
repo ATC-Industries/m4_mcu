@@ -6,6 +6,9 @@
 #include "Config.h"
 #include "touch/touch.h"
 #include "StateManager.h"
+
+#define LOG_TAG "LVGLCallbacks"
+#define LOG_DEBUG_DISABLE true
 #include "Logging.h"
 
 extern TFT_Touch touch;
@@ -158,4 +161,3 @@ void init_lvgl() {
   indev_drv.read_cb = my_touchpad_read;
   lv_indev_drv_register(&indev_drv);
 }
-

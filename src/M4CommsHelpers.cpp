@@ -6,6 +6,9 @@
 #include "remotes/RemoteManager.h"
 #include "JudgeModule.h"
 
+#define LOG_TAG "M4CommsHelpers"
+#include "Logging.h"
+
 const uint8_t kBroadcastAddress[6] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 // Define the global variables declared in M4CommsHelpers.h

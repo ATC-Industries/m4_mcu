@@ -6,7 +6,11 @@
 #include "AlarmManager.h"
 #include "ScreenUpdater.h"
 #include "TachClient.h"
+
+#define LOG_TAG "PullStateManager"
+#define LOG_DEBUG_DISABLE 1
 #include "Logging.h"
+
 #include "remotes/RemoteManager.h"
 
 static unsigned long lastDebugPrint = 0;
@@ -24,7 +28,7 @@ namespace {
 void PullStateManager::enterState(PullState newState) {
   const char* oldState = PullStateManager::stateToString(StateManager::getPullState());
   const char* newStateStr = PullStateManager::stateToString(newState);
-  LOGI("[PSM] Transitioning from %s to %s", oldState, newStateStr);
+  LOGI("Transitioning from %s to %s", oldState, newStateStr);
 
   StateManager::setPullState(newState);
   updateUIForState(newState);
@@ -39,7 +43,7 @@ void PullStateManager::enterState(PullState newState) {
 }
 
 void PullStateManager::init() {
-  LOGI("[PSM] init -> READY");
+  LOGI("init -> READY");
   enterState(PullState::READY);  // Always start in READY
 }
 // TODO: Somewhere here I need to Call AlarmManager::evaluateTick() while PullState is STAGED or PULLING.
@@ -69,7 +73,7 @@ void PullStateManager::update() {
     if (s <= kEndSpeedMph) {
       if (s_belowSinceMs == 0) s_belowSinceMs = now;
       if (now - s_belowSinceMs >= kEndHoldMs) {
-        LOGI("[PSM] PULLING -> speed low for %ums -> PULLEND", (unsigned)kEndHoldMs);
+        LOGI("PULLING -> speed low for %ums -> PULLEND", (unsigned)kEndHoldMs);
         s_belowSinceMs = 0;
         enterState(PullState::PULLEND);
       }
@@ -85,17 +89,17 @@ void PullStateManager::update() {
 
     PullState current = StateManager::getPullState();
     const char* stateStr = PullStateManager::stateToString(current);
-    //LOGD("[PSM] Heartbeat: current state=%s", stateStr);
+    LOGD("Heartbeat: current state=%s", stateStr);
 
-    //LOGI("[PSM] heartbeat state=%d", (int)current);
+    LOGD("heartbeat state=%d", (int)current);
     updateUIForState(current);
   }
 }
 
 void PullStateManager::handleStagePressed(lv_event_t *e) {
-  LOGI("[PSM] handleStagePressed");
+  LOGI("handleStagePressed");
   // notify TachClient once on transition
-  LOGI("[PSM] notifying TachClient due to state change -> STAGED");
+  LOGI("notifying TachClient due to state change -> STAGED");
   Tach::pairTSS(e);
   enterState(PullState::STAGED);   // this will now notify TachClient once
 }
@@ -129,10 +133,10 @@ void PullStateManager::detectPullStart(float currentSpeed) {
   unsigned long now = millis();
   if (now - lastStageCheckMs >= debugInterval) {
     lastStageCheckMs = now;
-    LOGD("[PSM] detectPullStart speed=%.2f state=%d", currentSpeed, (int)StateManager::getPullState());
+    LOGD("detectPullStart speed=%.2f state=%d", currentSpeed, (int)StateManager::getPullState());
   }
   if (StateManager::getPullState() == PullState::STAGED && currentSpeed > 0.5f) {
-    LOGI("[PSM] STAGED + speed>0.5 -> PULLING");
+    LOGI("STAGED + speed>0.5 -> PULLING");
     SpeedModule::startRun();     // reset speed warmup and filters
     enterState(PullState::PULLING);
   }

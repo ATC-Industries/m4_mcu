@@ -4,6 +4,8 @@
 
 #include "StateManager.h"
 #include "lvgl.h"
+
+#define LOG_TAG "SpeedModule"
 #include "Logging.h"
 
 #define SPEED_TIMEOUT_MICROS 1000000  // 1s
@@ -327,8 +329,8 @@ void SpeedModule::updateSpeedAndDistance() {
   uint32_t ms = millis();
   if (ms - lastLogMs >= 100) {
     lastLogMs = ms;
-    LOGD("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.1f MPH\n",
-                  pulseCount, distanceFeet, currentSpeedMPH);
+    LOGD("Pulses: %d | Distance: %.2f ft | Speed: %.1f MPH",
+         pulseCount, distanceFeet, currentSpeedMPH);
   }
 }
 

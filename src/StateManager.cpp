@@ -3,6 +3,9 @@
 #include <cstring>
 #include <SpeedModule.h>
 
+#define LOG_TAG "StateManager"
+#include "Logging.h"
+
 #include <Preferences.h>
 
 static ::Preferences storage;
@@ -55,7 +58,7 @@ int StateManager::getHostM4ID() {
 // ----- Setters -----
 
 void StateManager::setUnitSystem(UnitSystem s) {
-  Serial.printf("[SET] setUnitSystem -> %u\n", (unsigned)s);
+  LOGI("setUnitSystem -> %u", (unsigned)s);
   if (preferences.unitSystem == s) return;
   preferences.unitSystem = s;
   savePreferences();
@@ -108,7 +111,7 @@ void StateManager::setScreenRotation(bool rotation180) {
   preferences.screenRotation180 = rotation180;
   
   savePreferences();
-  Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
+  LOGI("Screen rotation set to %s", rotation180 ? "180°" : "0°");
 }
 
 void StateManager::setM4ID(int unitId, bool persist) {
@@ -201,7 +204,7 @@ void StateManager::setRelaysEnabled(bool on) {
 
 bool StateManager::getScreenRotation() {
   bool rotation180 = preferences.screenRotation180;
-  Serial.printf("[StateManager] Current screen rotation is %s\n", rotation180 ? "180°" : "0°");
+  LOGD("Current screen rotation is %s", rotation180 ? "180°" : "0°");
   return rotation180;
 }
 
@@ -212,7 +215,7 @@ void StateManager::setIsAutoConnectTractor(bool autoConnect) {
   preferences.isAutoConnectTractor = autoConnect;
   savePreferences();
 
-  Serial.printf("[StateManager] Auto-connect to Tach Tractor set to %s\n", autoConnect ? "ENABLED" : "DISABLED");
+  LOGI("Auto-connect to Tach Tractor set to %s", autoConnect ? "ENABLED" : "DISABLED");
 }
 
 bool StateManager::getIsAutoConnectTractor() {
@@ -253,8 +256,8 @@ void StateManager::savePullResult() {
   }
 
   savePreferences();
-  Serial.printf("[StateManager] Pull saved: Driver: %s (#%d), Max Speed: %.2f MPH, Max Distance: %.2f ft, Max RPM: %.1f\n", 
-                newPull.driverName.c_str(), newPull.driverNumber, newPull.maxSpeedMPH, newPull.maxDistanceFeet, newPull.maxRPM);
+  LOGI("Pull saved: Driver: %s (#%d), Max Speed: %.2f MPH, Max Distance: %.2f ft, Max RPM: %.1f",
+       newPull.driverName.c_str(), newPull.driverNumber, newPull.maxSpeedMPH, newPull.maxDistanceFeet, newPull.maxRPM);
 }
 
 int StateManager::getPullHistoryCount() {
@@ -287,7 +290,7 @@ void StateManager::clearPullHistory() {
   // Save preferences to persist changes
   savePreferences();
   
-  Serial.println("[StateManager] Pull history cleared and driver number reset to 1");
+  LOGI("Pull history cleared and driver number reset to 1");
 }
 
 RelayState StateManager::getRelayState(int index) {
@@ -391,19 +394,19 @@ void StateManager::loadPreferences() {
   }
 
   storage.end();
-  Serial.printf("[Prefs] LimitSwitchEnabled: LS1 = %d, LS2 = %d\n", preferences.limitSwitchEnabled[0],
-                preferences.limitSwitchEnabled[1]);
+  LOGD("LimitSwitchEnabled: LS1 = %d, LS2 = %d", preferences.limitSwitchEnabled[0],
+       preferences.limitSwitchEnabled[1]);
 
   // Print pull history
-  Serial.printf("[Prefs] Pull History (%d pulls):\n", preferences.pullHistoryCount);
+  LOGD("Pull History (%d pulls):", preferences.pullHistoryCount);
   for (int i = 0; i < preferences.pullHistoryCount; i++) {
     const PullResult& pull = preferences.pullHistory[i];
-    Serial.printf("  %d: Driver %s (#%d), Speed: %.2f MPH, Distance: %.2f ft, RPM: %.1f, Time: %lu\n", 
-                  i, pull.driverName.c_str(), pull.driverNumber, pull.maxSpeedMPH, 
-                  pull.maxDistanceFeet, pull.maxRPM, pull.timestamp);
+    LOGD("%d: Driver %s (#%d), Speed: %.2f MPH, Distance: %.2f ft, RPM: %.1f, Time: %lu",
+         i, pull.driverName.c_str(), pull.driverNumber, pull.maxSpeedMPH,
+         pull.maxDistanceFeet, pull.maxRPM, pull.timestamp);
   }
 
-  Serial.println("Preferences loaded successfully.");
+  LOGI("Preferences loaded successfully.");
 }
 
 void StateManager::savePreferences() {

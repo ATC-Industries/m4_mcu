@@ -3,6 +3,9 @@
 #include "Config.h"
 #include "display/backlight.h"
 
+#define LOG_TAG "Display"
+#include "Logging.h"
+
 LGFX lcd;
 
 // Initialize the display and touch
@@ -15,7 +18,7 @@ void init_display() {
 
   // Initialize display
   if (!lcd.begin()) {
-    Serial.println("Display initialization failed!");
+    LOGE("Display initialization failed!");
     while (1) delay(100);
   }
 

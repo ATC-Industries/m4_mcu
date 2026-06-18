@@ -17,6 +17,9 @@
 #include "TachClient.h"
 #include "custom_ui/custom_keyboard.h"
 #include "display/backlight.h"
+#define LOG_TAG "UIEvents"
+#define LOG_DEBUG_DISABLE true
+#include "Logging.h"
 #include "touch/touch.h"
 #include "ui.h"
 #include "remotes/RemoteManager.h"
@@ -151,7 +154,7 @@ static void exit_tab_handler(lv_event_t *e) {
   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
 
   if (selected_idx == 8) {  // Exit tab is the 8th tab (index 7)
-    printf("Exit tab clicked\n");
+    LOGI("Exit tab clicked");
 
     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);  // Reset tab to first
     lv_scr_load(ui_ScreenMain);                   // Go back to main screen
@@ -162,12 +165,12 @@ static void exit_tab_handler(lv_event_t *e) {
 void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
-  Serial.printf("[SettingsScreen] Event code: %d\n", code);
+  LOGD("Settings screen event code: %d", code);
   if (code == LV_EVENT_SCREEN_LOADED) {
     setup_custom_number_keyboard(ui_Settings1KeyboardSettingsNumberKeyboard);
     setup_custom_hex_keyboard(ui_Settings1KeyboardSettingsHexKeyboard);
 
-    Serial.println("[SettingsScreen] Screen loaded - applying preferences");
+    LOGI("Settings screen loaded - applying preferences");
 
     updateSettingsScreen();
 
@@ -686,7 +689,7 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   lv_obj_add_event_cb(table, draw_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
 
   
-  Serial.printf("[UI] Pull history table loaded with %d pulls\n", pullCount);
+  LOGI("Pull history table loaded with %d pulls", pullCount);
 }
 
 void DeletePullHistoryConfirmationHandler(lv_event_t *e) {
@@ -705,7 +708,7 @@ void DeletePullHistoryConfirmationHandler(lv_event_t *e) {
     // Refresh the pull history screen by triggering a screen reload
     lv_event_send(ui_ScreenPullHistoryScreen, LV_EVENT_SCREEN_LOADED, NULL);
     
-    Serial.println("[UI] Pull history deleted and screen refreshed");
+    LOGI("Pull history deleted and screen refreshed");
   } else if (strcmp(btn_txt, "No") == 0) {
     // Just close the modal
     lv_msgbox_close(mbox);
@@ -779,16 +782,16 @@ void AlarmSpeedColorChange1(lv_event_t* e)  { AlarmManager::handleAlarmChange(Al
 
 // Speed #2
 void AlarmSpeedToggle2(lv_event_t* e)       { 
-  Serial.printf("AlarmSpeedToggle2 triggered\n");
+  LOGD("AlarmSpeedToggle2 triggered");
   AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::ENABLE,    e); }
 void AlarmSpeedTripPointChange2(lv_event_t* e){ 
-  Serial.printf("AlarmSpeedTripPointChange2 triggered\n");
+  LOGD("AlarmSpeedTripPointChange2 triggered");
   AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
 void AlarmSpeedTripStyleChange2(lv_event_t* e){ 
-  Serial.printf("AlarmSpeedTripStyleChange2 triggered\n");
+  LOGD("AlarmSpeedTripStyleChange2 triggered");
   AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::STYLE,     e); }
 void AlarmSpeedColorChange2(lv_event_t* e)  { 
-  Serial.printf("AlarmSpeedColorChange2 triggered\n");  
+  LOGD("AlarmSpeedColorChange2 triggered");  
   AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::COLOR,     e); }
 
 // RPM #1
@@ -884,7 +887,7 @@ void HELPRemotePair(lv_event_t * e)
 void Settings1Screen_OnLoad(lv_event_t * e)
 {
   (void)e;
-  LOGI("[Settings1] OnLoad");
+  LOGI("Settings1 OnLoad");
   RemoteManager::SetTableContainer(uic_Settings1PanelDeviceTable);
 }
 

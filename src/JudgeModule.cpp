@@ -6,7 +6,11 @@
 #include "M4MessageStruct.h"
 #include "M4CommsHelpers.h"
 #include "StateManager.h"
+
+#define LOG_TAG "JudgeModule"
+#define LOG_DEBUG_DISABLE 1
 #include "Logging.h"
+
 #include "ui/ui.h"
 #include "ScreenUpdater.h"
 
@@ -94,7 +98,7 @@ void begin() {
   s_judge_mode_active = StateManager::getJudgeMode();
   s_tracked_host_id = static_cast<uint8_t>(StateManager::getHostM4ID());
 
-  LOGI("[JudgeModule] begin judgeMode=%d trackedHost=%u",
+  LOGI("begin judgeMode=%d trackedHost=%u",
        s_judge_mode_active ? 1 : 0,
        s_tracked_host_id);
 
@@ -147,12 +151,12 @@ void tick() {
   String payload;
   serializeJson(doc, payload);
 
-  // LOGD("[JudgeModule] Broadcast judge data host=%d state=%d "
-  //      "dist=%.2f speed=%.2f rpm=%.1f maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
-  //      hostId,
-  //      static_cast<int>(pullState),
-  //      curDistFeet, curSpeedMph, curRpm,
-  //      maxDistFeet, maxSpeedMph, maxRpm);
+  LOGD("Broadcast judge data host=%d state=%d "
+       "dist=%.2f speed=%.2f rpm=%.1f maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
+       hostId,
+       static_cast<int>(pullState),
+       curDistFeet, curSpeedMph, curRpm,
+       maxDistFeet, maxSpeedMph, maxRpm);
 
   sendMessage(kBroadcastAddress,
               BROADCAST,
@@ -168,7 +172,7 @@ void onJudgeModeChanged(bool enabled) {
   }
 
   s_judge_mode_active = enabled;
-  LOGI("[JudgeModule] judge mode toggled -> %d", enabled ? 1 : 0);
+  LOGI("judge mode toggled -> %d", enabled ? 1 : 0);
 
   if (!enabled) {
     // Leaving judge mode
@@ -184,7 +188,7 @@ bool isJudgeModeActive() {
 
 void setTrackedHostId(uint8_t host_id) {
   s_tracked_host_id = host_id;
-  LOGI("[JudgeModule] set tracked host id -> %u", host_id);
+  LOGI("set tracked host id -> %u", host_id);
 }
 
 uint8_t getTrackedHostId() {
@@ -192,7 +196,7 @@ uint8_t getTrackedHostId() {
 }
 
 void onHostStatusBroadcast(const HostSnapshot& snap) {
-  LOGD("[JudgeModule] Host %d state=%d dist=%.2f speed=%.2f rpm=%.1f "
+  LOGD("Host %d state=%d dist=%.2f speed=%.2f rpm=%.1f "
        "maxDist=%.2f maxSpeed=%.2f maxRpm=%.1f",
        snap.host_id,
        static_cast<int>(snap.pull_state),
@@ -245,7 +249,7 @@ void applyRemotePullHistory(const PullResult* pulls, int count) {
 
   StateManager::savePreferences();
 
-  LOGI("[JudgeModule] pull history synced from host, count=%d", capped);
+  LOGI("pull history synced from host, count=%d", capped);
 }
 
 const HostSnapshot& getLastSnapshot() {
@@ -268,7 +272,7 @@ void applyJudgeModeToMainScreen() {
   // Alarm preset container that fires MainScreenPresetButtonClicked()
   setContainerClickable(uic_MainContainerAlarmPresetContainer, !judge);
 
-  //LOGD("[JudgeModule] applyJudgeModeToMainScreen judge=%d", judge ? 1 : 0);
+  //LOGD("applyJudgeModeToMainScreen judge=%d", judge ? 1 : 0);
 }
 
 
@@ -297,7 +301,7 @@ void applyJudgeModeToSettingsScreen() {
   const int disable_count = sizeof(disable_tabs) / sizeof(disable_tabs[0]);
 
   if (judge) {
-    Serial.println("[SettingsScreen] Judge Mode active - disabling certain settings");
+    LOGI("Settings screen: judge mode active - disabling certain settings");
 
     // Disable various settings controls
     lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_DISABLED);
@@ -314,7 +318,7 @@ void applyJudgeModeToSettingsScreen() {
     }
 
   } else {
-    Serial.println("[SettingsScreen] Sled Pull Mode active - enabling all settings");
+    LOGI("Settings screen: sled pull mode active - enabling all settings");
 
     // Enable various settings controls
     lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_DISABLED);
@@ -339,7 +343,7 @@ void applyJudgeModeToSettingsScreen() {
     lv_obj_clear_flag(uic_Settings1PanelSettingJudgeMCUPanel, LV_OBJ_FLAG_HIDDEN);
   }
   
-  LOGD("[JudgeModule] applyJudgeModeToSettingsScreen judge=%d", judge ? 1 : 0);
+  LOGD("applyJudgeModeToSettingsScreen judge=%d", judge ? 1 : 0);
 }
 
 
