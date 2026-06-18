@@ -14,7 +14,7 @@ bool isWarmupActive();     // for gating alarms if you want
 
 // ---- Calibration ----
 bool isValidCalibrationNumber(int pulses);
-void saveManualCalibration(int pulses);
+bool saveManualCalibration(int pulses);
 void applyRadarCalibration();
 void applyGPSCalibration();
 int calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio);
@@ -23,6 +23,7 @@ void saveCalculatorCalibration();
 // ---- Drive-Off Calibration ----
 void startDriveOffCalibration();
 void stopDriveOffCalibration();
+bool saveDriveOffCalibration();
 bool isDriveOffModeActive();
 void handlePulseDuringDriveOff();
 

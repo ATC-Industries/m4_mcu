@@ -37,6 +37,53 @@ inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   }
 }
 
+namespace {
+lv_obj_t *s_settingsStatusBanner = nullptr;
+
+void onSettingsStatusBannerDeleted(lv_event_t *e) {
+  if (lv_event_get_target(e) == s_settingsStatusBanner) {
+    s_settingsStatusBanner = nullptr;
+  }
+}
+
+void deleteSettingsStatusBanner(lv_timer_t *timer) {
+  if (s_settingsStatusBanner != nullptr) {
+    lv_obj_del(s_settingsStatusBanner);
+    s_settingsStatusBanner = nullptr;
+  }
+  lv_timer_del(timer);
+}
+
+void showSettingsStatusBanner(const char *text, lv_color_t bgColor) {
+  if (s_settingsStatusBanner != nullptr) {
+    lv_obj_del(s_settingsStatusBanner);
+    s_settingsStatusBanner = nullptr;
+  }
+
+  lv_obj_t *parent = ui_ScreenSettings1 != nullptr ? ui_ScreenSettings1 : lv_scr_act();
+  if (parent == nullptr) {
+    return;
+  }
+
+  s_settingsStatusBanner = lv_label_create(parent);
+  lv_label_set_text(s_settingsStatusBanner, text);
+  lv_obj_set_style_bg_opa(s_settingsStatusBanner, LV_OPA_COVER, 0);
+  lv_obj_set_style_bg_color(s_settingsStatusBanner, bgColor, 0);
+  lv_obj_set_style_text_color(s_settingsStatusBanner, lv_color_white(), 0);
+  lv_obj_set_style_radius(s_settingsStatusBanner, 8, 0);
+  lv_obj_set_style_pad_hor(s_settingsStatusBanner, 14, 0);
+  lv_obj_set_style_pad_ver(s_settingsStatusBanner, 8, 0);
+  lv_obj_set_style_text_align(s_settingsStatusBanner, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_clear_flag(s_settingsStatusBanner, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_align(s_settingsStatusBanner, LV_ALIGN_TOP_MID, 0, 12);
+  lv_obj_move_foreground(s_settingsStatusBanner);
+  lv_obj_add_event_cb(s_settingsStatusBanner, onSettingsStatusBannerDeleted, LV_EVENT_DELETE, nullptr);
+
+  lv_timer_t *timer = lv_timer_create(deleteSettingsStatusBanner, 1400, nullptr);
+  lv_timer_set_repeat_count(timer, 1);
+}
+}  // namespace
+
 void applyMainScreenPreferences() {
   // Set the visibility of the main screen elements based on preferences
   setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
@@ -390,15 +437,27 @@ void HELPPresetCalNumber(lv_event_t *e) {
 }
 
 void SaveCalibrationNumberButton(lv_event_t *e) {
+  (void)e;
   int val = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationNumberTextArea));
-  SpeedModule::saveManualCalibration(val);
+  if (SpeedModule::saveManualCalibration(val)) {
+    showSettingsStatusBanner("Calibration saved", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    showSettingsStatusBanner("Invalid calibration number", lv_palette_main(LV_PALETTE_RED));
+  }
 }
 
 void SaveCalibrationCalculatorNumberButton(lv_event_t *e) { SpeedModule::saveCalculatorCalibration(); }
 
 void StartAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::startDriveOffCalibration(); }
 
-void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) {
+  (void)e;
+  if (SpeedModule::saveDriveOffCalibration()) {
+    showSettingsStatusBanner("Calibration saved", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    showSettingsStatusBanner("Invalid calibration number", lv_palette_main(LV_PALETTE_RED));
+  }
+}
 
 void SaveRadarCalibration(lv_event_t *e) { SpeedModule::applyRadarCalibration(); }
 

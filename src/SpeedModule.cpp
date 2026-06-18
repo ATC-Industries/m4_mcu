@@ -60,6 +60,7 @@ extern lv_obj_t *ui_Settings1LabelAutoDriveCurrentPulses;
 // Internal state
 static int calibrationPulses = 1000;  // default/fallback
 static int pulseCount = 0;
+static int capturedDriveOffPulses = 0;
 static bool driveOffMode = false;
 static PullState currentPullState = PullState::READY;
 
@@ -133,6 +134,14 @@ void SpeedModule::tick() {
     interrupts();
   }
 
+  if (driveOffMode) {
+    if (pulses > 0) {
+      pulseCount += (int)pulses;
+      lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
+    }
+    return;
+  }
+
   if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
     pulseCount += (int)pulses;
 
@@ -201,10 +210,17 @@ bool SpeedModule::isValidCalibrationNumber(int pulses) {
 }
 
 // ---- Manual Calibration ----
-void SpeedModule::saveManualCalibration(int pulses) {
-  if (!isValidCalibrationNumber(pulses)) return;
+bool SpeedModule::saveManualCalibration(int pulses) {
+  if (!isValidCalibrationNumber(pulses)) {
+    LOGW("Rejected speed calibration save: %d pulses is outside valid range (%d-%d)",
+         pulses, CALIBRATION_MIN, CALIBRATION_MAX);
+    return false;
+  }
+
   calibrationPulses = pulses;
   StateManager::setSpeedCalibrationNumber(pulses);
+  LOGI("Speed calibration saved: %d pulses per 300 ft", pulses);
+  return true;
 }
 
 // ---- Presets ----
@@ -257,21 +273,30 @@ void SpeedModule::saveCalculatorCalibration() {
 void SpeedModule::startDriveOffCalibration() {
   driveOffMode = true;
   pulseCount = 0;
+  capturedDriveOffPulses = 0;
   lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
 }
 
 void SpeedModule::stopDriveOffCalibration() {
   driveOffMode = false;
-  saveManualCalibration(pulseCount);
-  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(pulseCount).c_str());
+  capturedDriveOffPulses = pulseCount;
+  lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", capturedDriveOffPulses);
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, std::to_string(capturedDriveOffPulses).c_str());
+  LOGI("Drive-off calibration captured: %d pulses", capturedDriveOffPulses);
+}
+
+bool SpeedModule::saveDriveOffCalibration() {
+  if (driveOffMode) {
+    stopDriveOffCalibration();
+  }
+  const int pulsesToSave = (capturedDriveOffPulses > 0) ? capturedDriveOffPulses : pulseCount;
+  return saveManualCalibration(pulsesToSave);
 }
 
 bool SpeedModule::isDriveOffModeActive() { return driveOffMode; }
 
 void SpeedModule::handlePulseDuringDriveOff() {
   if (!driveOffMode) return;
-  pulseCount++;
-  lv_label_set_text_fmt(ui_Settings1LabelAutoDriveCurrentPulses, "%d", pulseCount);
 }
 
 // ---- Runtime Tracking ----
