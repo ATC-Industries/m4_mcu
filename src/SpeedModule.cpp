@@ -8,7 +8,7 @@
 #define LOG_TAG "SpeedModule"
 #include "Logging.h"
 
-#define SPEED_TIMEOUT_MICROS 1000000  // 1s
+#define SPEED_TIMEOUT_MICROS 4000000  // 4s
 
 namespace {
   constexpr uint32_t kWarmupMs = 200;       // shorter
