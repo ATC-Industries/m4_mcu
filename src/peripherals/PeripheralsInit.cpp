@@ -1,6 +1,6 @@
 #include "peripherals/PeripheralsInit.h"
+#include "PullStateManager.h"
 #include "StateManager.h"
-#include "peripherals/touch_inject.h"
 #include "lvgl/lvgl.h"
 #include "ui/screens/ui_ScreenMain.h"
 
@@ -14,8 +14,28 @@ Button   g_button(IO_BUTTON, true, 30, 600);  // active_low, debounce, longpress
 static void onButtonPress() {
   lv_obj_t* const active_screen = lv_scr_act();
   if (ui_ScreenMain != nullptr && active_screen == ui_ScreenMain) {
-    touch_inject_press(358, 60, 60);
-    LOGI("Button pressed in main screen");
+    switch (StateManager::getPullState()) {
+      case PullState::READY:
+        LOGI("Button pressed in main screen - handling READY/STAGE action");
+        PullStateManager::handleStagePressed(nullptr);
+        break;
+      case PullState::STAGED:
+        LOGI("Button pressed in main screen - handling STAGED/CANCEL action");
+        PullStateManager::handleCancelPressed();
+        break;
+      case PullState::PULLING:
+        LOGI("Button pressed in main screen - handling PULLING/STOP action");
+        PullStateManager::handleStopPressed();
+        break;
+      case PullState::PULLEND:
+        LOGI("Button pressed in main screen - handling PULLEND/SAVE action");
+        PullStateManager::handleSavePressed();
+        break;
+      default:
+        LOGI("Button pressed in main screen but no action is mapped for pull state %d",
+             (int)StateManager::getPullState());
+        break;
+    }
     g_horn.pulse(150);
   }
   else {

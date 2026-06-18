@@ -574,15 +574,19 @@ static void draw_part_event_cb(lv_event_t * e)
         uint32_t row = dsc->id / lv_table_get_col_cnt(obj);
         uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
 
-        // Style the header row (row 0) with dark background
-        if(row == 0) {
+        LV_UNUSED(row);
+
+        // Force data rows to draw like a passive report even while LVGL is
+        // tracking a pressed/active cell for drag scrolling.
+        dsc->rect_dsc->bg_color = lv_color_hex(0xF5F5F5);
+        dsc->rect_dsc->bg_opa = LV_OPA_COVER;
+        dsc->rect_dsc->border_color = lv_color_hex(0xD0D0D0);
+        dsc->label_dsc->color = lv_color_hex(0x000000);
+
+        if(col == 1 || col == 2 || col == 3) {
             dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
-            dsc->rect_dsc->bg_color = lv_color_hex(0x404040);
-            dsc->rect_dsc->bg_opa = LV_OPA_COVER;
-            dsc->label_dsc->color = lv_color_hex(0xFFFFFF);
-        } else if(col == 1 || col == 2 || col == 3) {
-            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
-        } /*In the first column align the texts to the right*/
+        }
+        /*In the first column align the texts to the right*/
         else if(col == 0) {
             dsc->label_dsc->align = LV_TEXT_ALIGN_LEFT;
         }
@@ -610,21 +614,11 @@ void PullHistoryScreenLoaded(lv_event_t * e)
     return;
   }
   
-  // Create scrollable table
+  // Build a fixed header bar above the table so the column labels stay visible
+  // while the user scrolls through the history rows.
   lv_coord_t table_width = 780;
-  lv_obj_t *table = lv_table_create(uic_PullHistoryScreenPanelTablePanel);
+  lv_coord_t header_height = 42;
 
-  lv_obj_set_size(table, table_width, lv_pct(100));
-  lv_obj_center(table);
-  
-  // Enable scrolling on the table
-  lv_obj_add_flag(table, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_scroll_dir(table, LV_DIR_VER);
-  
-  // Set table dimensions (columns: Driver#, Max Speed, Max Distance, Max RPM)
-  lv_table_set_col_cnt(table, 4);
-  lv_table_set_row_cnt(table, pullCount + 1); // +1 for header row
-  
   // Get table width and calculate proportional column widths
   int col_1_width = table_width * 0.28;
   int col_2_width = table_width * 0.28;
@@ -632,36 +626,78 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   // Let the first column absorb any remainder (off-by-one, rounding, etc)
   int col_0_width = table_width - (col_1_width + col_2_width + col_3_width);
 
+  lv_obj_t *tableContainer = lv_obj_create(uic_PullHistoryScreenPanelTablePanel);
+  lv_obj_set_size(tableContainer, table_width, lv_pct(100));
+  lv_obj_center(tableContainer);
+  lv_obj_clear_flag(tableContainer, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_bg_opa(tableContainer, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_width(tableContainer, 0, 0);
+  lv_obj_set_style_pad_all(tableContainer, 0, 0);
+  lv_obj_set_style_radius(tableContainer, 0, 0);
+  lv_obj_set_flex_flow(tableContainer, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(tableContainer, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+
+  lv_obj_t *header = lv_obj_create(tableContainer);
+  lv_obj_set_size(header, table_width, header_height);
+  lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_bg_color(header, lv_color_hex(0x404040), 0);
+  lv_obj_set_style_border_width(header, 1, 0);
+  lv_obj_set_style_border_color(header, lv_color_hex(0xD0D0D0), 0);
+  lv_obj_set_style_pad_all(header, 0, 0);
+  lv_obj_set_style_radius(header, 0, 0);
+
+  auto addHeaderLabel = [&](const char *text, lv_coord_t width, lv_coord_t x_ofs, lv_text_align_t align) {
+    lv_obj_t *label = lv_label_create(header);
+    lv_obj_set_size(label, width, LV_SIZE_CONTENT);
+    lv_label_set_text(label, text);
+    lv_obj_align(label, LV_ALIGN_LEFT_MID, x_ofs, 0);
+    lv_obj_set_style_text_align(label, align, 0);
+    lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(label, &ui_font_BIO_SEMIBOLD_6, 0);
+  };
+
+  addHeaderLabel("Driver #", col_0_width, 0, LV_TEXT_ALIGN_LEFT);
+  addHeaderLabel(isMetric ? "Speed (km/h)" : "Speed (mph)", col_1_width, col_0_width, LV_TEXT_ALIGN_CENTER);
+  addHeaderLabel(isMetric ? "Distance (m)" : "Distance (ft)", col_2_width, col_0_width + col_1_width, LV_TEXT_ALIGN_CENTER);
+  addHeaderLabel("RPM", col_3_width, col_0_width + col_1_width + col_2_width, LV_TEXT_ALIGN_CENTER);
+
+  lv_obj_t *table = lv_table_create(tableContainer);
+  lv_obj_set_width(table, table_width);
+  lv_obj_set_flex_grow(table, 1);
+
+  // This table is meant to behave like a read-only report.
+  // Keep normal pointer handling so drag-to-scroll still works, but neutralize
+  // the pressed/focused item styling below so cells do not look selectable.
+  lv_obj_add_flag(table, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_clear_flag(table, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+  lv_obj_set_scroll_dir(table, LV_DIR_VER);
+
+  // Set table dimensions (columns: Driver#, Max Speed, Max Distance, Max RPM)
+  lv_table_set_col_cnt(table, 4);
+  lv_table_set_row_cnt(table, pullCount);
   lv_table_set_col_width(table, 0, col_0_width); // Driver#
   lv_table_set_col_width(table, 1, col_1_width); // Max Speed
   lv_table_set_col_width(table, 2, col_2_width); // Max Distance
   lv_table_set_col_width(table, 3, col_3_width); // Max RPM
-  
-  // Set header row
-  lv_table_set_cell_value(table, 0, 0, "Driver #");
-  lv_table_set_cell_value(table, 0, 1, isMetric ? "Speed (km/h)" : "Speed (mph)");
-  lv_table_set_cell_value(table, 0, 2, isMetric ? "Distance (m)" : "Distance (ft)");
-  lv_table_set_cell_value(table, 0, 3, "RPM");
-  
+
   // Style the table - default light background for data cells
   lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(table, 1, LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_DEFAULT);
-  
-  // Style header row specifically - dark background
-  for (int col = 0; col < 4; col++) {
-      lv_table_add_cell_ctrl(table, 0, col, LV_TABLE_CELL_CTRL_CUSTOM_1);
-  }
-  lv_obj_set_style_bg_color(table, lv_color_hex(0x404040), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
-  lv_obj_set_style_text_color(table, lv_color_hex(0xFFFFFF), LV_PART_ITEMS | LV_TABLE_CELL_CTRL_CUSTOM_1);
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_FOCUSED);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_FOCUSED);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_FOCUSED);
 
   
   // Populate data rows (newest first - reverse order)
   for (int i = 0; i < pullCount; i++) {
     int pullIndex = pullCount - 1 - i; // Reverse order for newest first
     const PullResult& pull = pullHistory[pullIndex];
-    int row = i + 1; // +1 to skip header row
+    int row = i;
     
     // Driver Number
     char driverStr[16];
