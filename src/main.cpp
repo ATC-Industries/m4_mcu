@@ -14,7 +14,10 @@
 #include "touch/touch.h"
 #include "peripherals/PeripheralsInit.h"
 #include "peripherals/touch_inject.h"
+
+#define LOG_TAG "Main"
 #include "Logging.h"
+
 #include <QuickEspNow.h>
 #include "remotes/RemoteManager.h"
 #include "JudgeModule.h"
@@ -27,91 +30,114 @@
 #include "../ui/ui.h"
 
 void setup() {
+  // Open the serial port so we can print startup messages and troubleshooting
+  // information while the board is booting.
   Serial.begin(115200);
   delay(2000);
-  Serial.printf("PSRAM found: %s\n", psramFound() ? "YES" : "NO");
-  Serial.printf("PSRAM size: %d bytes\n", ESP.getPsramSize());
-  Serial.printf("Free internal heap: %d bytes\n",
-                heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-  Serial.printf("Free PSRAM heap: %d bytes\n",
-                heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
 
-  // NVS Safe Init
+  // Print a quick memory snapshot. This helps explain whether the board has the
+  // extra RAM we expect and how much working memory is available at startup.
+  LOGD("PSRAM found: %s", psramFound() ? "YES" : "NO");
+  LOGD("PSRAM size: %d bytes", ESP.getPsramSize());
+  LOGD("Free internal heap: %d bytes",
+       heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+  LOGD("Free PSRAM heap: %d bytes",
+       heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+
+  // Start non-volatile storage. This is the board's built-in "memory drawer"
+  // for saved settings. If that storage looks corrupted or outdated, erase it
+  // and rebuild it so the rest of startup can continue cleanly.
   esp_err_t err = nvs_flash_init();
   if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     LOGE("[NVS] init needs erase, erasing...");
     ESP_ERROR_CHECK(nvs_flash_erase());
     ESP_ERROR_CHECK(nvs_flash_init());
   } else if (err != ESP_OK) {
-    LOGE("[NVS] init failed: %d\n", err);
+    LOGE("[NVS] init failed: %d", err);
   }
 
+  // Load saved user/device settings before bringing up hardware so the rest of
+  // the system starts with the correct preferences.
   StateManager::loadPreferences();
 
+  // Turn on and configure the attached hardware modules this controller uses.
   PeripheralsInit();
 
   // Touch calibration is loaded by init_touch().
   // To force recalibration, use setRecalibrationFlag(true) from a UI event
   // or temporarily call it here during development.
-  setRecalibrationFlag(true);
+  // setRecalibrationFlag(true);
 
-  Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
-  Serial.print("Version: ");
-  Serial.println(DEVICE_VERSION);
-  Serial.print("Build Date: ");
-  Serial.println(__DATE__ " " __TIME__);
+  LOGI("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
+  LOGI("Version: %s", DEVICE_VERSION);
+  LOGI("Build Date: %s %s", __DATE__, __TIME__);
 
-  // Initialize display first
+  // Start the screen first so there is somewhere to show calibration prompts
+  // and the main user interface.
   init_display();
 
-  // Initialize touch hardware
+  // Start the touch system and load its saved calibration so finger presses
+  // line up with the visible buttons on screen.
   init_touch();
-  touch_accuracy_test();   // TEMP diagnostic - remove after
-  // debugSettleSweep();
-  // debugRawTouchFor30Seconds();
+  // touch_accuracy_test();   // TEMP diagnostic - remove after
 
+  // Bring up the controller-to-controller communications layer.
   initCommProtocol();
 
+  // Register the receive callback for ESP-NOW so wireless messages are handed
+  // to our message parser as soon as they arrive.
   LOGI("[ESP-NOW] Initializing QuickEspNow...");
   quickEspNow.onDataRcvd(onMessageReceived);
   LOGI("[ESP-NOW] QuickEspNow initialized.");
 
+  // Start LVGL and build the generated screens.
   init_lvgl();
   ui_init();
+
+  // Feed touch events into LVGL so the UI can react to taps and drags.
   touch_inject_init();
   
-  // Apply saved screen rotation
+  // Re-apply the saved 180-degree rotation choice after the UI exists.
   StateManager::setScreenRotation(StateManager::prefs().screenRotation180);
 
+  // Start the feature modules that drive judging, pull tracking, speed
+  // measurement, alarms, and remote input.
   JudgeModule::begin();
-  
   PullStateManager::init();
   SpeedModule::begin();
   AlarmManager::init();
   RemoteManager::Init();
 
+  // Run the LVGL worker task on its own core so screen drawing stays responsive
+  // without blocking the rest of the control loop.
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
-  // setRecalibrationFlag();
-  Serial.println("Setup complete");
+  LOGI("Setup complete");
   LOGD("M4ID: %d HostID: %d", StateManager::getM4ID(), StateManager::getHostM4ID());
 }
 
 bool isMainScreenReady() {
+  // The generated UI creates these pointers when the main screen is fully built.
+  // We only try to push live values once those labels actually exist.
   return uic_MainLabelSpeedValue && uic_MainLabelDistanceValue && uic_MainLabelTachValue && uic_MainLabelDriverName &&
          uic_MainLabelDriverNumber && uic_MainLabelClassName;
 }
 
 /**
- * Central runtime loop executed repeatedly by the Arduino scheduler.
- * Captures the current time, polls peripherals every 5ms for fresh sensor data,
- * then services all fast-path subsystems (LVGL UI, backlight PWM, benchmarks,
- * pull-state sync, and speed telemetry). When the main screen widgets exist and
- * the screen refresh interval has elapsed, trigger a UI redraw with the latest data.
+ * This is the board's main heartbeat. It runs over and over for as long as the
+ * device is powered on.
+ *
+ * In plain terms, each pass through the loop:
+ * 1. Checks the physical inputs and sensors.
+ * 2. Lets the UI library do a small amount of screen work.
+ * 3. Updates the active feature modules.
+ * 4. Refreshes the visible numbers on screen at a controlled pace.
  */
 void loop() {
   unsigned long now = millis();
   static unsigned long lastScreenUpdate = 0;
 
+  // Poll attached hardware very frequently so button presses, touch changes,
+  // and sensor updates feel immediate to the user.
   constexpr unsigned long PERIPHERAL_POLL_INTERVAL_MS = 5;
   static unsigned long lastPeripheralPoll = 0;
   if (now - lastPeripheralPoll >= PERIPHERAL_POLL_INTERVAL_MS) {
@@ -119,27 +145,37 @@ void loop() {
     PeripheralsPoll();          // must return fast
   }
 
+  // Let LVGL advance animations, input handling, and any pending draw work.
   lv_timer_handler();           // non-blocking
+
+  // Keep the screen brightness logic current.
   updateBacklight();
+
+  // Update pull-state tracking every loop so the rest of the system sees the
+  // latest state changes quickly.
   PullStateManager::update();
   
+  // Judge mode changes what parts of the system should keep running. When judge
+  // mode is off, continue normal speed, tach, and remote-control processing.
   if (!StateManager::getJudgeMode()) {
     SpeedModule::tick();
     Tach::update();
     RemoteManager::Tick();
   }
 
+  // These systems continue running regardless of judge mode.
   JudgeModule::tick();
   AlarmManager::evaluateTick();
 
 
   now = millis();
+  // Only redraw the main screen at a fixed interval. This avoids wasting CPU by
+  // repainting the same values more often than a human can notice.
   if (isMainScreenReady() && now - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL_MS) {
     lastScreenUpdate = now;
     updateMainScreen();
   }
 
-  // Let the RTOS breathe a bit
+  // Yield briefly so lower-level RTOS tasks also get time to run.
   vTaskDelay(1); // or yield()
 }
-

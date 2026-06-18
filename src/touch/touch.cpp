@@ -23,6 +23,7 @@
 #include "touch/touch.h"
 
 #include "display/display.h"
+#define LOG_TAG "Touch"
 #include "Logging.h"
 
 #include <TFT_Touch.h>
@@ -33,7 +34,7 @@
 
 // Grid node screen coordinates (3x3, row-major: index = row*3 + col).
 // Placed close to the edges so the calibrated region covers nearly the whole
-// panel -- touches out to the borders fall inside the grid and map correctly.
+// panel, touches out to the borders fall inside the grid and map correctly.
 // Grid node screen coordinates (3x3, row-major: index = row*3 + col).
 // Inset from the true corners so the targets are visible and tappable. Touches
 // in the strip outside these nodes are reached by extrapolation (the bounds in
