@@ -383,7 +383,7 @@ void updateMainScreen() {
   }
 
   // Class name
-  std::string className = judgeMode ? JudgeModule::getDisplayClassName()
+  std::string className = judgeMode ? (std::string("M4 Remote Monitor - ") + DEVICE_VERSION)
                                     : StateManager::prefs().pullingClassName.c_str();
   if (className != lastDisplayedClassName) {
     lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className.c_str());

@@ -20,7 +20,7 @@
 #define VERSION_MAJOR "0"
 #define VERSION_MINOR "0"
 #define VERSION_PATCH "5"
-#define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
+#define VERSION_PRERELEASE "a"  // Comment out or undefine for stable releases
 
 #ifdef VERSION_PRERELEASE
     #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE

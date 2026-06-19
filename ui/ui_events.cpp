@@ -154,7 +154,8 @@ void loadMainScreen(lv_event_t *e) {
   lv_label_set_text(uic_MainLabelTachUnit, "RPM");
 
   const bool judgeMode = StateManager::getJudgeMode();
-  const char* className = judgeMode ? JudgeModule::getDisplayClassName() : StateManager::prefs().pullingClassName.c_str();
+  const String judgeTitle = String("M4 Remote Monitor - ") + DEVICE_VERSION;
+  const char* className = judgeMode ? judgeTitle.c_str() : StateManager::prefs().pullingClassName.c_str();
   const char* driverName = judgeMode ? JudgeModule::getDisplayDriverName() : StateManager::prefs().driverName.c_str();
   const int driverNumber = judgeMode ? JudgeModule::getDisplayDriverNumber() : StateManager::prefs().driverNumber;
 
