@@ -166,6 +166,10 @@ void updateSettingsScreen() {
 
     // Brightness
     lv_slider_set_value(uic_Settings1SliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
+    if (uic_Settings1LabelBrightness) {
+      lv_label_set_text_fmt(uic_Settings1LabelBrightness, "%d%%",
+                            (StateManager::prefs().screenBrightness * 100) / 255);
+    }
 
     // M4 ID Number
     char M4IdBuf[16];

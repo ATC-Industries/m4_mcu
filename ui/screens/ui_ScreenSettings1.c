@@ -201,6 +201,9 @@ void ui_event_Settings1SliderBrightnessSlider( lv_event_t * e) {
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
       SettingsSliderBrightnessChange( e );
 }
+if ( event_code == LV_EVENT_RELEASED) {
+      SettingsSliderBrightnessChange( e );
+}
 }
 
 void ui_event_Settings1TextareaTrackLengthText( lv_event_t * e) {

@@ -63,6 +63,7 @@ void setup() {
   // Load saved user/device settings before bringing up hardware so the rest of
   // the system starts with the correct preferences.
   StateManager::loadPreferences();
+  setBacklight(StateManager::prefs().screenBrightness);
 
   // Turn on and configure the attached hardware modules this controller uses.
   PeripheralsInit();
