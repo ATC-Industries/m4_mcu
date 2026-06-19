@@ -32,8 +32,11 @@
 void setup() {
   // Open the serial port so we can print startup messages and troubleshooting
   // information while the board is booting.
-  Serial.begin(115200);
-  delay(2000);
+  Serial.begin(SERIAL_BAUD_RATE);
+
+  // Bring the display up immediately so the user sees boot progress while the
+  // rest of the system finishes initializing.
+  init_display();
 
   // Print a quick memory snapshot. This helps explain whether the board has the
   // extra RAM we expect and how much working memory is available at startup.
@@ -71,10 +74,6 @@ void setup() {
   LOGI("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   LOGI("Version: %s", DEVICE_VERSION);
   LOGI("Build Date: %s %s", __DATE__, __TIME__);
-
-  // Start the screen first so there is somewhere to show calibration prompts
-  // and the main user interface.
-  init_display();
 
   // Start the touch system and load its saved calibration so finger presses
   // line up with the visible buttons on screen.

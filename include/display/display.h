@@ -160,5 +160,6 @@ extern LGFX lcd;
 
 // Initialize the display and touch
 void init_display();
+void show_boot_splash();
 
 #endif  // INCLUDE_DISPLAY_H_
