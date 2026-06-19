@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ExportScreen instructions now include direct manual fallback steps with the SSID and page URL shown on-device
 - Export screen text now uses the LVGL default font for broader glyph coverage
 
+### Fixed
+
+- Distance value and distance progress bar no longer pop back to the previous pull after Save; runtime distance state is now cleared consistently on return to READY (#5)
+
 ### Technical
 
 - Added `data_export.{h,cpp}` outside `ui/` to own export session state, web serving, QR rendering, and teardown
@@ -62,7 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Work in progress – not ready for release
 - Screen still jerks occasionally, most noticeable when rapidly mashing stage/stop/save (#4)
-- Left bar clears on save – needs further investigation (#5)
 - Open question: the green button currently still allows pressing the state buttons — should this be disabled?
 - TODO: ship units with a clean EEPROM erase before returning code (#20)
 

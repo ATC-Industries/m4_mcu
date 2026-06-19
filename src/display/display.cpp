@@ -10,9 +10,9 @@
 LGFX lcd;
 
 void show_boot_splash() {
-  lcd.fillScreen(TFT_SKYBLUE);
+  lcd.fillScreen(TFT_BLACK);
   lcd.setTextDatum(textdatum_t::middle_center);
-  lcd.setTextColor(TFT_BLACK, TFT_SKYBLUE);
+  lcd.setTextColor(TFT_WHITE, TFT_BLACK);
 
   lcd.setFont(&fonts::Font4);
   lcd.drawString("M4 Sled Monitor", SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 24);

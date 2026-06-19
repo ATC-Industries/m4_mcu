@@ -35,8 +35,7 @@ void PullStateManager::enterState(PullState newState) {
   triggerRelaysForState(newState);
   SpeedModule::notifyPullStateChanged(newState);
 
-  if (newState == PullState::READY) 
-  {
+  if (newState == PullState::READY) {
     RemoteManager::SetIsMax(false);
     resetMaxValues();
   }

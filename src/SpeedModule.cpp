@@ -334,7 +334,16 @@ void SpeedModule::onPulseDetected() {
 
 void SpeedModule::notifyPullStateChanged(PullState newState) {
   currentPullState = newState;
-  if (newState == PullState::STAGED) resetDistance();
+  if (newState == PullState::STAGED || newState == PullState::READY) {
+    resetDistance();
+    currentSpeedMPH = 0.0f;
+    publishedMPH = 0.0f;
+    runningDeltaSec = 0.0f;
+    goodIntervals = 0;
+    warmupUntilMs = 0;
+    rejectStreak = 0;
+    lastSpeedUpdateMs = 0;
+  }
 }
 
 void SpeedModule::resetDistance() {
