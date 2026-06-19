@@ -83,6 +83,9 @@ class AlarmManager {
 
   // Convenience for active preset
   static AlarmConfig getConfigActive(AlarmChannel ch, AlarmSlot sl);
+  static uint8_t getActiveTripMask();
+  static void applyMirrorConfig(uint8_t activePreset, const AlarmConfig configs[kChannels][kSlots]);
+  static void applyMirrorTripMask(uint8_t activePreset, uint8_t tripMask);
 
   // Evaluation
   static void evaluateTick(); // call during STAGED and PULLING

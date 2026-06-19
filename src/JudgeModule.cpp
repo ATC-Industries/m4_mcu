@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "AlarmManager.h"
 #include "M4MessageStruct.h"
 #include "M4CommsHelpers.h"
 #include "StateManager.h"
@@ -37,7 +38,27 @@ namespace {
   };
 
   constexpr uint32_t kJudgeValuesEveryMs = 200;  // 5 Hz
+  constexpr uint32_t kJudgeConfigEveryMs = 1000;
+  constexpr uint32_t kJudgeHistoryEveryMs = 700;
   uint32_t s_last_judge_values_ms = 0;
+  uint32_t s_last_judge_config_ms = 0;
+  uint32_t s_last_judge_history_ms = 0;
+  int s_history_broadcast_index = 0;
+  int s_display_host_unit_id = 0;
+  String s_display_driver_name;
+  int s_display_driver_number = 0;
+  String s_display_class_name;
+
+  bool pullResultEquals(const PullResult& lhs, const PullResult& rhs) {
+    return lhs.driverName == rhs.driverName &&
+           lhs.driverNumber == rhs.driverNumber &&
+           lhs.className == rhs.className &&
+           lhs.classWeight == rhs.classWeight &&
+           fabs(lhs.maxSpeedMPH - rhs.maxSpeedMPH) < 0.001f &&
+           fabs(lhs.maxDistanceFeet - rhs.maxDistanceFeet) < 0.001f &&
+           fabs(lhs.maxRPM - rhs.maxRPM) < 0.001f &&
+           lhs.timestamp == rhs.timestamp;
+  }
 
   void setButtonEnabled(lv_obj_t* obj, bool enabled) {
     if (!obj) return;
@@ -57,31 +78,96 @@ namespace {
     }
   }
 
-  void pushSnapshotIntoStateManager(const JudgeModule::HostSnapshot& s) {
-    if (!s_judge_mode_active) {
+  void sendJudgeConfigBroadcast(int hostId) {
+    AlarmConfig configs[kChannels][kSlots];
+    for (int c = 0; c < kChannels; ++c) {
+      for (int s = 0; s < kSlots; ++s) {
+        configs[c][s] = AlarmManager::getConfigActive(static_cast<AlarmChannel>(c),
+                                                      static_cast<AlarmSlot>(s));
+      }
+    }
+
+    JsonDocument doc;
+    doc["action"] = SEND_JUDGE_DATA;
+    doc["k"] = "c";
+    doc["h"] = hostId;
+    doc["u"] = static_cast<uint8_t>(StateManager::prefs().unitSystem);
+    doc["tl"] = StateManager::prefs().trackLengthFeet;
+    doc["ap"] = AlarmManager::getActivePreset();
+
+    JsonArray alarms = doc["a"].to<JsonArray>();
+    for (int c = 0; c < kChannels; ++c) {
+      for (int s = 0; s < kSlots; ++s) {
+        const AlarmConfig& cfg = configs[c][s];
+        JsonArray row = alarms.add<JsonArray>();
+        row.add(cfg.enabled ? 1 : 0);
+        row.add(cfg.tripPoint);
+        row.add(static_cast<uint8_t>(cfg.style));
+        row.add(static_cast<uint8_t>(cfg.color));
+      }
+    }
+
+    String payload;
+    serializeJson(doc, payload);
+    sendMessage(kBroadcastAddress, BROADCAST, SEND_JUDGE_DATA, payload, MEDIUM_PRIORITY);
+  }
+
+  void sendJudgeMetaBroadcast(int hostId) {
+    JsonDocument doc;
+    doc["action"] = SEND_JUDGE_DATA;
+    doc["k"] = "m";
+    doc["h"] = hostId;
+    doc["mid"] = hostId;
+    doc["dn"] = StateManager::prefs().driverNumber;
+    doc["d"] = StateManager::prefs().driverName;
+    doc["cn"] = StateManager::prefs().pullingClassName;
+
+    String payload;
+    serializeJson(doc, payload);
+    sendMessage(kBroadcastAddress, BROADCAST, SEND_JUDGE_DATA, payload, MEDIUM_PRIORITY);
+  }
+
+  void sendJudgeHistoryBroadcast(int hostId) {
+    const int count = StateManager::getPullHistoryCount();
+
+    JsonDocument doc;
+    doc["action"] = SEND_JUDGE_DATA;
+    doc["k"] = "r";
+    doc["h"] = hostId;
+    doc["c"] = count;
+
+    if (count <= 0) {
+      String payload;
+      serializeJson(doc, payload);
+      sendMessage(kBroadcastAddress, BROADCAST, SEND_JUDGE_DATA, payload, LOW_PRIORITY);
       return;
     }
 
-    // Set pull state without triggering relays or SpeedModule
-    StateManager::setPullState(s.pull_state);
-
-    // Use raw host values so max tracking behaves same as host
-    StateManager::setRPM(s.rpm);
-    StateManager::setSpeed(s.speedMph);
-    StateManager::setDistance(s.distanceFeet);
-
-    // Max values - if host is sending true max, these are redundant but safe
-    // to call while state is PULLING. They handle their own max logic.
-    if (s.pull_state == PullState::PULLING || s.pull_state == PullState::PULLEND) {
-      // One way: set current equal to host max at end of pull
-      // This will naturally set max fields correctly because they exceed previous.
-      StateManager::setRPM(s.maxRpm);
-      StateManager::setSpeed(s.maxSpeedMph);
-      StateManager::setDistance(s.maxDistanceFeet);
+    if (s_history_broadcast_index >= count) {
+      s_history_broadcast_index = 0;
     }
 
-    // Make sure the UI containers match the remote pull state
-    PullStateManager::updateUIForState(s.pull_state);
+    const PullResult* pull = StateManager::getPullResult(s_history_broadcast_index);
+    if (!pull) {
+      s_history_broadcast_index = 0;
+      return;
+    }
+
+    doc["i"] = s_history_broadcast_index;
+    doc["dn"] = pull->driverNumber;
+    doc["d"] = pull->driverName;
+    doc["cn"] = pull->className;
+    doc["cw"] = pull->classWeight;
+    doc["s"] = pull->maxSpeedMPH;
+    doc["df"] = pull->maxDistanceFeet;
+    doc["r"] = pull->maxRPM;
+    doc["t"] = pull->timestamp;
+
+    String payload;
+    serializeJson(doc, payload);
+    sendMessage(kBroadcastAddress, BROADCAST, SEND_JUDGE_DATA, payload, LOW_PRIORITY);
+
+    s_history_broadcast_index = (s_history_broadcast_index + 1) % count;
   }
 
   void applyJudgeModeToAllScreens() {
@@ -126,27 +212,33 @@ void tick() {
   // Pull all values once so logs and payload always match
   const int       hostId        = StateManager::getM4ID();
   const PullState pullState     = StateManager::getPullState();
-  const float     curDistFeet   = StateManager::getDistance();
-  const float     curSpeedMph   = StateManager::getSpeed();
-  const float     curRpm        = StateManager::getRPM();
-  const float     maxDistFeet   = StateManager::getMaxDistance();
-  const float     maxSpeedMph   = StateManager::getMaxSpeed();
-  const float     maxRpm        = StateManager::getMaxRPM();
+  const SystemState& systemState = StateManager::state();
+  const float     curDistFeet   = systemState.distanceInFeet;
+  const float     curSpeedMph   = systemState.speedInMPH;
+  const float     curRpm        = systemState.rpm;
+  const float     maxDistFeet   = systemState.maxDistanceInFeet;
+  const float     maxSpeedMph   = systemState.maxSpeedInMPH;
+  const float     maxRpm        = systemState.maxRpm;
+  const uint8_t   activePreset  = AlarmManager::getActivePreset();
+  const uint8_t   tripMask      = AlarmManager::getActiveTripMask();
 
   JsonDocument doc;
   doc["action"]      = SEND_JUDGE_DATA;
-  doc["host"]        = hostId;
-  doc["pullState"]   = static_cast<int>(pullState);
+  doc["k"]           = "t";
+  doc["h"]           = hostId;
+  doc["ps"]          = static_cast<int>(pullState);
 
   // Live values
-  doc["distance"]    = curDistFeet;
-  doc["speed"]       = curSpeedMph;
-  doc["rpm"]         = curRpm;
+  doc["d"]           = curDistFeet;
+  doc["s"]           = curSpeedMph;
+  doc["r"]           = curRpm;
 
   // Max values
-  doc["maxDistance"] = maxDistFeet;
-  doc["maxSpeed"]    = maxSpeedMph;
-  doc["maxRpm"]      = maxRpm;
+  doc["md"]          = maxDistFeet;
+  doc["ms"]          = maxSpeedMph;
+  doc["mr"]          = maxRpm;
+  doc["ap"]          = activePreset;
+  doc["tm"]          = tripMask;
 
   String payload;
   serializeJson(doc, payload);
@@ -163,6 +255,17 @@ void tick() {
               SEND_JUDGE_DATA,
               payload,
               HIGH_PRIORITY);
+
+  if (now - s_last_judge_config_ms >= kJudgeConfigEveryMs) {
+    s_last_judge_config_ms = now;
+    sendJudgeConfigBroadcast(hostId);
+    sendJudgeMetaBroadcast(hostId);
+  }
+
+  if (now - s_last_judge_history_ms >= kJudgeHistoryEveryMs) {
+    s_last_judge_history_ms = now;
+    sendJudgeHistoryBroadcast(hostId);
+  }
 }
 
 
@@ -175,8 +278,12 @@ void onJudgeModeChanged(bool enabled) {
   LOGI("judge mode toggled -> %d", enabled ? 1 : 0);
 
   if (!enabled) {
-    // Leaving judge mode
-    // At some point we might want to clear any host specific state here.
+    StateManager::clearJudgeMirrorUnits();
+    AlarmManager::loadPrefs();
+    s_display_host_unit_id = 0;
+    s_display_driver_name = "";
+    s_display_driver_number = 0;
+    s_display_class_name = "";
   }
 
   applyJudgeModeToAllScreens();
@@ -203,29 +310,46 @@ void onHostStatusBroadcast(const HostSnapshot& snap) {
        snap.distanceFeet, snap.speedMph, snap.rpm,
        snap.maxDistanceFeet, snap.maxSpeedMph, snap.maxRpm);
 
+  s_last_snapshot = snap;
+
   // 1) Mirror pull state into StateManager so updateMainScreen()
   //    can decide when to show MAX labels.
-  StateManager::setPullState(snap.pull_state);
+  SystemState& state = StateManager::state();
+  state.currentPullState = snap.pull_state;
+  state.distanceInFeet = snap.distanceFeet;
+  state.speedInMPH = snap.speedMph;
+  state.rpm = snap.rpm;
+  state.maxDistanceInFeet = snap.maxDistanceFeet;
+  state.maxSpeedInMPH = snap.maxSpeedMph;
+  state.maxRpm = snap.maxRpm;
 
-  // 2) Decide whether we want live or max on the judge screen
-  const bool showMax = (snap.pull_state == PullState::PULLEND);
+  PullStateManager::updateUIForState(snap.pull_state);
+}
 
-  const float distToShow  = showMax ? snap.maxDistanceFeet : snap.distanceFeet;
-  const float speedToShow = showMax ? snap.maxSpeedMph     : snap.speedMph;
-  const float rpmToShow   = showMax ? snap.maxRpm          : snap.rpm;
-
-  // 3) Push into StateManager so the existing UI path keeps working.
-  //    Max tracking will still run while host is in PULLING, which is fine.
-  StateManager::setDistance(distToShow);
-  StateManager::setSpeed(speedToShow);
-  StateManager::setRPM(rpmToShow);
-
-  PullStateManager::enterState(snap.pull_state);
-
-
-  if (snap.pull_state == PullState::READY) {
-    StateManager::resetAllMaxValues();
+void applyRemoteConfig(UnitSystem unitSystem,
+                       float trackLengthFeet,
+                       uint8_t activePreset,
+                       const AlarmConfig configs[kChannels][kSlots]) {
+  if (!s_judge_mode_active) {
+    return;
   }
+
+  StateManager::setJudgeMirrorUnits(unitSystem, trackLengthFeet);
+  AlarmManager::applyMirrorConfig(activePreset, configs);
+}
+
+void applyRemoteMeta(int hostUnitId,
+                     const String& driverName,
+                     int driverNumber,
+                     const String& className) {
+  if (!s_judge_mode_active) {
+    return;
+  }
+
+  s_display_host_unit_id = hostUnitId;
+  s_display_driver_name = driverName;
+  s_display_driver_number = driverNumber;
+  s_display_class_name = className;
 }
 
 
@@ -252,8 +376,62 @@ void applyRemotePullHistory(const PullResult* pulls, int count) {
   LOGI("pull history synced from host, count=%d", capped);
 }
 
+void applyRemotePullHistoryRow(int index, int totalCount, const PullResult& pull) {
+  if (!s_judge_mode_active || totalCount < 0) {
+    return;
+  }
+
+  SystemPreferences& prefs = StateManager::prefs();
+
+  if (totalCount == 0) {
+    bool changed = prefs.pullHistoryCount != 0;
+    prefs.pullHistoryCount = 0;
+    for (int i = 0; i < MAX_PULL_HISTORY; ++i) {
+      if (!pullResultEquals(prefs.pullHistory[i], PullResult{})) {
+        changed = true;
+      }
+      prefs.pullHistory[i] = PullResult{};
+    }
+    if (changed) {
+      StateManager::savePreferences();
+    }
+    return;
+  }
+
+  if (index < 0 || index >= totalCount || index >= MAX_PULL_HISTORY) {
+    return;
+  }
+
+  const int cappedTotal = totalCount > MAX_PULL_HISTORY ? MAX_PULL_HISTORY : totalCount;
+  bool changed = prefs.pullHistoryCount != cappedTotal ||
+                 !pullResultEquals(prefs.pullHistory[index], pull);
+
+  prefs.pullHistoryCount = cappedTotal;
+  prefs.pullHistory[index] = pull;
+
+  if (changed && index == cappedTotal - 1) {
+    StateManager::savePreferences();
+  }
+}
+
 const HostSnapshot& getLastSnapshot() {
   return s_last_snapshot;
+}
+
+int getDisplayHostUnitId() {
+  return s_display_host_unit_id;
+}
+
+const char* getDisplayDriverName() {
+  return s_display_driver_name.c_str();
+}
+
+int getDisplayDriverNumber() {
+  return s_display_driver_number;
+}
+
+const char* getDisplayClassName() {
+  return s_display_class_name.c_str();
 }
 
 // UI helpers - stubbed so you can drop in the LVGL calls

@@ -4,6 +4,7 @@
 
 #include <Arduino.h>
 
+#include "AlarmManager.h"
 #include "PullStateManager.h"  // PullState enum
 #include "StateManager.h"      // PullResult, UnitSystem, etc
 
@@ -41,9 +42,23 @@ uint8_t getTrackedHostId();
 
 // Called by comms when the sled host broadcasts a status packet
 void onHostStatusBroadcast(const HostSnapshot& snap);
+void applyRemoteConfig(UnitSystem unitSystem,
+                       float trackLengthFeet,
+                       uint8_t activePreset,
+                       const AlarmConfig configs[kChannels][kSlots]);
+void applyRemoteMeta(int hostUnitId,
+                     const String& driverName,
+                     int driverNumber,
+                     const String& className);
 
 // Pull history sync - from host to judge
 void applyRemotePullHistory(const PullResult* pulls, int count);
+void applyRemotePullHistoryRow(int index, int totalCount, const PullResult& pull);
+
+int getDisplayHostUnitId();
+const char* getDisplayDriverName();
+int getDisplayDriverNumber();
+const char* getDisplayClassName();
 
 // UI helpers - call from screen onload handlers
 void applyJudgeModeToMainScreen();

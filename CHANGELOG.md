@@ -20,12 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export UX no longer uses a captive portal; the device now shows two QR codes: one to join the network and one to open the browser page
 - ExportScreen instructions now include direct manual fallback steps with the SSID and page URL shown on-device
 - Export screen text now uses the LVGL default font for broader glyph coverage
+- Judge Stand now mirrors the sled host as an authoritative read-only display, including host-selected units, alarm configuration/state, pull metadata, and pull history sync (#15, #25)
+- Judge Stand host selection now requires an explicit Host MCU ID instead of passively accepting any broadcaster (#7)
 
 ### Fixed
 
 - Screen jerking caused by synchronous preference writes has been reduced by deferring NVS saves out of the immediate UI path, including the pull Save flow (#4)
 - Distance value and distance progress bar no longer pop back to the previous pull after Save; runtime distance state is now cleared consistently on return to READY (#5)
 - Brightness slider now persists correctly when released, saved brightness is reapplied on reboot, and the Settings screen label now reflects the stored brightness value on first load
+- Judge Stand end-of-run current/max values now come directly from the sled host, fixing one-off mismatches at STOP / PULLEND (#1)
+- Judge Stand speed alarm state now mirrors the sled host instead of drifting locally, and judge-side speed/RPM alarm indicator flicker caused by config refreshes clearing live trip state has been removed (#22)
+- Judge Stand screen jerking has been reduced by avoiding row-by-row history persistence during mirror sync
+- Judge Host MCU ID entry now saves the tracked host ID correctly instead of overwriting the local unit ID, and judge units now ignore judge traffic until a Host MCU ID is configured (#7)
+- Judge Stand database / pull history now mirrors from the sled host instead of staying local to the judge unit (#15, #25)
+- Judge Stand horn behavior for staged alarms is now effectively disabled because judge alarm evaluation is suppressed in judge mode; no separate option has been added yet (#24)
 
 ### Technical
 
@@ -39,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export Wi-Fi remains session-scoped and is torn down when the operator taps Done or the session times out
 - Browser auto-open behavior now depends on scanning the explicit page QR or manually entering the shown URL
+- Some screen jerkiness still remains. The worst cases were reduced, but the root cause is still being investigated.
 
 ## [0.0.5-alpha] - v0.0.5-alpha
 

@@ -154,6 +154,8 @@ public:
   static void setM4ID(int unitId, bool persist = true);
   static void setHostM4ID(int unitId, bool persist = true);
   static void setJudgeMode(bool isJudgeMode, bool persist = true);
+  static void setJudgeMirrorUnits(UnitSystem system, float trackLengthFeet);
+  static void clearJudgeMirrorUnits();
 
   // M4 Communication with Tach Tractor methods
   static bool getIsAutoConnectTractor();

@@ -161,34 +161,110 @@ void onMessageReceived(uint8_t *senderAddress,
       }
 
       int hostPref  = StateManager::getHostM4ID();
-      int hostFromMsg = doc["host"].is<int>() ? doc["host"].as<int>() : -1;
+      int hostFromMsg = doc["h"].is<int>() ? doc["h"].as<int>()
+                                           : (doc["host"].is<int>() ? doc["host"].as<int>() : -1);
 
       LOGD("[RX] Judge hostPref=%d msgHost=%d", hostPref, hostFromMsg);
 
-      if (hostPref > 0 && hostFromMsg != hostPref) {
+      if (hostPref <= 0) {
+        LOGD("[RX] Ignoring judge data, host MCU ID not configured");
+        break;
+      }
+
+      if (hostFromMsg != hostPref) {
         LOGD("[RX] Ignoring judge data, not our host");
+        break;
+      }
+
+      const char* kind = doc["k"].is<const char*>() ? doc["k"].as<const char*>() : "t";
+
+      if (strcmp(kind, "c") == 0) {
+        AlarmConfig configs[kChannels][kSlots];
+        JsonArrayConst alarms = doc["a"].as<JsonArrayConst>();
+        int alarmIndex = 0;
+
+        for (int c = 0; c < kChannels; ++c) {
+          for (int s = 0; s < kSlots; ++s) {
+            AlarmConfig cfg{};
+            if (alarmIndex < alarms.size()) {
+              JsonArrayConst row = alarms[alarmIndex].as<JsonArrayConst>();
+              cfg.enabled = row[0].as<int>() != 0;
+              cfg.tripPoint = row[1].as<float>();
+              cfg.style = static_cast<AlarmStyle>(row[2].as<int>());
+              cfg.color = static_cast<AlarmColor>(row[3].as<int>());
+            }
+            configs[c][s] = cfg;
+            ++alarmIndex;
+          }
+        }
+
+        UnitSystem unitSystem = static_cast<UnitSystem>(doc["u"].is<int>() ? doc["u"].as<int>() : 0);
+        float trackLengthFeet = doc["tl"].is<float>() ? doc["tl"].as<float>() : 300.0f;
+        uint8_t activePreset = doc["ap"].is<int>() ? static_cast<uint8_t>(doc["ap"].as<int>()) : 0;
+        JudgeModule::applyRemoteConfig(unitSystem, trackLengthFeet, activePreset, configs);
+        break;
+      }
+
+      if (strcmp(kind, "r") == 0) {
+        int totalCount = doc["c"].is<int>() ? doc["c"].as<int>() : 0;
+        if (totalCount <= 0) {
+          JudgeModule::applyRemotePullHistoryRow(0, 0, PullResult{});
+          break;
+        }
+
+        PullResult pull{};
+        pull.driverNumber = doc["dn"].is<int>() ? doc["dn"].as<int>() : 0;
+        pull.driverName = doc["d"].is<const char*>() ? doc["d"].as<const char*>() : "";
+        pull.className = doc["cn"].is<const char*>() ? doc["cn"].as<const char*>() : "";
+        pull.classWeight = doc["cw"].is<int>() ? doc["cw"].as<int>() : 0;
+        pull.maxSpeedMPH = doc["s"].is<float>() ? doc["s"].as<float>() : 0.0f;
+        pull.maxDistanceFeet = doc["df"].is<float>() ? doc["df"].as<float>() : 0.0f;
+        pull.maxRPM = doc["r"].is<float>() ? doc["r"].as<float>() : 0.0f;
+        pull.timestamp = doc["t"].is<unsigned long>() ? doc["t"].as<unsigned long>() : 0;
+
+        int index = doc["i"].is<int>() ? doc["i"].as<int>() : 0;
+        JudgeModule::applyRemotePullHistoryRow(index, totalCount, pull);
+        break;
+      }
+
+      if (strcmp(kind, "m") == 0) {
+        int hostUnitId = doc["mid"].is<int>() ? doc["mid"].as<int>() : hostFromMsg;
+        String driverName = doc["d"].is<const char*>() ? String(doc["d"].as<const char*>()) : String("");
+        int driverNumber = doc["dn"].is<int>() ? doc["dn"].as<int>() : 0;
+        String className = doc["cn"].is<const char*>() ? String(doc["cn"].as<const char*>()) : String("");
+        JudgeModule::applyRemoteMeta(hostUnitId, driverName, driverNumber, className);
         break;
       }
 
       JudgeModule::HostSnapshot snap{};
       snap.host_id = static_cast<uint8_t>(hostFromMsg);
 
-      int stateInt = doc["pullState"].is<int>()
-                      ? doc["pullState"].as<int>()
-                      : static_cast<int>(PullState::READY);
+      int stateInt = doc["ps"].is<int>() ? doc["ps"].as<int>()
+                    : (doc["pullState"].is<int>() ? doc["pullState"].as<int>()
+                                                  : static_cast<int>(PullState::READY));
       snap.pull_state = static_cast<PullState>(stateInt);
 
-      snap.distanceFeet = doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f;
-      snap.speedMph     = doc["speed"].is<float>()    ? doc["speed"].as<float>()    : 0.0f;
-      snap.rpm          = doc["rpm"].is<float>()      ? doc["rpm"].as<float>()      : 0.0f;
+      snap.distanceFeet = doc["d"].is<float>() ? doc["d"].as<float>()
+                        : (doc["distance"].is<float>() ? doc["distance"].as<float>() : 0.0f);
+      snap.speedMph     = doc["s"].is<float>() ? doc["s"].as<float>()
+                        : (doc["speed"].is<float>() ? doc["speed"].as<float>() : 0.0f);
+      snap.rpm          = doc["r"].is<float>() ? doc["r"].as<float>()
+                        : (doc["rpm"].is<float>() ? doc["rpm"].as<float>() : 0.0f);
 
-      snap.maxDistanceFeet = doc["maxDistance"].is<float>() ? doc["maxDistance"].as<float>() : snap.distanceFeet;
-      snap.maxSpeedMph     = doc["maxSpeed"].is<float>()    ? doc["maxSpeed"].as<float>()    : snap.speedMph;
-      snap.maxRpm          = doc["maxRpm"].is<float>()      ? doc["maxRpm"].as<float>()      : snap.rpm;
+      snap.maxDistanceFeet = doc["md"].is<float>() ? doc["md"].as<float>()
+                              : (doc["maxDistance"].is<float>() ? doc["maxDistance"].as<float>() : snap.distanceFeet);
+      snap.maxSpeedMph     = doc["ms"].is<float>() ? doc["ms"].as<float>()
+                              : (doc["maxSpeed"].is<float>() ? doc["maxSpeed"].as<float>() : snap.speedMph);
+      snap.maxRpm          = doc["mr"].is<float>() ? doc["mr"].as<float>()
+                              : (doc["maxRpm"].is<float>() ? doc["maxRpm"].as<float>() : snap.rpm);
 
       LOGD("[RX] Judge data host=%d state=%d dist=%.2f speed=%.2f rpm=%.1f",
           snap.host_id, stateInt, snap.distanceFeet, snap.speedMph, snap.rpm);
 
+      uint8_t activePreset = doc["ap"].is<int>() ? static_cast<uint8_t>(doc["ap"].as<int>())
+                                                 : AlarmManager::getActivePreset();
+      uint8_t tripMask = doc["tm"].is<int>() ? static_cast<uint8_t>(doc["tm"].as<int>()) : 0;
+      AlarmManager::applyMirrorTripMask(activePreset, tripMask);
       JudgeModule::onHostStatusBroadcast(snap);
       break;
     }

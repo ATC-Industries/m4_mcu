@@ -12,6 +12,9 @@ static ::Preferences storage;
 static bool s_preferencesDirty = false;
 static unsigned long s_saveRequestedAtMs = 0;
 static constexpr unsigned long kPreferencesSaveDebounceMs = 400;
+static bool s_hasJudgeMirrorUnits = false;
+static UnitSystem s_judgeMirrorUnitSystem = UnitSystem::IMPERIAL;
+static float s_judgeMirrorTrackLengthFeet = 300.0f;
 
 static void writePreferencesToStorage(const SystemPreferences& prefs) {
   storage.begin("m4prefs", false);
@@ -76,20 +79,38 @@ SystemPreferences& StateManager::prefs() { return preferences; }
 
 // ----- Unit-aware getters -----
 
-UnitSystem StateManager::getUnitSystem() { return preferences.unitSystem; }
+namespace {
+UnitSystem getEffectiveUnitSystem() {
+  if (StateManager::getJudgeMode() && s_hasJudgeMirrorUnits) {
+    return s_judgeMirrorUnitSystem;
+  }
+  return StateManager::prefs().unitSystem;
+}
+
+float getEffectiveTrackLengthFeet() {
+  if (StateManager::getJudgeMode() && s_hasJudgeMirrorUnits) {
+    return s_judgeMirrorTrackLengthFeet;
+  }
+  return StateManager::prefs().trackLengthFeet;
+}
+}  // namespace
+
+UnitSystem StateManager::getUnitSystem() { return getEffectiveUnitSystem(); }
 
 float StateManager::getDistance() {
-  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.distanceInFeet
-                                                          : systemState.distanceInFeet * 0.3048f;
+  return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? systemState.distanceInFeet
+                                                            : systemState.distanceInFeet * 0.3048f;
 }
 
 float StateManager::getSpeed() {
-  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.speedInMPH : systemState.speedInMPH * 1.60934f;
+  return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? systemState.speedInMPH
+                                                            : systemState.speedInMPH * 1.60934f;
 }
 
 float StateManager::getTrackLength() {
-  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? preferences.trackLengthFeet
-                                                          : preferences.trackLengthFeet * 0.3048f;
+  float trackLengthFeet = getEffectiveTrackLengthFeet();
+  return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? trackLengthFeet
+                                                            : trackLengthFeet * 0.3048f;
 }
 
 float StateManager::getRPM() { return systemState.rpm; }
@@ -97,12 +118,13 @@ float StateManager::getRPM() { return systemState.rpm; }
 float StateManager::getMaxRPM() { return systemState.maxRpm; }
 
 float StateManager::getMaxSpeed() { 
-  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxSpeedInMPH : systemState.maxSpeedInMPH * 1.60934f; 
+  return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? systemState.maxSpeedInMPH
+                                                            : systemState.maxSpeedInMPH * 1.60934f;
 }
 
 float StateManager::getMaxDistance() { 
-      return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet : systemState.maxDistanceInFeet *
-  0.3048f;
+      return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet
+                                                                : systemState.maxDistanceInFeet * 0.3048f;
 }
 
 int StateManager::getM4ID() {
@@ -218,6 +240,18 @@ void StateManager::setJudgeMode(bool isJudgeMode, bool persist) {
   if (persist && changed) {
     savePreferences();
   }
+}
+
+void StateManager::setJudgeMirrorUnits(UnitSystem system, float trackLengthFeet) {
+  s_judgeMirrorUnitSystem = system;
+  if (trackLengthFeet > 0.0f) {
+    s_judgeMirrorTrackLengthFeet = trackLengthFeet;
+  }
+  s_hasJudgeMirrorUnits = true;
+}
+
+void StateManager::clearJudgeMirrorUnits() {
+  s_hasJudgeMirrorUnits = false;
 }
 
 bool StateManager::getJudgeMode() {

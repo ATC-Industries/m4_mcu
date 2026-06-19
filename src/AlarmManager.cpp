@@ -160,6 +160,68 @@ AlarmConfig AlarmManager::getConfigActive(AlarmChannel ch, AlarmSlot sl) {
   return getConfig(activePreset_, ch, sl);
 }
 
+uint8_t AlarmManager::getActiveTripMask() {
+  uint8_t mask = 0;
+  for (int c = 0; c < kChannels; ++c) {
+    for (int s = 0; s < kSlots; ++s) {
+      if (presets_[activePreset_].alarms[c][s].tripped) {
+        mask |= static_cast<uint8_t>(1U << (c * kSlots + s));
+      }
+    }
+  }
+  return mask;
+}
+
+void AlarmManager::applyMirrorConfig(uint8_t activePreset,
+                                     const AlarmConfig configs[kChannels][kSlots]) {
+  if (activePreset >= kPresetCount) activePreset = 0;
+  bool changed = activePreset_ != activePreset;
+  activePreset_ = activePreset;
+
+  for (int c = 0; c < kChannels; ++c) {
+    for (int s = 0; s < kSlots; ++s) {
+      AlarmConfig& dst = presets_[activePreset_].alarms[c][s];
+      const AlarmConfig& src = configs[c][s];
+
+      if (dst.enabled != src.enabled ||
+          fabs(dst.tripPoint - src.tripPoint) > 0.001f ||
+          dst.style != src.style ||
+          dst.color != src.color) {
+        changed = true;
+      }
+
+      // Mirror only the host's persistent config here. Runtime trip state is
+      // mirrored separately by the fast telemetry packets and should not be
+      // cleared by the slower config refresh.
+      dst.enabled = src.enabled;
+      dst.tripPoint = src.tripPoint;
+      dst.style = src.style;
+      dst.color = src.color;
+    }
+  }
+
+  if (changed) {
+    refreshAlarmUIFromPreset(activePreset_);
+  }
+}
+
+void AlarmManager::applyMirrorTripMask(uint8_t activePreset, uint8_t tripMask) {
+  if (activePreset >= kPresetCount) activePreset = 0;
+  activePreset_ = activePreset;
+
+  for (int c = 0; c < kChannels; ++c) {
+    for (int s = 0; s < kSlots; ++s) {
+      AlarmConfig& alarm = presets_[activePreset_].alarms[c][s];
+      const bool tripped = (tripMask & (1U << (c * kSlots + s))) != 0;
+      alarm.tripped = tripped;
+      if (!tripped) {
+        alarm.firedOnce = false;
+        alarm.trippedAtMs = 0;
+      }
+    }
+  }
+}
+
 void AlarmManager::setEnabled(uint8_t preset, AlarmChannel ch, AlarmSlot sl, bool en) {
   if (preset >= kPresetCount) preset = 0;
   presets_[preset].alarms[(int)ch][(int)sl].enabled = en;
@@ -195,6 +257,10 @@ void AlarmManager::setColor(uint8_t preset, AlarmChannel ch, AlarmSlot sl, Alarm
 // Evaluation
 // ----------------------------
 void AlarmManager::evaluateTick() {
+  if (StateManager::getJudgeMode()) {
+    return;
+  }
+
   PullState pullState = StateManager::getPullState();
   
   // Only evaluate during STAGED and PULLING

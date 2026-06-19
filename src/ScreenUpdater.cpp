@@ -151,6 +151,10 @@ void updateSettingsScreen() {
     (StateManager::getUnitSystem() == UnitSystem::METRIC)
         ? lv_obj_add_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED)
         : lv_obj_clear_state(ui_Settings1SwitchUnitsToggle, LV_STATE_CHECKED);
+    if (ui_Settings1LabelTrackLengthUnitsTitle) {
+      lv_label_set_text(ui_Settings1LabelTrackLengthUnitsTitle,
+                        StateManager::getUnitSystem() == UnitSystem::METRIC ? "Meters" : "Feet");
+    }
     // Toggle switches
     StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
                                       : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
@@ -182,8 +186,14 @@ void updateSettingsScreen() {
 
     // Track length
     char buf[16];
-    snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
+    snprintf(buf, sizeof(buf), "%.1f", StateManager::getTrackLength());
     lv_textarea_set_text(uic_Settings1TextareaTrackLengthText, buf);
+
+    char hostBuf[16];
+    snprintf(hostBuf, sizeof(hostBuf), "%d", StateManager::prefs().HostM4IDNumber);
+    if (uic_Settings1TextareaHostMCUID1) {
+      lv_textarea_set_text(uic_Settings1TextareaHostMCUID1, hostBuf);
+    }
  
   // Judge Mode Switch
   bool isJudgeMode = StateManager::prefs().isJudgeMode;
@@ -252,6 +262,7 @@ void updateSettingsScreen() {
 
 void updateMainScreen() {
   PullState pullState = StateManager::getPullState();
+  const bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
 
   bool showMax = (pullState == PullState::PULLEND);
   RemoteManager::SetIsMax(showMax);
@@ -262,6 +273,9 @@ void updateMainScreen() {
 
   // Speed
   float speed = showMax ? StateManager::getMaxSpeed() : StateManager::getSpeed();
+  if (uic_MainLabelSpeedUnit) {
+    lv_label_set_text(uic_MainLabelSpeedUnit, isMetric ? "km/h" : "mph");
+  }
   if (uic_MainLabelSpeedValue && speed != lastDisplayedSpeed) {
     if (speed < 0 || isnan(speed)) {
       lv_label_set_text(uic_MainLabelSpeedValue, "--.-");
@@ -275,6 +289,9 @@ void updateMainScreen() {
 
   // Distance
   float distance = showMax ? StateManager::getMaxDistance() : StateManager::getDistance();
+  if (uic_MainLabelDistanceUnit) {
+    lv_label_set_text(uic_MainLabelDistanceUnit, isMetric ? "m" : "ft");
+  }
   if (uic_MainLabelDistanceValue && distance != lastDisplayedDistance) {
     if (distance < 0 || isnan(distance)) {
       lv_label_set_text(uic_MainLabelDistanceValue, "---.--");
@@ -316,8 +333,11 @@ void updateMainScreen() {
   }
 
   // Driver info
-  std::string driverName = StateManager::prefs().driverName.c_str();
-  int driverNumber = StateManager::prefs().driverNumber;
+  const bool judgeMode = StateManager::getJudgeMode();
+  std::string driverName = judgeMode ? JudgeModule::getDisplayDriverName()
+                                     : StateManager::prefs().driverName.c_str();
+  int driverNumber = judgeMode ? JudgeModule::getDisplayDriverNumber()
+                               : StateManager::prefs().driverNumber;
   if (driverName != lastDisplayedDriverName || driverNumber != lastDisplayedDriverNumber) {
     lv_label_set_text_fmt(uic_MainLabelDriverName, "%s", driverName.c_str());
     lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", driverNumber);
@@ -326,14 +346,16 @@ void updateMainScreen() {
   }
 
   // Class name
-  std::string className = StateManager::prefs().pullingClassName.c_str();
+  std::string className = judgeMode ? JudgeModule::getDisplayClassName()
+                                    : StateManager::prefs().pullingClassName.c_str();
   if (className != lastDisplayedClassName) {
     lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className.c_str());
     lastDisplayedClassName = className;
   }
 
   // M4 Unit ID Number
-  int unitId = StateManager::prefs().M4IDNumber;
+  int unitId = judgeMode ? JudgeModule::getDisplayHostUnitId()
+                         : StateManager::prefs().M4IDNumber;
   if (unitId != lastDisplayedUnitID) {
     lv_label_set_text_fmt(ui_MainLabelM4IDNumberLabel, "%d", unitId);
     lastDisplayedUnitID = unitId;

@@ -13,6 +13,7 @@
 #include "SpeedModule.h"
 #include "StateManager.h"
 #include "AlarmManager.h"
+#include "JudgeModule.h"
 #include "ScreenUpdater.h"
 #include "TachClient.h"
 #include "custom_ui/custom_keyboard.h"
@@ -40,6 +41,17 @@ inline void setObjectVisible(lv_obj_t *obj, bool visible) {
 
 namespace {
 lv_obj_t *s_settingsStatusBanner = nullptr;
+
+void saveJudgeHostIdFromUi() {
+  if (uic_Settings1TextareaHostMCUID1 == nullptr) {
+    return;
+  }
+
+  const char *text = lv_textarea_get_text(uic_Settings1TextareaHostMCUID1);
+  int val = atoi(text);
+  StateManager::setHostM4ID(val, true);
+  JudgeModule::setTrackedHostId(static_cast<uint8_t>(StateManager::getHostM4ID()));
+}
 
 void onSettingsStatusBannerDeleted(lv_event_t *e) {
   if (lv_event_get_target(e) == s_settingsStatusBanner) {
@@ -83,6 +95,16 @@ void showSettingsStatusBanner(const char *text, lv_color_t bgColor) {
   lv_timer_t *timer = lv_timer_create(deleteSettingsStatusBanner, 1400, nullptr);
   lv_timer_set_repeat_count(timer, 1);
 }
+
+void JudgeConnectButtonPressed(lv_event_t *e) {
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) {
+    return;
+  }
+
+  saveJudgeHostIdFromUi();
+  _ui_flag_modify(ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+  showSettingsStatusBanner("Judge host saved", lv_palette_main(LV_PALETTE_GREEN));
+}
 }  // namespace
 
 void applyMainScreenPreferences() {
@@ -100,7 +122,7 @@ void loadMainScreen(lv_event_t *e) {
   float distance = StateManager::getDistance();
   float speed = StateManager::getSpeed();
   float trackLength = StateManager::getTrackLength();
-  bool isMetric = (StateManager::prefs().unitSystem == UnitSystem::METRIC);
+  bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
 
   // Distance Bar
   lv_bar_set_range(uic_MainBarDistanceProgress, 0, (int)trackLength);
@@ -131,12 +153,17 @@ void loadMainScreen(lv_event_t *e) {
   }
   lv_label_set_text(uic_MainLabelTachUnit, "RPM");
 
+  const bool judgeMode = StateManager::getJudgeMode();
+  const char* className = judgeMode ? JudgeModule::getDisplayClassName() : StateManager::prefs().pullingClassName.c_str();
+  const char* driverName = judgeMode ? JudgeModule::getDisplayDriverName() : StateManager::prefs().driverName.c_str();
+  const int driverNumber = judgeMode ? JudgeModule::getDisplayDriverNumber() : StateManager::prefs().driverNumber;
+
   // Class Info
-  lv_label_set_text_fmt(uic_MainLabelClassName, "%s", StateManager::prefs().pullingClassName.c_str());
+  lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className);
 
   // Driver Info
-  lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", StateManager::prefs().driverNumber);
-  lv_label_set_text(uic_MainLabelDriverName, StateManager::prefs().driverName.c_str());
+  lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", driverNumber);
+  lv_label_set_text(uic_MainLabelDriverName, driverName);
 
   refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
@@ -165,6 +192,11 @@ void SettingsSliderBrightnessChange(lv_event_t *e) {
 }
 
 void SettingsUnitIDText(lv_event_t *e) {
+  if (lv_event_get_target(e) == uic_Settings1TextareaHostMCUID1) {
+    saveJudgeHostIdFromUi();
+    return;
+  }
+
   const char *text = lv_textarea_get_text(lv_event_get_target(e));
   int val = atoi(text);
   StateManager::setM4ID(val, true);  // clamps 0..9999 + saves if changed
@@ -221,6 +253,9 @@ void SettingsScreenLoaded(lv_event_t *e) {
     LOGI("Settings screen loaded - applying preferences");
 
     updateSettingsScreen();
+    if (ui_Settings1ButtonButton8 != nullptr) {
+      lv_obj_add_event_cb(ui_Settings1ButtonButton8, JudgeConnectButtonPressed, LV_EVENT_CLICKED, nullptr);
+    }
 
 
   }
@@ -933,6 +968,7 @@ void SettingsSwitchJudgeChange(lv_event_t * e)
   bool isJudgeMode = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
 
   StateManager::setJudgeMode(isJudgeMode);
+  JudgeModule::onJudgeModeChanged(isJudgeMode);
   updateSettingsScreen();
 
 }
