@@ -19,7 +19,7 @@
 #define SERIAL_BAUD_RATE 115200
 #define VERSION_MAJOR "0"
 #define VERSION_MINOR "0"
-#define VERSION_PATCH "4"
+#define VERSION_PATCH "5"
 #define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
 
 #ifdef VERSION_PRERELEASE
