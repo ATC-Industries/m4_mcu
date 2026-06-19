@@ -966,6 +966,8 @@ ui_object_set_themeable_style_property(ui_MainButtonREADYStage, LV_PART_MAIN| LV
 lv_obj_set_style_border_color(ui_MainButtonREADYStage, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonREADYStage, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonREADYStage, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonREADYStage, lv_color_hex(0x346DE1), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonREADYStage, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStage = lv_label_create(ui_MainButtonREADYStage);
 lv_obj_set_width( ui_MainLabelButtonStage, LV_SIZE_CONTENT);  /// 1
@@ -997,6 +999,8 @@ ui_object_set_themeable_style_property(ui_MainButtonSTAGEDCancel, LV_PART_MAIN| 
 lv_obj_set_style_border_color(ui_MainButtonSTAGEDCancel, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonSTAGEDCancel, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonSTAGEDCancel, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonSTAGEDCancel, lv_color_hex(0x1FA709), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonSTAGEDCancel, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStaged = lv_label_create(ui_MainButtonSTAGEDCancel);
 lv_obj_set_width( ui_MainLabelButtonStaged, LV_SIZE_CONTENT);  /// 1
@@ -1033,6 +1037,8 @@ ui_object_set_themeable_style_property(ui_MainButtonPULLINGStop, LV_PART_MAIN| L
 lv_obj_set_style_border_color(ui_MainButtonPULLINGStop, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonPULLINGStop, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonPULLINGStop, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonPULLINGStop, lv_color_hex(0xA70909), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonPULLINGStop, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStop = lv_label_create(ui_MainButtonPULLINGStop);
 lv_obj_set_width( ui_MainLabelButtonStop, LV_SIZE_CONTENT);  /// 1
@@ -1064,6 +1070,8 @@ ui_object_set_themeable_style_property(ui_MainButtonPULLENDDiscard, LV_PART_MAIN
 lv_obj_set_style_border_color(ui_MainButtonPULLENDDiscard, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonPULLENDDiscard, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonPULLENDDiscard, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonPULLENDDiscard, lv_color_hex(0xA70909), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonPULLENDDiscard, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStage1 = lv_label_create(ui_MainButtonPULLENDDiscard);
 lv_obj_set_width( ui_MainLabelButtonStage1, LV_SIZE_CONTENT);  /// 1
@@ -1085,6 +1093,8 @@ ui_object_set_themeable_style_property(ui_MainButtonPULLENDSave, LV_PART_MAIN| L
 lv_obj_set_style_border_color(ui_MainButtonPULLENDSave, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonPULLENDSave, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonPULLENDSave, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonPULLENDSave, lv_color_hex(0x1FA709), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonPULLENDSave, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStaged2 = lv_label_create(ui_MainButtonPULLENDSave);
 lv_obj_set_width( ui_MainLabelButtonStaged2, LV_SIZE_CONTENT);  /// 1
@@ -1114,6 +1124,8 @@ ui_object_set_themeable_style_property(ui_MainButtonPULLINGStop1, LV_PART_MAIN| 
 lv_obj_set_style_border_color(ui_MainButtonPULLINGStop1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_border_opa(ui_MainButtonPULLINGStop1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_MainButtonPULLINGStop1, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonPULLINGStop1, lv_color_hex(0xA70909), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonPULLINGStop1, 100, LV_PART_MAIN| LV_STATE_DISABLED);
 
 ui_MainLabelButtonStop1 = lv_label_create(ui_MainButtonPULLINGStop1);
 lv_obj_set_width( ui_MainLabelButtonStop1, LV_SIZE_CONTENT);  /// 1
