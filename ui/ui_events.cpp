@@ -715,7 +715,7 @@ void PullHistoryScreenLoaded(lv_event_t * e)
     lv_obj_set_style_text_font(label, &ui_font_BIO_SEMIBOLD_6, 0);
   };
 
-  addHeaderLabel("Driver #", col_0_width, 0, LV_TEXT_ALIGN_LEFT);
+  addHeaderLabel(" Driver #", col_0_width, 0, LV_TEXT_ALIGN_LEFT);
   addHeaderLabel(isMetric ? "Speed (km/h)" : "Speed (mph)", col_1_width, col_0_width, LV_TEXT_ALIGN_CENTER);
   addHeaderLabel(isMetric ? "Distance (m)" : "Distance (ft)", col_2_width, col_0_width + col_1_width, LV_TEXT_ALIGN_CENTER);
   addHeaderLabel("RPM", col_3_width, col_0_width + col_1_width + col_2_width, LV_TEXT_ALIGN_CENTER);
