@@ -44,6 +44,11 @@ uint8_t getTrackedHostId();
 void onHostStatusBroadcast(const HostSnapshot& snap);
 void applyRemoteConfig(UnitSystem unitSystem,
                        float trackLengthFeet,
+                       bool tachEnabled,
+                       bool limitSwitchesEnabled,
+                       bool relaysEnabled,
+                       const bool limitSwitchEnabled[2],
+                       const bool relayEnabled[4],
                        uint8_t activePreset,
                        const AlarmConfig configs[kChannels][kSlots]);
 void applyRemoteMeta(int hostUnitId,

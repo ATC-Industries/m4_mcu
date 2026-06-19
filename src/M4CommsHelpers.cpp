@@ -200,8 +200,33 @@ void onMessageReceived(uint8_t *senderAddress,
 
         UnitSystem unitSystem = static_cast<UnitSystem>(doc["u"].is<int>() ? doc["u"].as<int>() : 0);
         float trackLengthFeet = doc["tl"].is<float>() ? doc["tl"].as<float>() : 300.0f;
+        bool tachEnabled = doc["te"].is<int>() ? doc["te"].as<int>() != 0 : true;
+        bool limitSwitchesEnabled = doc["lse"].is<int>() ? doc["lse"].as<int>() != 0 : true;
+        bool relaysEnabled = doc["re"].is<int>() ? doc["re"].as<int>() != 0 : true;
+        bool limitSwitchEnabled[2] = {true, true};
+        bool relayEnabled[4] = {true, true, true, true};
+        JsonArrayConst limitSwitches = doc["ls"].as<JsonArrayConst>();
+        JsonArrayConst relays = doc["rely"].as<JsonArrayConst>();
+        for (int i = 0; i < 2; ++i) {
+          if (i < limitSwitches.size()) {
+            limitSwitchEnabled[i] = limitSwitches[i].as<int>() != 0;
+          }
+        }
+        for (int i = 0; i < 4; ++i) {
+          if (i < relays.size()) {
+            relayEnabled[i] = relays[i].as<int>() != 0;
+          }
+        }
         uint8_t activePreset = doc["ap"].is<int>() ? static_cast<uint8_t>(doc["ap"].as<int>()) : 0;
-        JudgeModule::applyRemoteConfig(unitSystem, trackLengthFeet, activePreset, configs);
+        JudgeModule::applyRemoteConfig(unitSystem,
+                                       trackLengthFeet,
+                                       tachEnabled,
+                                       limitSwitchesEnabled,
+                                       relaysEnabled,
+                                       limitSwitchEnabled,
+                                       relayEnabled,
+                                       activePreset,
+                                       configs);
         break;
       }
 

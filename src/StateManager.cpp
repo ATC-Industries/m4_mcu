@@ -15,6 +15,12 @@ static constexpr unsigned long kPreferencesSaveDebounceMs = 400;
 static bool s_hasJudgeMirrorUnits = false;
 static UnitSystem s_judgeMirrorUnitSystem = UnitSystem::IMPERIAL;
 static float s_judgeMirrorTrackLengthFeet = 300.0f;
+static bool s_hasJudgeMirrorDisplayPrefs = false;
+static bool s_judgeMirrorTachEnabled = true;
+static bool s_judgeMirrorLimitSwitchesEnabled = true;
+static bool s_judgeMirrorRelaysEnabled = true;
+static bool s_judgeMirrorLimitSwitchEnabled[2] = {true, true};
+static bool s_judgeMirrorRelayEnabled[4] = {true, true, true, true};
 
 static void writePreferencesToStorage(const SystemPreferences& prefs) {
   storage.begin("m4prefs", false);
@@ -93,6 +99,10 @@ float getEffectiveTrackLengthFeet() {
   }
   return StateManager::prefs().trackLengthFeet;
 }
+
+bool shouldUseJudgeMirrorDisplayPrefs() {
+  return StateManager::getJudgeMode() && s_hasJudgeMirrorDisplayPrefs;
+}
 }  // namespace
 
 UnitSystem StateManager::getUnitSystem() { return getEffectiveUnitSystem(); }
@@ -125,6 +135,35 @@ float StateManager::getMaxSpeed() {
 float StateManager::getMaxDistance() { 
       return (getEffectiveUnitSystem() == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet
                                                                 : systemState.maxDistanceInFeet * 0.3048f;
+}
+
+bool StateManager::getTachEnabled() {
+  if (shouldUseJudgeMirrorDisplayPrefs()) {
+    return s_judgeMirrorTachEnabled;
+  }
+  return preferences.tachEnabled;
+}
+
+bool StateManager::getLimitSwitchesEnabled() {
+  if (shouldUseJudgeMirrorDisplayPrefs()) {
+    return s_judgeMirrorLimitSwitchesEnabled;
+  }
+  return preferences.limitSwitchesEnabled;
+}
+
+bool StateManager::getRelaysEnabled() {
+  if (shouldUseJudgeMirrorDisplayPrefs()) {
+    return s_judgeMirrorRelaysEnabled;
+  }
+  return preferences.relaysEnabled;
+}
+
+bool StateManager::isRelayEnabled(int index) {
+  if (index < 0 || index >= 4) return false;
+  if (shouldUseJudgeMirrorDisplayPrefs()) {
+    return s_judgeMirrorRelayEnabled[index];
+  }
+  return preferences.relayEnabled[index];
 }
 
 int StateManager::getM4ID() {
@@ -250,8 +289,26 @@ void StateManager::setJudgeMirrorUnits(UnitSystem system, float trackLengthFeet)
   s_hasJudgeMirrorUnits = true;
 }
 
+void StateManager::setJudgeMirrorDisplayPrefs(bool tachEnabled,
+                                              bool limitSwitchesEnabled,
+                                              bool relaysEnabled,
+                                              const bool limitSwitchEnabled[2],
+                                              const bool relayEnabled[4]) {
+  s_judgeMirrorTachEnabled = tachEnabled;
+  s_judgeMirrorLimitSwitchesEnabled = limitSwitchesEnabled;
+  s_judgeMirrorRelaysEnabled = relaysEnabled;
+  for (int i = 0; i < 2; ++i) {
+    s_judgeMirrorLimitSwitchEnabled[i] = limitSwitchEnabled ? limitSwitchEnabled[i] : true;
+  }
+  for (int i = 0; i < 4; ++i) {
+    s_judgeMirrorRelayEnabled[i] = relayEnabled ? relayEnabled[i] : true;
+  }
+  s_hasJudgeMirrorDisplayPrefs = true;
+}
+
 void StateManager::clearJudgeMirrorUnits() {
   s_hasJudgeMirrorUnits = false;
+  s_hasJudgeMirrorDisplayPrefs = false;
 }
 
 bool StateManager::getJudgeMode() {
@@ -408,6 +465,9 @@ void StateManager::setLimitSwitchTriggered(int index, bool triggered) {
 
 bool StateManager::isLimitSwitchEnabled(int index) {
   if (index < 0 || index >= 2) return false;
+  if (shouldUseJudgeMirrorDisplayPrefs()) {
+    return s_judgeMirrorLimitSwitchEnabled[index];
+  }
   return preferences.limitSwitchEnabled[index];
 }
 

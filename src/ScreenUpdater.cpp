@@ -28,6 +28,9 @@ static bool lastDisplayedIsMetric = false;
 static bool lastDisplayedShowMax = false;
 static bool lastDisplayedDistanceTitleVisible = false;
 static bool lastDisplayedTssConnected = false;
+static bool lastDisplayedTachVisible = false;
+static bool lastDisplayedLimitVisible = false;
+static bool lastDisplayedRelayVisible = false;
 static bool alarmUiRefreshing = false;
 
 static const lv_color_t kPresetColors[] = {
@@ -49,6 +52,9 @@ void primeMainScreenValues() {
   lastDisplayedShowMax = false;
   lastDisplayedDistanceTitleVisible = false;
   lastDisplayedTssConnected = false;
+  lastDisplayedTachVisible = false;
+  lastDisplayedLimitVisible = false;
+  lastDisplayedRelayVisible = false;
 }
 
 // visibility helper
@@ -170,14 +176,14 @@ void updateSettingsScreen() {
                         StateManager::getUnitSystem() == UnitSystem::METRIC ? "Meters" : "Feet");
     }
     // Toggle switches
-    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
-                                      : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
+    StateManager::getTachEnabled() ? lv_obj_add_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED)
+                                   : lv_obj_clear_state(uic_Settings1SwitchTachToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED)
-                                               : lv_obj_clear_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED);
+    StateManager::getLimitSwitchesEnabled() ? lv_obj_add_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED)
+                                            : lv_obj_clear_state(uic_Settings1SwitchLimitToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED);
+    StateManager::getRelaysEnabled() ? lv_obj_add_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED)
+                                     : lv_obj_clear_state(uic_Settings1SwitchRelaysToggle, LV_STATE_CHECKED);
 
     StateManager::prefs().screenRotation180 ? lv_obj_add_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED)
                                             : lv_obj_clear_state(ui_Settings1SwitchRotateScreenToggle, LV_STATE_CHECKED);
@@ -277,6 +283,22 @@ void updateSettingsScreen() {
 void updateMainScreen() {
   PullState pullState = StateManager::getPullState();
   const bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
+  const bool tachVisible = StateManager::getTachEnabled();
+  const bool limitVisible = StateManager::getLimitSwitchesEnabled();
+  const bool relayVisible = StateManager::getRelaysEnabled();
+
+  if (uic_MainContainerTach && tachVisible != lastDisplayedTachVisible) {
+    set_visible(uic_MainContainerTach, tachVisible);
+    lastDisplayedTachVisible = tachVisible;
+  }
+  if (uic_MainContainerLimit && limitVisible != lastDisplayedLimitVisible) {
+    set_visible(uic_MainContainerLimit, limitVisible);
+    lastDisplayedLimitVisible = limitVisible;
+  }
+  if (uic_MainContainerRelays && relayVisible != lastDisplayedRelayVisible) {
+    set_visible(uic_MainContainerRelays, relayVisible);
+    lastDisplayedRelayVisible = relayVisible;
+  }
 
   bool showMax = (pullState == PullState::PULLEND);
   RemoteManager::SetIsMax(showMax);
@@ -404,7 +426,7 @@ void updateMainScreen() {
   // Limit Switch Indicators
   //
   for (int i = 0; i < 2; ++i) {
-    bool enabled = StateManager::isLimitSwitchEnabled(i);
+    bool enabled = limitVisible && StateManager::isLimitSwitchEnabled(i);
     bool triggered = StateManager::getLimitSwitchTriggered(i);
 
     setIndicatorColor(
@@ -432,7 +454,7 @@ void updateMainScreen() {
         break;
     }
 
-    if (!StateManager::prefs().relayEnabled[i]) {
+    if (!relayVisible || !StateManager::isRelayEnabled(i)) {
       setIndicatorColor(icon, UI_THEME_COLOR_INDICDISABLED);
     } else {
       RelayState state = StateManager::state().relayStates[i];

@@ -116,6 +116,10 @@ public:
   static float getMaxSpeed();     // Converts to km/h if metric
   static float getMaxDistance();  // Converts to meters if metric
   static bool getScreenRotation();  // Returns current screen rotation state 
+  static bool getTachEnabled();
+  static bool getLimitSwitchesEnabled();
+  static bool getRelaysEnabled();
+  static bool isRelayEnabled(int index);
 
   // State accessors
   static void setUnitSystem(UnitSystem system);
@@ -155,6 +159,11 @@ public:
   static void setHostM4ID(int unitId, bool persist = true);
   static void setJudgeMode(bool isJudgeMode, bool persist = true);
   static void setJudgeMirrorUnits(UnitSystem system, float trackLengthFeet);
+  static void setJudgeMirrorDisplayPrefs(bool tachEnabled,
+                                         bool limitSwitchesEnabled,
+                                         bool relaysEnabled,
+                                         const bool limitSwitchEnabled[2],
+                                         const bool relayEnabled[4]);
   static void clearJudgeMirrorUnits();
 
   // M4 Communication with Tach Tractor methods

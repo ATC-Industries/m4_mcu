@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Judge Stand idle screen shimmy / bouncing has been reduced substantially by suppressing redundant LVGL state-container and main-screen redraw work when visible state has not changed
 - Judge Host MCU ID entry now saves the tracked host ID correctly instead of overwriting the local unit ID, and judge units now ignore judge traffic until a Host MCU ID is configured (#7)
 - Judge Stand database / pull history now mirrors from the sled host instead of staying local to the judge unit (#15, #25)
+- Judge Stand now mirrors sled-side tach enable, limit enable, and relay enable states instead of falling back to the judge unit's local settings (#21)
 - Judge Stand horn behavior for staged alarms is now effectively disabled because judge alarm evaluation is suppressed in judge mode; no separate option has been added yet (#24)
 
 ### Technical

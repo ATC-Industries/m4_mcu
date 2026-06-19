@@ -93,7 +93,20 @@ namespace {
     doc["h"] = hostId;
     doc["u"] = static_cast<uint8_t>(StateManager::prefs().unitSystem);
     doc["tl"] = StateManager::prefs().trackLengthFeet;
+    doc["te"] = StateManager::prefs().tachEnabled ? 1 : 0;
+    doc["lse"] = StateManager::prefs().limitSwitchesEnabled ? 1 : 0;
+    doc["re"] = StateManager::prefs().relaysEnabled ? 1 : 0;
     doc["ap"] = AlarmManager::getActivePreset();
+
+    JsonArray limitSwitches = doc["ls"].to<JsonArray>();
+    for (int i = 0; i < 2; ++i) {
+      limitSwitches.add(StateManager::prefs().limitSwitchEnabled[i] ? 1 : 0);
+    }
+
+    JsonArray relays = doc["rely"].to<JsonArray>();
+    for (int i = 0; i < 4; ++i) {
+      relays.add(StateManager::prefs().relayEnabled[i] ? 1 : 0);
+    }
 
     JsonArray alarms = doc["a"].to<JsonArray>();
     for (int c = 0; c < kChannels; ++c) {
@@ -328,6 +341,11 @@ void onHostStatusBroadcast(const HostSnapshot& snap) {
 
 void applyRemoteConfig(UnitSystem unitSystem,
                        float trackLengthFeet,
+                       bool tachEnabled,
+                       bool limitSwitchesEnabled,
+                       bool relaysEnabled,
+                       const bool limitSwitchEnabled[2],
+                       const bool relayEnabled[4],
                        uint8_t activePreset,
                        const AlarmConfig configs[kChannels][kSlots]) {
   if (!s_judge_mode_active) {
@@ -335,6 +353,11 @@ void applyRemoteConfig(UnitSystem unitSystem,
   }
 
   StateManager::setJudgeMirrorUnits(unitSystem, trackLengthFeet);
+  StateManager::setJudgeMirrorDisplayPrefs(tachEnabled,
+                                           limitSwitchesEnabled,
+                                           relaysEnabled,
+                                           limitSwitchEnabled,
+                                           relayEnabled);
   AlarmManager::applyMirrorConfig(activePreset, configs);
 }
 

@@ -109,9 +109,9 @@ void JudgeConnectButtonPressed(lv_event_t *e) {
 
 void applyMainScreenPreferences() {
   // Set the visibility of the main screen elements based on preferences
-  setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
-  setObjectVisible(uic_MainContainerRelays, StateManager::prefs().relaysEnabled);
-  setObjectVisible(uic_MainContainerLimit, StateManager::prefs().limitSwitchesEnabled);
+  setObjectVisible(uic_MainContainerTach, StateManager::getTachEnabled());
+  setObjectVisible(uic_MainContainerRelays, StateManager::getRelaysEnabled());
+  setObjectVisible(uic_MainContainerLimit, StateManager::getLimitSwitchesEnabled());
 
   setBacklight(StateManager::prefs().screenBrightness);
 }
