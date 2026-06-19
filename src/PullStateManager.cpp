@@ -17,6 +17,7 @@ static unsigned long lastDebugPrint = 0;
 static const unsigned long debugInterval = 5000;  // Every 5 seconds
 static PullState s_lastState = PullState::READY;
 static PullState s_lastNotifiedState = PullState::READY;
+static PullState s_lastUiState = static_cast<PullState>(-1);
 
 namespace {
   constexpr float  kStartSpeedMph = 0.5f;   // already using this
@@ -91,7 +92,6 @@ void PullStateManager::update() {
     LOGD("Heartbeat: current state=%s", stateStr);
 
     LOGD("heartbeat state=%d", (int)current);
-    updateUIForState(current);
   }
 }
 
@@ -155,6 +155,11 @@ void PullStateManager::resetCurrentValues() {
 }
 
 void PullStateManager::updateUIForState(PullState state) {
+  if (s_lastUiState == state) {
+    return;
+  }
+  s_lastUiState = state;
+
   lv_obj_add_flag(ui_MainContainerStateREADY, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(ui_MainContainerStateSTAGED, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(ui_MainContainerStatePULLING, LV_OBJ_FLAG_HIDDEN);

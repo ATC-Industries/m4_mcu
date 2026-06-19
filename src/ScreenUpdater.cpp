@@ -22,6 +22,12 @@ static std::string lastDisplayedDriverName;
 static int lastDisplayedDriverNumber = -1;
 static int lastDisplayedUnitID = -1;
 static uint8_t lastDisplayedPresetIdx = 0xFF;
+static int lastDisplayedTrackLength = -1;
+static int lastDisplayedProgressDistance = -1;
+static bool lastDisplayedIsMetric = false;
+static bool lastDisplayedShowMax = false;
+static bool lastDisplayedDistanceTitleVisible = false;
+static bool lastDisplayedTssConnected = false;
 static bool alarmUiRefreshing = false;
 
 static const lv_color_t kPresetColors[] = {
@@ -35,6 +41,14 @@ void primeMainScreenValues() {
   lastDisplayedSpeed = NAN;
   lastDisplayedDistance = NAN;
   lastDisplayedRPM = NAN;
+  lastDisplayedTrackLength = -1;
+  lastDisplayedProgressDistance = -1;
+  lastDisplayedUnitID = -1;
+  lastDisplayedPresetIdx = 0xFF;
+  lastDisplayedIsMetric = false;
+  lastDisplayedShowMax = false;
+  lastDisplayedDistanceTitleVisible = false;
+  lastDisplayedTssConnected = false;
 }
 
 // visibility helper
@@ -273,7 +287,7 @@ void updateMainScreen() {
 
   // Speed
   float speed = showMax ? StateManager::getMaxSpeed() : StateManager::getSpeed();
-  if (uic_MainLabelSpeedUnit) {
+  if (uic_MainLabelSpeedUnit && lastDisplayedIsMetric != isMetric) {
     lv_label_set_text(uic_MainLabelSpeedUnit, isMetric ? "km/h" : "mph");
   }
   if (uic_MainLabelSpeedValue && speed != lastDisplayedSpeed) {
@@ -289,7 +303,7 @@ void updateMainScreen() {
 
   // Distance
   float distance = showMax ? StateManager::getMaxDistance() : StateManager::getDistance();
-  if (uic_MainLabelDistanceUnit) {
+  if (uic_MainLabelDistanceUnit && lastDisplayedIsMetric != isMetric) {
     lv_label_set_text(uic_MainLabelDistanceUnit, isMetric ? "m" : "ft");
   }
   if (uic_MainLabelDistanceValue && distance != lastDisplayedDistance) {
@@ -316,19 +330,20 @@ void updateMainScreen() {
     lastDisplayedRPM = rpm;
   }
 
-  if (ui_MainLabelDistanceTitle) {
+  if (ui_MainLabelDistanceTitle && lastDisplayedDistanceTitleVisible != showMax) {
     if (showMax) {
       lv_obj_clear_flag(ui_MainLabelDistanceTitle, LV_OBJ_FLAG_HIDDEN);
     } else {
       lv_obj_add_flag(ui_MainLabelDistanceTitle, LV_OBJ_FLAG_HIDDEN);
     }
+    lastDisplayedDistanceTitleVisible = showMax;
   }
 
-  if (ui_MainLabelSpeedTitle) {
+  if (ui_MainLabelSpeedTitle && lastDisplayedShowMax != showMax) {
     lv_label_set_text(ui_MainLabelSpeedTitle, showMax ? "MAX SPEED" : "Speed");
   }
 
-  if (ui_MainLabelTachTitle) {
+  if (ui_MainLabelTachTitle && lastDisplayedShowMax != showMax) {
     lv_label_set_text(ui_MainLabelTachTitle, showMax ? "MAX RPM" : "Tach");
   }
 
@@ -437,12 +452,19 @@ void updateMainScreen() {
   float alarm2 = AlarmManager::baseToUi(AlarmChannel::DISTANCE, cfgD2.tripPoint);
 
   // Set min/max range (always 0 to track length)
-  lv_bar_set_range(ui_MainBarDistanceProgress, 0, (int)trackLength);
+  const int trackLengthInt = (int)trackLength;
+  const int currentDistanceInt = (int)currentDistance;
+  if (ui_MainBarDistanceProgress && lastDisplayedTrackLength != trackLengthInt) {
+    lv_bar_set_range(ui_MainBarDistanceProgress, 0, trackLengthInt);
+  }
   // lv_bar_set_range(ui_MainBarDistanceAlarm1, 0, (int)trackLength);
   // lv_bar_set_range(ui_MainBarDistanceAlarm2, 0, (int)trackLength);
 
   // Set values
-  lv_bar_set_value(ui_MainBarDistanceProgress, (int)currentDistance, LV_ANIM_OFF);
+  if (ui_MainBarDistanceProgress && lastDisplayedProgressDistance != currentDistanceInt) {
+    lv_bar_set_value(ui_MainBarDistanceProgress, currentDistanceInt, LV_ANIM_OFF);
+    lastDisplayedProgressDistance = currentDistanceInt;
+  }
   // lv_bar_set_value(ui_MainBarDistanceAlarm1, (int)alarm1, LV_ANIM_OFF);
   // lv_bar_set_value(ui_MainBarDistanceAlarm2, (int)alarm2, LV_ANIM_OFF);
 
@@ -453,13 +475,19 @@ void updateMainScreen() {
     // TSS connection icons
   {
     bool tssConnected = Tach::state.isTSSConnected;
-    // when NOT connected: show 'tachConnNo', hide 'tachConn'
-    set_visible(uic_MainImagetachConnNo, !tssConnected);
-    set_visible(uic_MainImagetachConn,    tssConnected);
+    if (lastDisplayedTssConnected != tssConnected) {
+      // when NOT connected: show 'tachConnNo', hide 'tachConn'
+      set_visible(uic_MainImagetachConnNo, !tssConnected);
+      set_visible(uic_MainImagetachConn,    tssConnected);
+      lastDisplayedTssConnected = tssConnected;
+    }
   }
 
   // Apply judge locks for the main screen buttons and alarm preset container
   JudgeModule::applyJudgeModeToMainScreen();
+  lastDisplayedTrackLength = trackLengthInt;
+  lastDisplayedIsMetric = isMetric;
+  lastDisplayedShowMax = showMax;
 }
 
 static inline void set_bar_visible(lv_obj_t* bar, bool visible) {

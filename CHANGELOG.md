@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Judge Stand end-of-run current/max values now come directly from the sled host, fixing one-off mismatches at STOP / PULLEND (#1)
 - Judge Stand speed alarm state now mirrors the sled host instead of drifting locally, and judge-side speed/RPM alarm indicator flicker caused by config refreshes clearing live trip state has been removed (#22)
 - Judge Stand screen jerking has been reduced by avoiding row-by-row history persistence during mirror sync
+- Judge Stand idle screen shimmy / bouncing has been reduced substantially by suppressing redundant LVGL state-container and main-screen redraw work when visible state has not changed
 - Judge Host MCU ID entry now saves the tracked host ID correctly instead of overwriting the local unit ID, and judge units now ignore judge traffic until a Host MCU ID is configured (#7)
 - Judge Stand database / pull history now mirrors from the sled host instead of staying local to the judge unit (#15, #25)
 - Judge Stand horn behavior for staged alarms is now effectively disabled because judge alarm evaluation is suppressed in judge mode; no separate option has been added yet (#24)
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `main.cpp` now polls `data_export_loop()` from the main loop
 - Preference writes are now batched and flushed from the main loop instead of synchronously during UI interactions
 - Export sessions pause ESP-NOW comms during SoftAP use and restore them on teardown
+- Main-screen and pull-state UI updates now short-circuit when the visible state has not changed, reducing unnecessary LVGL churn on the judge display
 
 ### Notes
 
