@@ -87,6 +87,9 @@ void DeviceRowActionButtonCB5(lv_event_t * e);
 void DeviceRowActionButtonCB6(lv_event_t * e);
 void PullHistoryScreenLoaded(lv_event_t * e);
 void deletePullHistoryButtonClicked(lv_event_t * e);
+void downloadPullHistoryButtonClicked(lv_event_t * e);
+void exportScreenLoaded(lv_event_t * e);
+void exportDoneButtonClicked(lv_event_t * e);
 
 #ifdef __cplusplus
 } /*extern "C"*/

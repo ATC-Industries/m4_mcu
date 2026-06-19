@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- On-demand pull-history export over a temporary SoftAP, including CSV snapshot generation from in-memory pull history
+- New ExportScreen flow with QR-guided Wi-Fi join and browser navigation for CSV download
+- Browser landing page for downloading the current pull-history CSV during an export session
+
+### Changed
+
+- Export UX no longer uses a captive portal; the device now shows two QR codes: one to join the network and one to open the browser page
+- ExportScreen instructions now include direct manual fallback steps with the SSID and page URL shown on-device
+- Export screen text now uses the LVGL default font for broader glyph coverage
+
+### Technical
+
+- Added `data_export.{h,cpp}` outside `ui/` to own export session state, web serving, QR rendering, and teardown
+- `ui/ui_events.cpp` export callbacks are now thin wrappers into `data_export`
+- `main.cpp` now polls `data_export_loop()` from the main loop
+- Export sessions pause ESP-NOW comms during SoftAP use and restore them on teardown
+
+### Notes
+
+- Export Wi-Fi remains session-scoped and is torn down when the operator taps Done or the session times out
+- Browser auto-open behavior now depends on scanning the explicit page QR or manually entering the shown URL
+
 ## [0.0.5-alpha] - v0.0.5-alpha
 
 ### Added

@@ -23,12 +23,17 @@ extern lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
 extern void ui_event_PullHistoryScreenButtondeletePullHistoryButton1( lv_event_t * e);
 extern lv_obj_t *ui_PullHistoryScreenButtondeletePullHistoryButton1;
 extern lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1;
+extern void ui_event_PullHistoryScreenButtondownloadPullHistoryButton( lv_event_t * e);
+extern lv_obj_t *ui_PullHistoryScreenButtondownloadPullHistoryButton;
+extern lv_obj_t *ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel;
 // CUSTOM VARIABLES
 extern lv_obj_t *uic_PullHistoryScreenPanelTablePanel;
 extern lv_obj_t *uic_PullHistoryScreenContainerButtonContainer;
 extern lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton;
 extern lv_obj_t *uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
 extern lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton1;
+extern lv_obj_t *uic_PullHistoryScreenButtondownloadPullHistoryButton;
+extern lv_obj_t *uic_PullHistoryScreenLabeldownloadPullHistoryButtonLabel;
 
 #ifdef __cplusplus
 } /*extern "C"*/

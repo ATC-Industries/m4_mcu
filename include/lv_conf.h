@@ -245,4 +245,6 @@ e.g. "stm32f7xx.h" or "stm32f4xx.h"*/
 
 #define LV_FONT_DEFAULT &lv_font_montserrat_14
 
+#define LV_USE_QRCODE 1 
+
 #endif /*LV_CONF_H*/

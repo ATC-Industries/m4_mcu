@@ -5,12 +5,14 @@
 
 #include "../ui.h"
 
+lv_obj_t *uic_PullHistoryScreenLabeldownloadPullHistoryButtonLabel;
+lv_obj_t *uic_PullHistoryScreenButtondownloadPullHistoryButton;
 lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton1;
 lv_obj_t *uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
 lv_obj_t *uic_PullHistoryScreenButtondeletePullHistoryButton;
 lv_obj_t *uic_PullHistoryScreenContainerButtonContainer;
 lv_obj_t *uic_PullHistoryScreenPanelTablePanel;
-lv_obj_t *ui_ScreenPullHistoryScreen = NULL;lv_obj_t *ui_PullHistoryScreenPanelTablePanel = NULL;lv_obj_t *ui_PullHistoryScreenContainerButtonContainer = NULL;lv_obj_t *ui_PullHistoryScreenButtondeletePullHistoryButton = NULL;lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel = NULL;lv_obj_t *ui_PullHistoryScreenButtondeletePullHistoryButton1 = NULL;lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1 = NULL;
+lv_obj_t *ui_ScreenPullHistoryScreen = NULL;lv_obj_t *ui_PullHistoryScreenPanelTablePanel = NULL;lv_obj_t *ui_PullHistoryScreenContainerButtonContainer = NULL;lv_obj_t *ui_PullHistoryScreenButtondeletePullHistoryButton = NULL;lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel = NULL;lv_obj_t *ui_PullHistoryScreenButtondeletePullHistoryButton1 = NULL;lv_obj_t *ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1 = NULL;lv_obj_t *ui_PullHistoryScreenButtondownloadPullHistoryButton = NULL;lv_obj_t *ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel = NULL;
 // event funtions
 void ui_event_ScreenPullHistoryScreen( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -33,6 +35,15 @@ void ui_event_PullHistoryScreenButtondeletePullHistoryButton1( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       deletePullHistoryButtonClicked( e );
+}
+}
+
+void ui_event_PullHistoryScreenButtondownloadPullHistoryButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_CLICKED) {
+      downloadPullHistoryButtonClicked( e );
+      _ui_screen_change( &ui_ScreenExportScreen, LV_SCR_LOAD_ANIM_FADE_ON, 0, 0, &ui_ScreenExportScreen_screen_init);
 }
 }
 
@@ -112,14 +123,33 @@ lv_obj_set_height( ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1, LV_SI
 lv_obj_set_align( ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1, LV_ALIGN_CENTER );
 lv_label_set_text(ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1,"Delete Pull History");
 
+ui_PullHistoryScreenButtondownloadPullHistoryButton = lv_btn_create(ui_PullHistoryScreenContainerButtonContainer);
+lv_obj_set_height( ui_PullHistoryScreenButtondownloadPullHistoryButton, 50);
+lv_obj_set_width( ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_align( ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Green);
+ui_object_set_themeable_style_property(ui_PullHistoryScreenButtondownloadPullHistoryButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Green);
+lv_obj_set_style_text_font(ui_PullHistoryScreenButtondownloadPullHistoryButton, &ui_font_BIO_SEMIBOLD_6, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel = lv_label_create(ui_PullHistoryScreenButtondownloadPullHistoryButton);
+lv_obj_set_width( ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_align( ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel, LV_ALIGN_CENTER );
+lv_label_set_text(ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel,"Download Pull History");
+
 lv_obj_add_event_cb(ui_PullHistoryScreenButtondeletePullHistoryButton, ui_event_PullHistoryScreenButtondeletePullHistoryButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_PullHistoryScreenButtondeletePullHistoryButton1, ui_event_PullHistoryScreenButtondeletePullHistoryButton1, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_PullHistoryScreenButtondownloadPullHistoryButton, ui_event_PullHistoryScreenButtondownloadPullHistoryButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_ScreenPullHistoryScreen, ui_event_ScreenPullHistoryScreen, LV_EVENT_ALL, NULL);
 uic_PullHistoryScreenPanelTablePanel = ui_PullHistoryScreenPanelTablePanel;
 uic_PullHistoryScreenContainerButtonContainer = ui_PullHistoryScreenContainerButtonContainer;
 uic_PullHistoryScreenButtondeletePullHistoryButton = ui_PullHistoryScreenButtondeletePullHistoryButton;
 uic_PullHistoryScreenLabeldeletePullHistoryButtonLabel = ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel;
 uic_PullHistoryScreenButtondeletePullHistoryButton1 = ui_PullHistoryScreenButtondeletePullHistoryButton1;
+uic_PullHistoryScreenButtondownloadPullHistoryButton = ui_PullHistoryScreenButtondownloadPullHistoryButton;
+uic_PullHistoryScreenLabeldownloadPullHistoryButtonLabel = ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel;
 
 }
 
@@ -140,5 +170,9 @@ ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel= NULL;
 uic_PullHistoryScreenButtondeletePullHistoryButton1= NULL;
 ui_PullHistoryScreenButtondeletePullHistoryButton1= NULL;
 ui_PullHistoryScreenLabeldeletePullHistoryButtonLabel1= NULL;
+uic_PullHistoryScreenButtondownloadPullHistoryButton= NULL;
+ui_PullHistoryScreenButtondownloadPullHistoryButton= NULL;
+uic_PullHistoryScreenLabeldownloadPullHistoryButtonLabel= NULL;
+ui_PullHistoryScreenLabeldownloadPullHistoryButtonLabel= NULL;
 
 }

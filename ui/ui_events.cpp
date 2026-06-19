@@ -17,6 +17,7 @@
 #include "TachClient.h"
 #include "custom_ui/custom_keyboard.h"
 #include "display/backlight.h"
+#include "data_export.h"
 #define LOG_TAG "UIEvents"
 #define LOG_DEBUG_DISABLE true
 #include "Logging.h"
@@ -1036,4 +1037,22 @@ void DeviceRowActionButtonCB6(lv_event_t * e)
 {
   (void)e;
   handleDeviceRowButton(5);
+}
+
+void downloadPullHistoryButtonClicked(lv_event_t * e)
+{
+	(void)e;
+	data_export_start();
+}
+
+void exportDoneButtonClicked(lv_event_t * e)
+{
+	(void)e;
+	data_export_stop();
+}
+
+void exportScreenLoaded(lv_event_t * e)
+{
+	(void)e;
+	data_export_build_screen(ui_ExportScreenPanelinstructionPanel);
 }

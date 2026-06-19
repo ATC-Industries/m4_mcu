@@ -8,6 +8,7 @@
 #include "StateManager.h"
 #include "AlarmManager.h"
 #include "TachClient.h"
+#include "data_export.h"
 #include "display/backlight.h"
 #include "display/display.h"
 #include "display/lvgl_callbacks.h"
@@ -165,6 +166,7 @@ void loop() {
   // These systems continue running regardless of judge mode.
   JudgeModule::tick();
   AlarmManager::evaluateTick();
+  data_export_loop();
 
 
   now = millis();
