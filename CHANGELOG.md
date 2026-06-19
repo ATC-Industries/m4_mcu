@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.0.5-alpha] - v0.0.5-alpha
+
+### Added
+
+- Boot splash screen (#27) — drawn directly via TFT (not LVGL) so the display is alive immediately while LVGL and other subsystems initialize. Splash text is customizable; logos deferred for now (more complex under TFT draw than we want to take on yet)
+- Save-confirmation popup when a new calibration number is saved (#3)
+
+### Changed
+
+- Overhauled logging system: all debug and serial prints now categorized as info, warning, error, or debug. Logging verbosity is globally configurable, and debug messages can be disabled on a per-file basis
+- Substantially reduced boot time (#27)
+- Judgemode state buttons now greyed out at 100/255 opacity when disabled (#2)
+- Increased delay after final speed pulse before ending pull state to ~seconds (#6) — feels like an eternity on the bench; may need tuning to match real-world expectations
+
+### Fixed
+
+- Calibration accuracy — do NOT calibrate with the protective film installed; it causes issues
+- Rotation state persistence (#20) — feature was always present; corrupted EEPROM data was the culprit. Resolved by a clean EEPROM erase
+- Screen jerking largely resolved (#4)
+- Screen jerking when using the brightness slider
+- Physical button press now invokes a real button press instead of injecting an XY touch (#23)
+- Rough scrolling (#8)
+- Unnecessary highlighting of clicked cells (#8)
+- Auto cal drive-off (#2)
+
+### Notes
+
+- Work in progress – not ready for release
+- Screen still jerks occasionally, most noticeable when rapidly mashing stage/stop/save (#4)
+- Left bar clears on save – needs further investigation (#5)
+- Open question: the green button currently still allows pressing the state buttons — should this be disabled?
+- TODO: ship units with a clean EEPROM erase before returning code (#20)
+
 ## [0.0.4-alpha] - v0.0.4-alpha
 
 ### Added
