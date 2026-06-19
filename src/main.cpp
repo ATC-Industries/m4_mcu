@@ -167,6 +167,7 @@ void loop() {
   // These systems continue running regardless of judge mode.
   JudgeModule::tick();
   AlarmManager::evaluateTick();
+  StateManager::processPendingSave();
   data_export_loop();
 
 

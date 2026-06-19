@@ -9,6 +9,64 @@
 #include <Preferences.h>
 
 static ::Preferences storage;
+static bool s_preferencesDirty = false;
+static unsigned long s_saveRequestedAtMs = 0;
+static constexpr unsigned long kPreferencesSaveDebounceMs = 400;
+
+static void writePreferencesToStorage(const SystemPreferences& prefs) {
+  storage.begin("m4prefs", false);
+
+  storage.putUChar("unitSystem", static_cast<uint8_t>(prefs.unitSystem));
+  storage.putString("className", prefs.pullingClassName);
+  storage.putInt("classWeight", prefs.pullingClassWeight);
+  storage.putString("driverName", prefs.driverName);
+  storage.putInt("driverNumber", prefs.driverNumber);
+  storage.putInt("M4ID", prefs.M4IDNumber);
+  storage.putInt("HostM4ID", prefs.HostM4IDNumber);
+  storage.putBool("isJudgeMode", prefs.isJudgeMode);
+
+  storage.putBool("ls1_enabled", prefs.limitSwitchEnabled[0]);
+  storage.putBool("ls2_enabled", prefs.limitSwitchEnabled[1]);
+
+  for (int i = 0; i < 4; ++i) {
+    storage.putBool(("relayEn" + String(i)).c_str(), prefs.relayEnabled[i]);
+  }
+
+  storage.putFloat("distAlarm1", prefs.distanceAlarm1);
+  storage.putFloat("distAlarm2", prefs.distanceAlarm2);
+  storage.putFloat("tachAlarm1", prefs.tachAlarm1);
+  storage.putFloat("tachAlarm2", prefs.tachAlarm2);
+  storage.putFloat("mphAlarm1", prefs.mphAlarm1);
+  storage.putFloat("mphAlarm2", prefs.mphAlarm2);
+
+  storage.putFloat("trackLength", prefs.trackLengthFeet);
+  storage.putUChar("brightness", prefs.screenBrightness);
+  storage.putBool("screenRot180", prefs.screenRotation180);
+  storage.putBool("tachEnabled", prefs.tachEnabled);
+  storage.putBool("limitsEnabled", prefs.limitSwitchesEnabled);
+  storage.putBool("relaysEnabled", prefs.relaysEnabled);
+  storage.putInt("speedCal", prefs.speedCalibrationPulses);
+
+  storage.putBool("autoConnTrac", prefs.isAutoConnectTractor);
+  storage.putBytes("tractorAddr", prefs.pairedTractorAddress, 6);
+  storage.putBytes("remoteAddr", prefs.pairedRemoteDisplayAddress, 6);
+  storage.putULong("pairingDelay", prefs.pairingDelay);
+
+  storage.putInt("pullCount", prefs.pullHistoryCount);
+  for (int i = 0; i < prefs.pullHistoryCount; i++) {
+    String keyPrefix = "pull" + String(i) + "_";
+    storage.putString((keyPrefix + "driver").c_str(), prefs.pullHistory[i].driverName);
+    storage.putInt((keyPrefix + "drivNum").c_str(), prefs.pullHistory[i].driverNumber);
+    storage.putString((keyPrefix + "class").c_str(), prefs.pullHistory[i].className);
+    storage.putInt((keyPrefix + "weight").c_str(), prefs.pullHistory[i].classWeight);
+    storage.putFloat((keyPrefix + "speed").c_str(), prefs.pullHistory[i].maxSpeedMPH);
+    storage.putFloat((keyPrefix + "distance").c_str(), prefs.pullHistory[i].maxDistanceFeet);
+    storage.putFloat((keyPrefix + "rpm").c_str(), prefs.pullHistory[i].maxRPM);
+    storage.putULong((keyPrefix + "time").c_str(), prefs.pullHistory[i].timestamp);
+  }
+
+  storage.end();
+}
 
 SystemState StateManager::systemState;
 SystemPreferences StateManager::preferences;
@@ -289,6 +347,7 @@ void StateManager::clearPullHistory() {
   
   // Save preferences to persist changes
   savePreferences();
+  flushPreferencesNow();
   
   LOGI("Pull history cleared and driver number reset to 1");
 }
@@ -410,59 +469,22 @@ void StateManager::loadPreferences() {
 }
 
 void StateManager::savePreferences() {
+  s_preferencesDirty = true;
+  s_saveRequestedAtMs = millis();
+}
+
+void StateManager::flushPreferencesNow() {
+  if (!s_preferencesDirty) return;
+
   PullState ps = getPullState();
   if (ps == PullState::PULLING || SpeedModule::isDriveOffModeActive()) return;
-  storage.begin("m4prefs", false);
 
-  storage.putUChar("unitSystem", static_cast<uint8_t>(preferences.unitSystem));
-  storage.putString("className", preferences.pullingClassName);
-  storage.putInt("classWeight", preferences.pullingClassWeight);
-  storage.putString("driverName", preferences.driverName);
-  storage.putInt("driverNumber", preferences.driverNumber);
-  storage.putInt("M4ID", preferences.M4IDNumber);
-  storage.putInt("HostM4ID", preferences.HostM4IDNumber);
-  storage.putBool("isJudgeMode", preferences.isJudgeMode);
+  writePreferencesToStorage(preferences);
+  s_preferencesDirty = false;
+}
 
-  storage.putBool("ls1_enabled", preferences.limitSwitchEnabled[0]);
-  storage.putBool("ls2_enabled", preferences.limitSwitchEnabled[1]);
-
-  for (int i = 0; i < 4; ++i) {
-    storage.putBool(("relayEn" + String(i)).c_str(), preferences.relayEnabled[i]);
-  }
-
-  storage.putFloat("distAlarm1", preferences.distanceAlarm1);
-  storage.putFloat("distAlarm2", preferences.distanceAlarm2);
-  storage.putFloat("tachAlarm1", preferences.tachAlarm1);
-  storage.putFloat("tachAlarm2", preferences.tachAlarm2);
-  storage.putFloat("mphAlarm1", preferences.mphAlarm1);
-  storage.putFloat("mphAlarm2", preferences.mphAlarm2);
-
-  storage.putFloat("trackLength", preferences.trackLengthFeet);
-  storage.putUChar("brightness", preferences.screenBrightness);
-  storage.putBool("screenRot180", preferences.screenRotation180);
-  storage.putBool("tachEnabled", preferences.tachEnabled);
-  storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
-  storage.putBool("relaysEnabled", preferences.relaysEnabled);
-  storage.putInt("speedCal", preferences.speedCalibrationPulses);
-
-  // Save M4 communication settings
-  storage.putBool("autoConnTrac", preferences.isAutoConnectTractor);
-  storage.putBytes("tractorAddr", preferences.pairedTractorAddress, 6);
-  storage.putBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
-  storage.putULong("pairingDelay", preferences.pairingDelay);
-
-  // Save pull history
-  storage.putInt("pullCount", preferences.pullHistoryCount);
-  for (int i = 0; i < preferences.pullHistoryCount; i++) {
-    String keyPrefix = "pull" + String(i) + "_";
-    storage.putString((keyPrefix + "driver").c_str(), preferences.pullHistory[i].driverName);
-    storage.putInt((keyPrefix + "drivNum").c_str(), preferences.pullHistory[i].driverNumber);
-    storage.putString((keyPrefix + "class").c_str(), preferences.pullHistory[i].className);
-    storage.putInt((keyPrefix + "weight").c_str(), preferences.pullHistory[i].classWeight);
-    storage.putFloat((keyPrefix + "speed").c_str(), preferences.pullHistory[i].maxSpeedMPH);
-    storage.putFloat((keyPrefix + "distance").c_str(), preferences.pullHistory[i].maxDistanceFeet);
-    storage.putFloat((keyPrefix + "rpm").c_str(), preferences.pullHistory[i].maxRPM);
-    storage.putULong((keyPrefix + "time").c_str(), preferences.pullHistory[i].timestamp);
-  }
-  storage.end();
+void StateManager::processPendingSave() {
+  if (!s_preferencesDirty) return;
+  if (millis() - s_saveRequestedAtMs < kPreferencesSaveDebounceMs) return;
+  flushPreferencesNow();
 }

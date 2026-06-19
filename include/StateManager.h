@@ -182,6 +182,8 @@ public:
   // Persistence
   static void loadPreferences();
   static void savePreferences();
+  static void flushPreferencesNow();
+  static void processPendingSave();
 
 private:
   static SystemState systemState;

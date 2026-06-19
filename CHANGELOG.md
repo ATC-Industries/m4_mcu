@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Screen jerking caused by synchronous preference writes has been reduced by deferring NVS saves out of the immediate UI path, including the pull Save flow (#4)
 - Distance value and distance progress bar no longer pop back to the previous pull after Save; runtime distance state is now cleared consistently on return to READY (#5)
 - Brightness slider now persists correctly when released, saved brightness is reapplied on reboot, and the Settings screen label now reflects the stored brightness value on first load
 
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `data_export.{h,cpp}` outside `ui/` to own export session state, web serving, QR rendering, and teardown
 - `ui/ui_events.cpp` export callbacks are now thin wrappers into `data_export`
 - `main.cpp` now polls `data_export_loop()` from the main loop
+- Preference writes are now batched and flushed from the main loop instead of synchronously during UI interactions
 - Export sessions pause ESP-NOW comms during SoftAP use and restore them on teardown
 
 ### Notes
@@ -56,7 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Calibration accuracy — do NOT calibrate with the protective film installed; it causes issues
 - Rotation state persistence (#20) — feature was always present; corrupted EEPROM data was the culprit. Resolved by a clean EEPROM erase
-- Screen jerking largely resolved (#4)
 - Screen jerking when using the brightness slider
 - Physical button press now invokes a real button press instead of injecting an XY touch (#23)
 - Rough scrolling (#8)
@@ -66,7 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - Work in progress – not ready for release
-- Screen still jerks occasionally, most noticeable when rapidly mashing stage/stop/save (#4)
 - Open question: the green button currently still allows pressing the state buttons — should this be disabled?
 - TODO: ship units with a clean EEPROM erase before returning code (#20)
 
