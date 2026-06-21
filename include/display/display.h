@@ -2,10 +2,25 @@
 #define INCLUDE_DISPLAY_H_
 
 #include <Arduino.h>
+#include "Config.h"
 
 #include <LovyanGFX.hpp>
 #include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
 #include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
+#include "driver/gpio.h"
+
+static const gpio_num_t rgb_sync_pins[] = {
+  IO_B3,IO_B4,IO_B5,IO_B6,IO_B7,
+  IO_G2,IO_G3,IO_G4,IO_G5,IO_G6,IO_G7,
+  IO_R3,IO_R4,IO_R5,IO_R6,IO_R7,
+  IO_HSYNC,IO_VSYNC,IO_PCLK,IO_DE_BOOT
+};
+
+static void boost_rgb_drive() {
+  for (auto p : rgb_sync_pins) gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3);
+}
+// call boost_rgb_drive(); before lcd.begin()
+
 
 class LGFX : public lgfx::LGFX_Device {
 public:
@@ -17,44 +32,109 @@ public:
       auto cfg = _bus_instance.config();
       cfg.panel = &_panel_instance;
 
-      cfg.pin_d0 = GPIO_NUM_15;
-      cfg.pin_d1 = GPIO_NUM_7;
-      cfg.pin_d2 = GPIO_NUM_6;
-      cfg.pin_d3 = GPIO_NUM_5;
-      cfg.pin_d4 = GPIO_NUM_4;
+      _panel_instance.setPsram(true);
 
-      cfg.pin_d5 = GPIO_NUM_9;
-      cfg.pin_d6 = GPIO_NUM_46;
-      cfg.pin_d7 = GPIO_NUM_3;
-      cfg.pin_d8 = GPIO_NUM_8;
-      cfg.pin_d9 = GPIO_NUM_16;
-      cfg.pin_d10 = GPIO_NUM_1;
+      // // Pin configuration for 800x480 RGB display (OLD BOARD)
+      // cfg.pin_d0 = GPIO_NUM_15;       // B3
+      // cfg.pin_d1 = GPIO_NUM_7;        // B4
+      // cfg.pin_d2 = GPIO_NUM_6;        // B5
+      // cfg.pin_d3 = GPIO_NUM_5;        // B6
+      // cfg.pin_d4 = GPIO_NUM_4;        // B7
 
-      cfg.pin_d11 = GPIO_NUM_14;
-      cfg.pin_d12 = GPIO_NUM_21;
-      cfg.pin_d13 = GPIO_NUM_47;
-      cfg.pin_d14 = GPIO_NUM_48;
-      cfg.pin_d15 = GPIO_NUM_45;
+      // cfg.pin_d5 = GPIO_NUM_9;        // G2
+      // cfg.pin_d6 = GPIO_NUM_46;       // G3 
+      // cfg.pin_d7 = GPIO_NUM_3;        // G4
+      // cfg.pin_d8 = GPIO_NUM_8;        // G5
+      // cfg.pin_d9 = GPIO_NUM_16;       // G6
+      // cfg.pin_d10 = GPIO_NUM_1;       // G7
 
-      cfg.pin_henable = GPIO_NUM_41;
-      cfg.pin_vsync = GPIO_NUM_40;
-      cfg.pin_hsync = GPIO_NUM_39;
-      cfg.pin_pclk = GPIO_NUM_0;
-      cfg.freq_write = 15000000;
+      // cfg.pin_d11 = GPIO_NUM_14;      // R3
+      // cfg.pin_d12 = GPIO_NUM_21;      // R4
+      // cfg.pin_d13 = GPIO_NUM_47;      // R5
+      // cfg.pin_d14 = GPIO_NUM_48;      // R6
+      // cfg.pin_d15 = GPIO_NUM_45;      // R7
 
-      cfg.hsync_polarity = 0;
-      cfg.hsync_front_porch = 40;
-      cfg.hsync_pulse_width = 48;
-      cfg.hsync_back_porch = 40;
+      // cfg.pin_henable = GPIO_NUM_41;  // DE
+      // cfg.pin_vsync = GPIO_NUM_40;    // VSYNC
+      // cfg.pin_hsync = GPIO_NUM_39;    // HSYNC
+      // cfg.pin_pclk = GPIO_NUM_0;      // BOOT LCD PCLK
 
-      cfg.vsync_polarity = 0;
-      cfg.vsync_front_porch = 1;
-      cfg.vsync_pulse_width = 31;
-      cfg.vsync_back_porch = 13;
+      // Pin configuration for 800x480 RGB display
+      cfg.pin_d0  = IO_B3;       // B3
+      cfg.pin_d1  = IO_B4;       // B4
+      cfg.pin_d2  = IO_B5;       // B5
+      cfg.pin_d3  = IO_B6;       // B6
+      cfg.pin_d4  = IO_B7;       // B7
 
-      cfg.pclk_active_neg = 1;
-      cfg.de_idle_high = 0;
-      cfg.pclk_idle_high = 0;
+      cfg.pin_d5  = IO_G2;       // G2
+      cfg.pin_d6  = IO_G3;       // G3
+      cfg.pin_d7  = IO_G4;       // G4
+      cfg.pin_d8  = IO_G5;       // G5
+      cfg.pin_d9  = IO_G6;       // G6
+      cfg.pin_d10 = IO_G7;       // G7
+
+      cfg.pin_d11 = IO_R3;       // R3
+      cfg.pin_d12 = IO_R4;       // R4
+      cfg.pin_d13 = IO_R5;       // R5
+      cfg.pin_d14 = IO_R6;       // R6
+      cfg.pin_d15 = IO_R7;       // R7
+
+      cfg.pin_henable = IO_DE_BOOT; // DE
+      cfg.pin_vsync   = IO_VSYNC;   // VSYNC
+      cfg.pin_hsync   = IO_HSYNC;   // HSYNC
+      cfg.pin_pclk    = IO_PCLK;    // PCLK
+
+
+      // cfg.freq_write = 15000000;
+
+      // cfg.hsync_polarity = 0;
+      // cfg.hsync_front_porch = 40;
+      // cfg.hsync_pulse_width = 48; //48
+      // cfg.hsync_back_porch = 40;
+
+      // cfg.vsync_polarity = 0;
+      // cfg.vsync_front_porch = 1;
+      // cfg.vsync_pulse_width = 31;
+      // cfg.vsync_back_porch = 13;
+
+      // cfg.pclk_active_neg = 1;
+      // cfg.de_idle_high = 0;
+      // cfg.pclk_idle_high = 0;
+
+      // // Aim ~25.2 MHz first for stability
+      // cfg.freq_write = 15000000;
+
+      // cfg.hsync_polarity    = 0;
+      // cfg.hsync_pulse_width = 2;
+      // cfg.hsync_back_porch  = 50;
+      // cfg.hsync_front_porch = 8;   // 800 + 46 + 2 + 12 = 860
+
+      // cfg.vsync_polarity    = 0;
+      // cfg.vsync_pulse_width = 2;
+      // cfg.vsync_back_porch  = 5;
+      // cfg.vsync_front_porch = 41;   // 480 + 5 + 2 + 41 = 528
+
+      // cfg.pclk_active_neg = 0;      // if fringing persists, flip to 1
+      // cfg.de_idle_high    = 0;
+      // cfg.pclk_idle_high  = 0;
+
+      cfg.freq_write        = 15000000;   // vendor sample uses ~18 MHz
+
+      cfg.hsync_polarity    = 0;
+      cfg.hsync_back_porch  = 40;
+      cfg.hsync_front_porch = 20;
+      cfg.hsync_pulse_width = 1;
+
+      cfg.vsync_polarity    = 0;
+      cfg.vsync_back_porch  = 8;
+      cfg.vsync_front_porch = 4;
+      cfg.vsync_pulse_width = 1;
+
+      cfg.pclk_active_neg   = 1;          // sample on falling edge, per sample
+      cfg.de_idle_high      = 0;
+      cfg.pclk_idle_high    = 1;
+
+
 
       _bus_instance.config(cfg);
     }
@@ -80,5 +160,6 @@ extern LGFX lcd;
 
 // Initialize the display and touch
 void init_display();
+void show_boot_splash();
 
 #endif  // INCLUDE_DISPLAY_H_

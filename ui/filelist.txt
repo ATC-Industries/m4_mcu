@@ -1,5 +1,7 @@
 screens/ui_ScreenMain.c
-screens/ui_ScreenSettings.c
+screens/ui_ScreenSettings1.c
+screens/ui_ScreenPullHistoryScreen.c
+screens/ui_ScreenExportScreen.c
 ui_theme_manager.cpp
 ui_themes.cpp
 ui.c
@@ -7,7 +9,10 @@ components/ui_comp_hook.c
 ui_helpers.c
 ui_events.cpp
 images/ui_img_iconsettings44px_png.c
+images/ui_img_table_helemet_42x42_png.c
 images/ui_img_iconchangedriver44px_png.c
+images/ui_img_wifi_png.c
+images/ui_img_929997142.c
 fonts/ui_font_BIO_BOLDITALIC_10.c
 fonts/ui_font_BIO_BOLDITALIC_6.c
 fonts/ui_font_BIO_BOLDITALIC_8.c
@@ -20,3 +25,4 @@ fonts/ui_font_HH40.c
 fonts/ui_font_HH8.c
 fonts/ui_font_INFORME_24.c
 fonts/ui_font_INFORME_40.c
+fonts/ui_font_ShapesDeja.c

@@ -2,6 +2,7 @@
 #define STATEMANAGER_H
 
 #include <Arduino.h>
+#include <limits.h>
 
 #include "Config.h"
 
@@ -18,13 +19,27 @@ enum class RelayState { ENGAGED, DISENGAGED };
 // STRUCTS
 //
 
+struct PullResult {
+  String driverName;
+  int driverNumber;
+  String className;
+  int classWeight;
+  float maxSpeedMPH;
+  float maxDistanceFeet;
+  float maxRPM;
+  unsigned long timestamp;  // ticks since last boot.  not great but we dont have an RTC clock on the MCU
+};
+
 struct SystemPreferences {
   UnitSystem unitSystem = UnitSystem::IMPERIAL;
 
-  String pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  String pullingClassName = "M4 Sled Monitor - " + String(DEVICE_VERSION);
   int pullingClassWeight = 0;
   String driverName = "Driver";
   int driverNumber = 1;
+  int M4IDNumber = 0;
+  int HostM4IDNumber = 0;
+  bool isJudgeMode = false;
 
   bool limitSwitchEnabled[2] = {true, true};
 
@@ -39,13 +54,23 @@ struct SystemPreferences {
 
   float trackLengthFeet = 300.0f;
 
-  bool benchmarkMode = false;
   uint8_t screenBrightness = 100;
+  bool screenRotation180 = false;  // false = 0°, true = 180°
   bool tachEnabled = true;
   bool limitSwitchesEnabled = true;
   bool relaysEnabled = true;
+  bool isAutoConnectTractor = true;
 
   int speedCalibrationPulses = 1000;
+
+  // Pull history
+  PullResult pullHistory[MAX_PULL_HISTORY];
+  int pullHistoryCount = 0;  // Number of saved pulls (0 to MAX_PULL_HISTORY)
+
+  // M4 Communication Settings
+  uint8_t pairedTractorAddress[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t pairedRemoteDisplayAddress[6] = {0, 0, 0, 0, 0, 0};
+  unsigned long pairingDelay = 10000;  // Default 10 second pairing delay
 };
 
 struct SystemState {
@@ -64,6 +89,12 @@ struct SystemState {
                                RelayState::DISENGAGED};
 
   PullState currentPullState = PullState::READY;
+
+  bool judgeMode = false;
+
+  int pairedTractorRSSI = INT_MIN;  // Start with the lowest possible value
+  uint8_t pairedTractorAddress[6] = {
+    0};                  // To store the address of the paired tractor
 };
 
 //
@@ -84,9 +115,21 @@ public:
   static float getMaxRPM();       // Returns max RPM
   static float getMaxSpeed();     // Converts to km/h if metric
   static float getMaxDistance();  // Converts to meters if metric
+  static bool getScreenRotation();  // Returns current screen rotation state 
+  static bool getTachEnabled();
+  static bool getLimitSwitchesEnabled();
+  static bool getRelaysEnabled();
+  static bool isRelayEnabled(int index);
 
   // State accessors
   static void setUnitSystem(UnitSystem system);
+  static void setScreenBrightness(uint8_t level);      // 0..255
+  static void setTrackLengthFeet(float feet);          // > 0
+  static void setTachEnabled(bool on);
+  static void setLimitSwitchesEnabled(bool on);
+  static void setRelaysEnabled(bool on);
+  static void setDriverNumber(int number, bool persist = true);
+
 
   static void setDistance(float ft);  // Sets distance in feet
   static void setSpeed(float mph);    // Sets speed in mph
@@ -111,14 +154,57 @@ public:
 
   static int getSpeedCalibrationNumber();
   static void setSpeedCalibrationNumber(int pulses);
+  
+  static void setScreenRotation(bool rotation180);
+  static void setM4ID(int unitId, bool persist = true);
+  static void setHostM4ID(int unitId, bool persist = true);
+  static void setJudgeMode(bool isJudgeMode, bool persist = true);
+  static void setJudgeMirrorUnits(UnitSystem system, float trackLengthFeet);
+  static void setJudgeMirrorDisplayPrefs(bool tachEnabled,
+                                         bool limitSwitchesEnabled,
+                                         bool relaysEnabled,
+                                         const bool limitSwitchEnabled[2],
+                                         const bool relayEnabled[4]);
+  static void clearJudgeMirrorUnits();
+
+  // M4 Communication with Tach Tractor methods
+  static bool getIsAutoConnectTractor();
+  static void setIsAutoConnectTractor(bool autoConnect);
+  static const uint8_t* getPairedTractorAddress();
+  static void setPairedTractorAddress(const uint8_t* address);
+
+  // M4 Communication with Remote Display methods
+  static const uint8_t* getPairedRemoteDisplayAddress();
+  static void setPairedRemoteDisplayAddress(const uint8_t* address);
+  static unsigned long getPairingDelay();
+  static void setPairingDelay(unsigned long delay);
+
+  // Pull result management
+  static void savePullResult();
+  static int getPullHistoryCount();
+  static const PullResult* getPullHistory();
+  static const PullResult* getPullResult(int index);
+  static void clearPullHistory();
+
+  static int getM4ID();       // Added getter for M4 ID
+  static int getHostM4ID();  // Added getter for Host M4 ID
+  static bool getJudgeMode();            // runtime flag
+  static bool getJudgeModePreference();  // persisted preference
 
   // Persistence
   static void loadPreferences();
   static void savePreferences();
+  static void flushPreferencesNow();
+  static void flushPreferencesNowBlocking();
+  static void processPendingSave();
+  static void noteScreenTransition();
+  static void beginDeferredSavePersistence();
+  static void endDeferredSavePersistence();
 
 private:
   static SystemState systemState;
   static SystemPreferences preferences;
 };
+
 
 #endif  // STATEMANAGER_H

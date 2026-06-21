@@ -8,6 +8,7 @@
 #define LV_CONF_H
 
 #include <stdint.h>
+#include <stddef.h> 
 
 /*====================
    COLOR SETTINGS
@@ -31,8 +32,14 @@
    MEMORY SETTINGS
  *=========================*/
 
+#define LV_USE_LOG        1
+#define LV_LOG_LEVEL      LV_LOG_LEVEL_WARN
+
+// #define LV_USE_ASSERT_NULL 1
+// #define LV_USE_ASSERT_OBJ  1
+
 /*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
-#define LV_MEM_CUSTOM 0
+#define LV_MEM_CUSTOM 1
 #if LV_MEM_CUSTOM == 0
 /*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
 // #define LV_MEM_SIZE (48U * 1024U) /*[bytes]*/
@@ -46,6 +53,21 @@
 #undef LV_MEM_POOL_ALLOC
 #endif
 #endif /*LV_MEM_CUSTOM*/
+
+#define LV_MEM_CUSTOM_ALLOC   lv_mem_custom_alloc
+#define LV_MEM_CUSTOM_FREE    lv_mem_custom_free
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void* lv_mem_custom_alloc(size_t size);
+void lv_mem_custom_free(void* p);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 /*Use the standard `memcpy` and `memset` instead of LVGL's own functions. (Might or might not be faster).*/
 #define LV_MEMCPY_MEMSET_STD 0
@@ -222,5 +244,7 @@ e.g. "stm32f7xx.h" or "stm32f4xx.h"*/
 #define LV_FONT_MONTSERRAT_48 0
 
 #define LV_FONT_DEFAULT &lv_font_montserrat_14
+
+#define LV_USE_QRCODE 1 
 
 #endif /*LV_CONF_H*/

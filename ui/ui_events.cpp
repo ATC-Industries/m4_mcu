@@ -4,19 +4,31 @@
 // Project name: M4_MCU_2025
 
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "Config.h"
 #include "PullStateManager.h"
 #include "SpeedModule.h"
 #include "StateManager.h"
+#include "AlarmManager.h"
+#include "JudgeModule.h"
+#include "ScreenUpdater.h"
+#include "TachClient.h"
 #include "custom_ui/custom_keyboard.h"
-#include "dev_utils/benchmark.h"
 #include "display/backlight.h"
+#include "data_export.h"
+#define LOG_TAG "UIEvents"
+#define LOG_DEBUG_DISABLE true
+#include "Logging.h"
 #include "touch/touch.h"
 #include "ui.h"
+#include "remotes/RemoteManager.h"
 
-const char *VERSION_STRING = VERSION;
+extern void refreshAlarmUIFromPreset(uint8_t preset);
+
+const char *VERSION_STRING = DEVICE_VERSION;
 const char *BUILD_DATETIME = __DATE__ " " __TIME__;
 
 inline void setObjectVisible(lv_obj_t *obj, bool visible) {
@@ -27,22 +39,90 @@ inline void setObjectVisible(lv_obj_t *obj, bool visible) {
   }
 }
 
+namespace {
+lv_obj_t *s_settingsStatusBanner = nullptr;
+
+void saveJudgeHostIdFromUi() {
+  if (uic_Settings1TextareaHostMCUID1 == nullptr) {
+    return;
+  }
+
+  const char *text = lv_textarea_get_text(uic_Settings1TextareaHostMCUID1);
+  int val = atoi(text);
+  StateManager::setHostM4ID(val, true);
+  JudgeModule::setTrackedHostId(static_cast<uint8_t>(StateManager::getHostM4ID()));
+}
+
+void onSettingsStatusBannerDeleted(lv_event_t *e) {
+  if (lv_event_get_target(e) == s_settingsStatusBanner) {
+    s_settingsStatusBanner = nullptr;
+  }
+}
+
+void deleteSettingsStatusBanner(lv_timer_t *timer) {
+  if (s_settingsStatusBanner != nullptr) {
+    lv_obj_del(s_settingsStatusBanner);
+    s_settingsStatusBanner = nullptr;
+  }
+  lv_timer_del(timer);
+}
+
+void showSettingsStatusBanner(const char *text, lv_color_t bgColor) {
+  if (s_settingsStatusBanner != nullptr) {
+    lv_obj_del(s_settingsStatusBanner);
+    s_settingsStatusBanner = nullptr;
+  }
+
+  lv_obj_t *parent = ui_ScreenSettings1 != nullptr ? ui_ScreenSettings1 : lv_scr_act();
+  if (parent == nullptr) {
+    return;
+  }
+
+  s_settingsStatusBanner = lv_label_create(parent);
+  lv_label_set_text(s_settingsStatusBanner, text);
+  lv_obj_set_style_bg_opa(s_settingsStatusBanner, LV_OPA_COVER, 0);
+  lv_obj_set_style_bg_color(s_settingsStatusBanner, bgColor, 0);
+  lv_obj_set_style_text_color(s_settingsStatusBanner, lv_color_white(), 0);
+  lv_obj_set_style_radius(s_settingsStatusBanner, 8, 0);
+  lv_obj_set_style_pad_hor(s_settingsStatusBanner, 14, 0);
+  lv_obj_set_style_pad_ver(s_settingsStatusBanner, 8, 0);
+  lv_obj_set_style_text_align(s_settingsStatusBanner, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_clear_flag(s_settingsStatusBanner, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_align(s_settingsStatusBanner, LV_ALIGN_TOP_MID, 0, 12);
+  lv_obj_move_foreground(s_settingsStatusBanner);
+  lv_obj_add_event_cb(s_settingsStatusBanner, onSettingsStatusBannerDeleted, LV_EVENT_DELETE, nullptr);
+
+  lv_timer_t *timer = lv_timer_create(deleteSettingsStatusBanner, 1400, nullptr);
+  lv_timer_set_repeat_count(timer, 1);
+}
+
+void JudgeConnectButtonPressed(lv_event_t *e) {
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) {
+    return;
+  }
+
+  saveJudgeHostIdFromUi();
+  _ui_flag_modify(ui_Settings1KeyboardSettingsNumberKeyboard, LV_OBJ_FLAG_HIDDEN, _UI_MODIFY_FLAG_ADD);
+  showSettingsStatusBanner("Judge host saved", lv_palette_main(LV_PALETTE_GREEN));
+}
+}  // namespace
+
 void applyMainScreenPreferences() {
   // Set the visibility of the main screen elements based on preferences
-  setObjectVisible(uic_MainContainerTach, StateManager::prefs().tachEnabled);
-  setObjectVisible(uic_MainContainerRelays, StateManager::prefs().relaysEnabled);
-  setObjectVisible(uic_MainContainerLimit, StateManager::prefs().limitSwitchesEnabled);
-  benchmark_set_enabled(StateManager::prefs().benchmarkMode);
+  setObjectVisible(uic_MainContainerTach, StateManager::getTachEnabled());
+  setObjectVisible(uic_MainContainerRelays, StateManager::getRelaysEnabled());
+  setObjectVisible(uic_MainContainerLimit, StateManager::getLimitSwitchesEnabled());
 
   setBacklight(StateManager::prefs().screenBrightness);
 }
 
 void loadMainScreen(lv_event_t *e) {
+  primeMainScreenValues();
   applyMainScreenPreferences();
   float distance = StateManager::getDistance();
   float speed = StateManager::getSpeed();
   float trackLength = StateManager::getTrackLength();
-  bool isMetric = (StateManager::prefs().unitSystem == UnitSystem::METRIC);
+  bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
 
   // Distance Bar
   lv_bar_set_range(uic_MainBarDistanceProgress, 0, (int)trackLength);
@@ -73,82 +153,80 @@ void loadMainScreen(lv_event_t *e) {
   }
   lv_label_set_text(uic_MainLabelTachUnit, "RPM");
 
+  const bool judgeMode = StateManager::getJudgeMode();
+  const String judgeTitle = String("M4 Remote Monitor - ") + DEVICE_VERSION;
+  const char* className = judgeMode ? judgeTitle.c_str() : StateManager::prefs().pullingClassName.c_str();
+  const char* driverName = judgeMode ? JudgeModule::getDisplayDriverName() : StateManager::prefs().driverName.c_str();
+  const int driverNumber = judgeMode ? JudgeModule::getDisplayDriverNumber() : StateManager::prefs().driverNumber;
+
   // Class Info
-  lv_label_set_text_fmt(uic_MainLabelClassName, "%s", StateManager::prefs().pullingClassName.c_str());
+  lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className);
 
   // Driver Info
-  lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", StateManager::prefs().driverNumber);
-  lv_label_set_text(uic_MainLabelDriverName, StateManager::prefs().driverName.c_str());
+  lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", driverNumber);
+  lv_label_set_text(uic_MainLabelDriverName, driverName);
+
+  refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
 
 void SettingsSwitchUnitsChange(lv_event_t *e) {
-  lv_obj_t *switchObj = lv_event_get_target(e);
-  bool isMetric = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
-
-  // Set unit system based on switch state
+  lv_obj_t *sw = lv_event_get_target(e);
+  bool isMetric = lv_obj_has_state(sw, LV_STATE_CHECKED);
   StateManager::setUnitSystem(isMetric ? UnitSystem::METRIC : UnitSystem::IMPERIAL);
-
-  // Update label text
-  if (ui_SettingsLabelTrackLengthUnitsTitle != nullptr) {
-    lv_label_set_text(ui_SettingsLabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
+  if (ui_Settings1LabelTrackLengthUnitsTitle) {
+    lv_label_set_text(ui_Settings1LabelTrackLengthUnitsTitle, isMetric ? "Meters" : "Feet");
   }
-}
-
-void SettingsSwitchBenchmarkChange(lv_event_t *e) {
-  lv_obj_t *cb = lv_event_get_target(e);
-  bool enabled = lv_obj_get_state(cb) & LV_STATE_CHECKED;
-  benchmark_set_enabled(enabled);
-
-  StateManager::prefs().benchmarkMode = lv_obj_has_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
 }
 
 void SettingsSliderBrightnessChange(lv_event_t *e) {
   lv_obj_t *slider = lv_event_get_target(e);
-  uint8_t brightness = (uint8_t)lv_slider_get_value(slider);
+  uint8_t level = (uint8_t)lv_slider_get_value(slider); // expect 0..255
 
-  // Get event code
+  // live feedback
+  lv_label_set_text_fmt(ui_Settings1LabelBrightness, "%d%%", (level * 100) / 255);
+  setBacklightFast(level);
+
   lv_event_code_t code = lv_event_get_code(e);
-
-  // Update label immediately
-  lv_label_set_text_fmt(ui_SettingsLabelBrightness, "%d%%", (brightness * 100) / 255);
-
-  // For immediate visual feedback during slider movement
-  setBacklightFast(brightness);
-
-  // Update preference value
-  StateManager::prefs().screenBrightness = brightness;
-
-  // Only save preferences when slider is released to avoid writing to flash constantly
   if (code == LV_EVENT_RELEASED) {
-    // Only save to flash when the user releases the slider
-    StateManager::savePreferences();
+    StateManager::setScreenBrightness(level); // persist only when drag is done
   }
+}
+
+void SettingsUnitIDText(lv_event_t *e) {
+  if (lv_event_get_target(e) == uic_Settings1TextareaHostMCUID1) {
+    saveJudgeHostIdFromUi();
+    return;
+  }
+
+  const char *text = lv_textarea_get_text(lv_event_get_target(e));
+  int val = atoi(text);
+  StateManager::setM4ID(val, true);  // clamps 0..9999 + saves if changed
 }
 
 void SettingsTrackLengthText(lv_event_t *e) {
-  const char *text = lv_textarea_get_text(uic_SettingsTextareaTrackLengthText);
-  float val = atof(text);
-  if (val > 0.0f) {
-    StateManager::prefs().trackLengthFeet = val;
-    StateManager::savePreferences();
-  }
+  const char *text = lv_textarea_get_text(lv_event_get_target(e));
+  float feet = atof(text);
+  StateManager::setTrackLengthFeet(feet); // ignores <= 0
 }
 
 void SettingsSwitchTachChange(lv_event_t *e) {
-  StateManager::prefs().tachEnabled = lv_obj_has_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setTachEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
 
 void SettingsSwitchLimitChange(lv_event_t *e) {
-  StateManager::prefs().limitSwitchesEnabled = lv_obj_has_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setLimitSwitchesEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
 
 void SettingsSwitchRelaysChange(lv_event_t *e) {
-  StateManager::prefs().relaysEnabled = lv_obj_has_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
-  StateManager::savePreferences();
+  lv_obj_t *sw = lv_event_get_target(e);
+  StateManager::setRelaysEnabled(lv_obj_has_state(sw, LV_STATE_CHECKED));
+  applyMainScreenPreferences();
 }
+
 
 static void exit_tab_handler(lv_event_t *e) {
   lv_obj_t *btnmatrix = lv_event_get_current_target(e);
@@ -157,7 +235,7 @@ static void exit_tab_handler(lv_event_t *e) {
   int selected_idx = lv_btnmatrix_get_selected_btn(btnmatrix);
 
   if (selected_idx == 8) {  // Exit tab is the 8th tab (index 7)
-    printf("Exit tab clicked\n");
+    LOGI("Exit tab clicked");
 
     lv_tabview_set_act(tabview, 0, LV_ANIM_OFF);  // Reset tab to first
     lv_scr_load(ui_ScreenMain);                   // Go back to main screen
@@ -168,51 +246,40 @@ static void exit_tab_handler(lv_event_t *e) {
 void SettingsScreenLoaded(lv_event_t *e) {
   // General Settings
   lv_event_code_t code = lv_event_get_code(e);
+  LOGD("Settings screen event code: %d", code);
   if (code == LV_EVENT_SCREEN_LOADED) {
-    setup_custom_number_keyboard(ui_SettingsKeyboardSettingsNumberKeyboard);
+    StateManager::flushPreferencesNowBlocking();
+    setup_custom_number_keyboard(ui_Settings1KeyboardSettingsNumberKeyboard);
+    setup_custom_hex_keyboard(ui_Settings1KeyboardSettingsHexKeyboard);
 
-    // Set units toggle to match current preference
-    (StateManager::getUnitSystem() == UnitSystem::METRIC)
-        ? lv_obj_add_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED)
-        : lv_obj_clear_state(ui_SettingsSwitchUnitsToggle, LV_STATE_CHECKED);
-    // Toggle switches
-    StateManager::prefs().benchmarkMode ? lv_obj_add_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchBenchmarkToggle, LV_STATE_CHECKED);
+    LOGI("Settings screen loaded - applying preferences");
 
-    StateManager::prefs().tachEnabled ? lv_obj_add_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED)
-                                      : lv_obj_clear_state(uic_SettingsSwitchTachToggle, LV_STATE_CHECKED);
+    updateSettingsScreen();
+    if (ui_Settings1ButtonButton8 != nullptr) {
+      lv_obj_add_event_cb(ui_Settings1ButtonButton8, JudgeConnectButtonPressed, LV_EVENT_CLICKED, nullptr);
+    }
 
-    StateManager::prefs().limitSwitchesEnabled ? lv_obj_add_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED)
-                                               : lv_obj_clear_state(uic_SettingsSwitchLimitToggle, LV_STATE_CHECKED);
 
-    StateManager::prefs().relaysEnabled ? lv_obj_add_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED)
-                                        : lv_obj_clear_state(uic_SettingsSwitchRelaysToggle, LV_STATE_CHECKED);
-
-    // Brightness
-    lv_slider_set_value(uic_SettingsSliderBrightnessSlider, StateManager::prefs().screenBrightness, LV_ANIM_OFF);
-
-    // Track length
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.1f", StateManager::prefs().trackLengthFeet);
-    lv_textarea_set_text(uic_SettingsTextareaTrackLengthText, buf);
   }
 
   // Speed and Distance Page
   // Update calibration number input box with stored integer pulse calibration value
   char calibBuf[16];
   snprintf(calibBuf, sizeof(calibBuf), "%d", StateManager::getSpeedCalibrationNumber());
-  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, calibBuf);
+  lv_textarea_set_text(ui_Settings1TextareaCalibrationNumberTextArea, calibBuf);
 
   // About Page
-  lv_label_set_text(ui_SettingsLabelVersionData, VERSION_STRING);
-  lv_label_set_text(ui_SettingsLabelBuildDateData, BUILD_DATETIME);
+  lv_label_set_text(ui_Settings1LabelVersionData, VERSION_STRING);
+  lv_label_set_text(ui_Settings1LabelBuildDateData, BUILD_DATETIME);
 
   // Exit Page
-  lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_SettingsTabviewSettingsView);
-  lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_SettingsTabviewSettingsView);
+  lv_obj_t *btnmatrix = lv_tabview_get_tab_btns(ui_Settings1TabviewSettingsView);
+  lv_obj_add_event_cb(btnmatrix, exit_tab_handler, LV_EVENT_VALUE_CHANGED, ui_Settings1TabviewSettingsView);
+
+  refreshAlarmUIFromPreset(AlarmManager::getActivePreset());
 }
 
-void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(); }
+void READYStageBtnPressed(lv_event_t *e) { PullStateManager::handleStagePressed(e); }
 
 void STAGEDCancelBtnPressed(lv_event_t *e) { PullStateManager::handleCancelPressed(); }
 
@@ -408,29 +475,33 @@ void HELPPresetCalNumber(lv_event_t *e) {
 }
 
 void SaveCalibrationNumberButton(lv_event_t *e) {
-  int val = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationNumberTextArea));
-  SpeedModule::saveManualCalibration(val);
+  (void)e;
+  int val = atoi(lv_textarea_get_text(ui_Settings1TextareaCalibrationNumberTextArea));
+  if (SpeedModule::saveManualCalibration(val)) {
+    showSettingsStatusBanner("Calibration saved", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    showSettingsStatusBanner("Invalid calibration number", lv_palette_main(LV_PALETTE_RED));
+  }
 }
 
 void SaveCalibrationCalculatorNumberButton(lv_event_t *e) { SpeedModule::saveCalculatorCalibration(); }
 
 void StartAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::startDriveOffCalibration(); }
 
-void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
+void SaveCalibrationAutoDriveNumberButton(lv_event_t *e) {
+  (void)e;
+  if (SpeedModule::saveDriveOffCalibration()) {
+    showSettingsStatusBanner("Calibration saved", lv_palette_main(LV_PALETTE_GREEN));
+  } else {
+    showSettingsStatusBanner("Invalid calibration number", lv_palette_main(LV_PALETTE_RED));
+  }
+}
 
 void SaveRadarCalibration(lv_event_t *e) { SpeedModule::applyRadarCalibration(); }
 
 void FinishAutoDriveButtonPressed(lv_event_t *e) { SpeedModule::stopDriveOffCalibration(); }
 
 void SaveGPSCalibration(lv_event_t *e) { SpeedModule::applyGPSCalibration(); }
-
-void CalculateCalibrationCalculatorNumberButton(lv_event_t *e) {
-  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
-  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
-  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
-  int result = SpeedModule::calculateCalibrationFromInputs(teeth, diameter, ratio);
-  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d", result);
-}
 
 void RecalibrateTouch(lv_event_t *e) { setRecalibrationFlag(); }
 
@@ -465,14 +536,14 @@ void HELPAlarmPresets(lv_event_t *e) {
 }
 
 void CreateDeviceTable(lv_event_t *e) {
-  // lv_obj_clean(ui_SettingsPanelDeviceTable);  // Clear old content
+  // lv_obj_clean(ui_Settings1PanelDeviceTable);  // Clear old content
 
   // // Scrollable panel setup
-  // lv_obj_set_scroll_dir(ui_SettingsPanelDeviceTable, LV_DIR_VER);
-  // lv_obj_set_scrollbar_mode(ui_SettingsPanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
+  // lv_obj_set_scroll_dir(ui_Settings1PanelDeviceTable, LV_DIR_VER);
+  // lv_obj_set_scrollbar_mode(ui_Settings1PanelDeviceTable, LV_SCROLLBAR_MODE_AUTO);
 
   // // Table container
-  // lv_obj_t *table_container = lv_obj_create(ui_SettingsPanelDeviceTable);
+  // lv_obj_t *table_container = lv_obj_create(ui_Settings1PanelDeviceTable);
   // lv_obj_set_size(table_container, lv_pct(100), LV_SIZE_CONTENT);
   // lv_obj_set_flex_flow(table_container, LV_FLEX_FLOW_COLUMN);
   // lv_obj_set_scroll_dir(table_container, LV_DIR_VER);
@@ -583,10 +654,443 @@ void CreateDeviceTable(lv_event_t *e) {
 }
 
 void DriverButton(lv_event_t *e) {
-  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(VERSION);
+  StateManager::prefs().pullingClassName = "M4 Sled Monitor - " + String(DEVICE_VERSION);
   StateManager::prefs().pullingClassWeight = 0;
   StateManager::prefs().driverName = "Driver";
   StateManager::prefs().driverNumber += 1;
 
   StateManager::savePreferences();
+}
+
+static void draw_part_event_cb(lv_event_t * e)
+{
+    lv_obj_t * obj = lv_event_get_target(e);
+    lv_obj_draw_part_dsc_t * dsc = lv_event_get_draw_part_dsc(e);
+    
+    if(dsc->part == LV_PART_ITEMS) {
+        uint32_t row = dsc->id / lv_table_get_col_cnt(obj);
+        uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
+
+        LV_UNUSED(row);
+
+        // Force data rows to draw like a passive report even while LVGL is
+        // tracking a pressed/active cell for drag scrolling.
+        dsc->rect_dsc->bg_color = lv_color_hex(0xF5F5F5);
+        dsc->rect_dsc->bg_opa = LV_OPA_COVER;
+        dsc->rect_dsc->border_color = lv_color_hex(0xD0D0D0);
+        dsc->label_dsc->color = lv_color_hex(0x000000);
+
+        if(col == 1 || col == 2 || col == 3) {
+            dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
+        }
+        /*In the first column align the texts to the right*/
+        else if(col == 0) {
+            dsc->label_dsc->align = LV_TEXT_ALIGN_LEFT;
+        }
+    }
+}
+
+void PullHistoryScreenLoaded(lv_event_t * e)
+{
+  // Clear any existing content in the table panel
+  lv_obj_clean(uic_PullHistoryScreenPanelTablePanel);
+  
+  // Get pull history data
+  int pullCount = StateManager::getPullHistoryCount();
+  const PullResult* pullHistory = StateManager::getPullHistory();
+  bool isMetric = (StateManager::getUnitSystem() == UnitSystem::METRIC);
+  
+  if (pullCount == 0) {
+    // No pull history - show message
+    lv_obj_t *noDataLabel = lv_label_create(uic_PullHistoryScreenPanelTablePanel);
+    lv_label_set_text(noDataLabel, "No pull history available.\nStart some pulls to see data here!");
+    lv_obj_center(noDataLabel);
+    lv_obj_set_style_text_align(noDataLabel, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_text_color(noDataLabel, lv_color_hex(0x808080), 0);
+    lv_obj_set_style_text_font(noDataLabel, &ui_font_BIO_SEMIBOLD_6, 0);
+    return;
+  }
+  
+  // Build a fixed header bar above the table so the column labels stay visible
+  // while the user scrolls through the history rows.
+  lv_coord_t table_width = 780;
+  lv_coord_t header_height = 42;
+
+  // Get table width and calculate proportional column widths
+  int col_1_width = table_width * 0.28;
+  int col_2_width = table_width * 0.28;
+  int col_3_width = table_width * 0.28;
+  // Let the first column absorb any remainder (off-by-one, rounding, etc)
+  int col_0_width = table_width - (col_1_width + col_2_width + col_3_width);
+
+  lv_obj_t *tableContainer = lv_obj_create(uic_PullHistoryScreenPanelTablePanel);
+  lv_obj_set_size(tableContainer, table_width, lv_pct(100));
+  lv_obj_center(tableContainer);
+  lv_obj_clear_flag(tableContainer, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_bg_opa(tableContainer, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_width(tableContainer, 0, 0);
+  lv_obj_set_style_pad_all(tableContainer, 0, 0);
+  lv_obj_set_style_radius(tableContainer, 0, 0);
+  lv_obj_set_flex_flow(tableContainer, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(tableContainer, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+
+  lv_obj_t *header = lv_obj_create(tableContainer);
+  lv_obj_set_size(header, table_width, header_height);
+  lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_style_bg_color(header, lv_color_hex(0x404040), 0);
+  lv_obj_set_style_border_width(header, 1, 0);
+  lv_obj_set_style_border_color(header, lv_color_hex(0xD0D0D0), 0);
+  lv_obj_set_style_pad_all(header, 0, 0);
+  lv_obj_set_style_radius(header, 0, 0);
+
+  auto addHeaderLabel = [&](const char *text, lv_coord_t width, lv_coord_t x_ofs, lv_text_align_t align) {
+    lv_obj_t *label = lv_label_create(header);
+    lv_obj_set_size(label, width, LV_SIZE_CONTENT);
+    lv_label_set_text(label, text);
+    lv_obj_align(label, LV_ALIGN_LEFT_MID, x_ofs, 0);
+    lv_obj_set_style_text_align(label, align, 0);
+    lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(label, &ui_font_BIO_SEMIBOLD_6, 0);
+  };
+
+  addHeaderLabel(" Driver #", col_0_width, 0, LV_TEXT_ALIGN_LEFT);
+  addHeaderLabel(isMetric ? "Speed (km/h)" : "Speed (mph)", col_1_width, col_0_width, LV_TEXT_ALIGN_CENTER);
+  addHeaderLabel(isMetric ? "Distance (m)" : "Distance (ft)", col_2_width, col_0_width + col_1_width, LV_TEXT_ALIGN_CENTER);
+  addHeaderLabel("RPM", col_3_width, col_0_width + col_1_width + col_2_width, LV_TEXT_ALIGN_CENTER);
+
+  lv_obj_t *table = lv_table_create(tableContainer);
+  lv_obj_set_width(table, table_width);
+  lv_obj_set_flex_grow(table, 1);
+
+  // This table is meant to behave like a read-only report.
+  // Keep normal pointer handling so drag-to-scroll still works, but neutralize
+  // the pressed/focused item styling below so cells do not look selectable.
+  lv_obj_add_flag(table, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_clear_flag(table, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+  lv_obj_set_scroll_dir(table, LV_DIR_VER);
+
+  // Set table dimensions (columns: Driver#, Max Speed, Max Distance, Max RPM)
+  lv_table_set_col_cnt(table, 4);
+  lv_table_set_row_cnt(table, pullCount);
+  lv_table_set_col_width(table, 0, col_0_width); // Driver#
+  lv_table_set_col_width(table, 1, col_1_width); // Max Speed
+  lv_table_set_col_width(table, 2, col_2_width); // Max Distance
+  lv_table_set_col_width(table, 3, col_3_width); // Max RPM
+
+  // Style the table - default light background for data cells
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(table, 1, LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_FOCUSED);
+  lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_FOCUSED);
+  lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_FOCUSED);
+
+  
+  // Populate data rows (newest first - reverse order)
+  for (int i = 0; i < pullCount; i++) {
+    int pullIndex = pullCount - 1 - i; // Reverse order for newest first
+    const PullResult& pull = pullHistory[pullIndex];
+    int row = i;
+    
+    // Driver Number
+    char driverStr[16];
+    snprintf(driverStr, sizeof(driverStr), "#%d", pull.driverNumber);
+    lv_table_set_cell_value(table, row, 0, driverStr);
+    
+    // Max Speed (convert to metric if needed)
+    float speed = isMetric ? pull.maxSpeedMPH * 1.60934f : pull.maxSpeedMPH;
+    char speedStr[16];
+    snprintf(speedStr, sizeof(speedStr), "%.1f", speed);
+    lv_table_set_cell_value(table, row, 1, speedStr);
+    
+    // Max Distance (convert to metric if needed)
+    float distance = isMetric ? pull.maxDistanceFeet * 0.3048f : pull.maxDistanceFeet;
+    char distanceStr[16];
+    snprintf(distanceStr, sizeof(distanceStr), "%.2f", distance);
+    lv_table_set_cell_value(table, row, 2, distanceStr);
+    
+    // Max RPM
+    char rpmStr[16];
+    snprintf(rpmStr, sizeof(rpmStr), "%.0f", pull.maxRPM);
+    lv_table_set_cell_value(table, row, 3, rpmStr);
+  }
+
+  lv_obj_add_event_cb(table, draw_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+
+  
+  LOGI("Pull history table loaded with %d pulls", pullCount);
+}
+
+void DeletePullHistoryConfirmationHandler(lv_event_t *e) {
+  lv_obj_t *mbox = lv_event_get_current_target(e);
+  
+  // Get which button was pressed
+  const char *btn_txt = lv_msgbox_get_active_btn_text(mbox);
+  
+  if (strcmp(btn_txt, "Yes") == 0) {
+    // Clear pull history and reset driver number
+    StateManager::clearPullHistory();
+    
+    // Close the modal
+    lv_msgbox_close(mbox);
+    
+    // Refresh the pull history screen by triggering a screen reload
+    lv_event_send(ui_ScreenPullHistoryScreen, LV_EVENT_SCREEN_LOADED, NULL);
+    
+    LOGI("Pull history deleted and screen refreshed");
+  } else if (strcmp(btn_txt, "No") == 0) {
+    // Just close the modal
+    lv_msgbox_close(mbox);
+  }
+}
+
+void deletePullHistoryButtonClicked(lv_event_t * e)
+{
+  // Define the button options
+  static const char *btn_txts[] = {"Yes", "No", NULL};
+
+  // Confirmation message
+  const char *confirmation_text =
+      "Are you sure you want to delete the pull history?\n\n"
+      "This action CANNOT be undone and will:\n"
+      "• Delete all saved pull records\n"
+      "• Reset the driver number back to 1\n\n"
+      "Do you want to continue?";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "DELETE PULL HISTORY", confirmation_text, btn_txts, true);
+
+  // Center the message box on the screen
+  lv_obj_set_width(mbox, 600);
+  lv_obj_center(mbox);
+
+  // Attach the custom event handler
+  lv_obj_add_event_cb(mbox, DeletePullHistoryConfirmationHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void SettingsSwitchRotateScreen(lv_event_t * e)
+{
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool rotation180 = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  // Apply the screen rotation setting
+  StateManager::setScreenRotation(rotation180);
+}
+
+void SettingsSwitchAutoConnectTach(lv_event_t * e)
+{
+  lv_obj_t *switchObj = lv_event_get_target(e);
+  bool autoConnect = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  StateManager::setIsAutoConnectTractor(autoConnect);
+}
+
+// This is for pairing with Remote displays NOT for Tach sensor
+void enterPairingModeBtnClicked(lv_event_t * e)
+{
+
+}
+
+// Distance #1
+void AlarmDXToggle1(lv_event_t* e)          { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmDXTripPointChange1(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmDXTripStyleChange1(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmDXColorChange1(lv_event_t* e)     { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// Distance #2
+void AlarmDXToggle2(lv_event_t* e)          { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmDXTripPointChange2(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmDXTripStyleChange2(lv_event_t* e) { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmDXColorChange2(lv_event_t* e)     { AlarmManager::handleAlarmChange(AlarmChannel::DISTANCE, AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+// Speed #1
+void AlarmSpeedToggle1(lv_event_t* e)       { AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmSpeedTripPointChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmSpeedTripStyleChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmSpeedColorChange1(lv_event_t* e)  { AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// Speed #2
+void AlarmSpeedToggle2(lv_event_t* e)       { 
+  LOGD("AlarmSpeedToggle2 triggered");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmSpeedTripPointChange2(lv_event_t* e){ 
+  LOGD("AlarmSpeedTripPointChange2 triggered");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmSpeedTripStyleChange2(lv_event_t* e){ 
+  LOGD("AlarmSpeedTripStyleChange2 triggered");
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,  AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmSpeedColorChange2(lv_event_t* e)  { 
+  LOGD("AlarmSpeedColorChange2 triggered");  
+  AlarmManager::handleAlarmChange(AlarmChannel::SPEED,    AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+// RPM #1
+void AlarmRPMToggle1(lv_event_t* e)         { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::ENABLE,    e); }
+void AlarmRPMTripPointChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::TRIPPOINT, e); }
+void AlarmRPMTripStyleChange1(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::STYLE,     e); }
+void AlarmRPMColorChange1(lv_event_t* e)    { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A1, AlarmField::COLOR,     e); }
+
+// RPM #2
+void AlarmRPMToggle2(lv_event_t* e)         { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::ENABLE,    e); }
+void AlarmRPMTripPointChange2(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::TRIPPOINT, e); }
+void AlarmRPMTripStyleChange2(lv_event_t* e){ AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::STYLE,     e); }
+void AlarmRPMColorChange2(lv_event_t* e)    { AlarmManager::handleAlarmChange(AlarmChannel::RPM,      AlarmSlot::A2, AlarmField::COLOR,     e); }
+
+
+void AlarmPresetValueChanged(lv_event_t * e)
+{
+	AlarmManager::handleAlarmPresetChanged(e);
+}
+
+void MainScreenPresetButtonClicked(lv_event_t * e)
+{
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) {
+    return;
+  }
+
+  _ui_screen_change(&ui_ScreenSettings1, LV_SCR_LOAD_ANIM_NONE, 0, 0, &ui_ScreenSettings1_screen_init);
+
+  if (ui_Settings1TabviewSettingsView) {
+    static const uint32_t alarms_tab_index = 3;  // General=0, Speed+Distance=1, Tach=2, Alarms=3
+    lv_tabview_set_act(ui_Settings1TabviewSettingsView, alarms_tab_index, LV_ANIM_OFF);
+  }
+}
+
+void CalibrationNumberChanged(lv_event_t * e)
+{
+	// Your code here
+}
+
+void SettingsSwitchJudgeChange(lv_event_t * e)
+{
+	lv_obj_t *switchObj = lv_event_get_target(e);
+  bool isJudgeMode = lv_obj_has_state(switchObj, LV_STATE_CHECKED);
+
+  StateManager::setJudgeMode(isJudgeMode);
+  JudgeModule::onJudgeModeChanged(isJudgeMode);
+  updateSettingsScreen();
+
+}
+
+void EnableJudgeHelpButtonPressed(lv_event_t *e) {
+  // Define the button options
+  static const char *btn_txts[] = {"OK", NULL};
+
+  // Help text
+  const char *help_text =
+      "Judge Stand Mode turns this device into a read only display for the main M4.\n"
+      "It mirrors live pull data and disables local controls like staging, relays, and alarms.\n\n"
+      "How to connect:\n"
+      "1) On this device: enable Judge Stand Mode in General Settings.\n"
+      "2) Open the Judge tab and enter the MCU ID shown on the main unit.\n"
+      "3) Tap Connect. The feed starts once the main unit is in range.\n\n"
+      "Notes:\n"
+      "- The main unit is always broadcasting. No traditional pairing is required.\n"
+      "- Multiple Judge displays can view the same main unit.\n"
+      "- If the feed is lost, the Judge will try to reconnect automatically.";
+
+  // Create a modal message box
+  lv_obj_t *mbox = lv_msgbox_create(NULL, "JUDGE STAND MODE", help_text, btn_txts, true);
+
+  // Size and position
+  lv_obj_set_width(mbox, 600);
+  lv_obj_center(mbox);
+
+  // Close handler
+  lv_obj_add_event_cb(mbox, CloseMsgBoxEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+void enterRemotePairingModeBtnClicked(lv_event_t* e) {
+  (void)e;
+  RemoteManager::EnterPairing();
+}
+
+void endRemotePairingModeBtnClicked(lv_event_t* e) {
+  (void)e;
+  RemoteManager::ExitPairing();
+}
+
+void HELPRemotePair(lv_event_t * e)
+{
+	// Your code here
+}
+
+void Settings1Screen_OnLoad(lv_event_t * e)
+{
+  (void)e;
+  LOGI("Settings1 OnLoad");
+  RemoteManager::SetTableContainer(uic_Settings1PanelDeviceTable);
+}
+
+void Settings1Screen_OnUnload(lv_event_t * e)
+{
+  (void)e;
+  // Turn off pairing and clear table wiring
+  RemoteManager::ExitPairing();
+  RemoteManager::SetTableContainer(nullptr);
+
+  // Reset buttons: show "Enter pairing", hide "End pairing"
+  lv_obj_clear_flag(uic_Settings1ButtonEnterRemotePairtingButton, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(uic_Settings1ButtonEndRemotePairtingButton, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void handleDeviceRowButton(int index) {
+  RemoteManager::HandleRowButtonClicked(index);
+}
+
+void DeviceRowActionButtonCB1(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(0);
+}
+
+void DeviceRowActionButtonCB2(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(1);
+}
+
+void DeviceRowActionButtonCB3(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(2);
+}
+
+void DeviceRowActionButtonCB4(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(3);
+}
+
+void DeviceRowActionButtonCB5(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(4);
+}
+
+void DeviceRowActionButtonCB6(lv_event_t * e)
+{
+  (void)e;
+  handleDeviceRowButton(5);
+}
+
+void downloadPullHistoryButtonClicked(lv_event_t * e)
+{
+	(void)e;
+	data_export_start();
+}
+
+void exportDoneButtonClicked(lv_event_t * e)
+{
+	(void)e;
+	data_export_stop();
+}
+
+void exportScreenLoaded(lv_event_t * e)
+{
+	(void)e;
+	data_export_build_screen(ui_ExportScreenPanelinstructionPanel);
 }

@@ -1,16 +1,1771 @@
 Tree
 
-src/touch/
+src/
 ├── .DS_Store
-└── touch.cpp
+├── M4CommsHelpers.cpp
+├── PullStateManager.cpp
+├── ScreenUpdater.cpp
+├── SpeedModule.cpp
+├── StateManager.cpp
+├── custom_ui/
+│   └── custom_keyboard.cpp
+├── dev_utils/
+│   ├── DevSimulator.cpp
+│   ├── benchmark.cpp
+│   ├── demo_ui.cpp
+│   └── test_display.cpp
+├── display/
+│   ├── backlight.cpp
+│   ├── display.cpp
+│   └── lvgl_callbacks.cpp
+├── lv_tick_custom.cpp
+├── main.cpp
+└── touch/
+    ├── .DS_Store
+    └── touch.cpp
 
-include/touch/
+include/
 ├── .DS_Store
-└── touch.h
+├── Config.h
+├── M4CommsHelpers.h
+├── PullStateManager.h
+├── README
+├── ScreenUpdater.h
+├── SpeedModule.h
+├── StateManager.h
+├── custom_ui/
+│   └── custom_keyboard.h
+├── dev_utils/
+│   ├── DevSimulator.h
+│   ├── benchmark.h
+│   ├── demo_ui.h
+│   └── test_display.h
+├── display/
+│   ├── backlight.h
+│   ├── display.h
+│   └── lvgl_callbacks.h
+├── lv_conf.h
+├── lv_conf_check.h
+└── touch/
+    ├── .DS_Store
+    └── touch.h
 
 src/main.cpp
 include/Config.h
 
+
+// src/lv_tick_custom.cpp
+// src/lv_tick_custom.cpp
+#include <Arduino.h>
+#include <lvgl.h>
+
+#if LV_TICK_CUSTOM
+uint32_t lv_tick_get_ms() { return millis(); }
+#endif
+
+// src/.DS_Store
+// Error reading file src/.DS_Store: 'utf-8' codec can't decode byte 0x82 in position 1109: invalid start byte
+
+// src/PullStateManager.cpp
+#include "PullStateManager.h"
+
+#include "../ui/ui.h"
+#include "SpeedModule.h"
+#include "StateManager.h"
+
+static unsigned long lastDebugPrint = 0;
+static const unsigned long debugInterval = 2000;  // Every 2 seconds
+
+void PullStateManager::enterState(PullState newState) {
+  StateManager::setPullState(newState);
+  updateUIForState(newState);
+  triggerRelaysForState(newState);
+  SpeedModule::notifyPullStateChanged(newState);
+
+  if (newState == PullState::READY) {
+    resetMaxValues();
+  }
+
+  if (newState == PullState::PULLEND) {
+    // optionally set labels to MAX
+  }
+}
+
+void PullStateManager::init() {
+  enterState(PullState::READY);  // Always start in READY
+}
+
+void PullStateManager::update() {
+  PullState current = StateManager::getPullState();
+
+  switch (current) {
+    case PullState::STAGED:
+      detectPullStart(StateManager::getSpeed());
+      break;
+
+    case PullState::PULLING:
+      if (StateManager::getSpeed() <= 0.0f) {
+        enterState(PullState::PULLEND);
+      }
+      break;
+
+      // Future: Handle e-stop debounce / other state checks here
+
+    default:
+      break;
+  }
+
+  unsigned long now = millis();
+  if (now - lastDebugPrint >= debugInterval) {
+    lastDebugPrint = now;
+
+    PullState current = StateManager::getPullState();
+    const char* stateStr = "";
+
+    switch (current) {
+      case PullState::READY:
+        stateStr = "READY";
+        break;
+      case PullState::STAGED:
+        stateStr = "STAGED";
+        break;
+      case PullState::PULLING:
+        stateStr = "PULLING";
+        break;
+      case PullState::PULLEND:
+        stateStr = "PULLEND";
+        break;
+      case PullState::EMERGENCYSTOP:
+        stateStr = "EMERGENCYSTOP";
+        break;
+      default:
+        stateStr = "UNKNOWN";
+        break;
+    }
+
+    Serial.printf("[PullState] Current state: %s\n", stateStr);
+    updateUIForState(current);
+  }
+}
+
+void PullStateManager::handleStagePressed() { enterState(PullState::STAGED); }
+
+void PullStateManager::handleCancelPressed() { enterState(PullState::READY); }
+
+void PullStateManager::handleStopPressed() { enterState(PullState::PULLEND); }
+
+void PullStateManager::handleDiscardPressed() {
+  resetMaxValues();
+  enterState(PullState::READY);
+}
+
+void PullStateManager::handleSavePressed() {
+  StateManager::savePullResult();
+  
+  // Increment to next driver
+  StateManager::prefs().driverNumber += 1;
+  StateManager::savePreferences();
+  
+  enterState(PullState::READY);
+}
+
+void PullStateManager::handleResetPressed() { enterState(PullState::READY); }
+
+void PullStateManager::triggerEmergencyStop() { enterState(PullState::EMERGENCYSTOP); }
+
+void PullStateManager::detectPullStart(float currentSpeed) {
+  if (StateManager::getPullState() == PullState::STAGED && currentSpeed > 0.5f) {
+    enterState(PullState::PULLING);
+  }
+}
+
+void PullStateManager::resetMaxValues() { StateManager::resetAllMaxValues(); }
+
+void PullStateManager::resetCurrentValues() {
+  StateManager::setRPM(0);
+  StateManager::setSpeed(0);
+  StateManager::setDistance(0);
+}
+
+void PullStateManager::updateUIForState(PullState state) {
+  lv_obj_add_flag(ui_MainContainerStateREADY, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(ui_MainContainerStateSTAGED, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(ui_MainContainerStatePULLING, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(ui_MainContainerStatePULLEND, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_add_flag(ui_MainContainerStateEMERGENCYSTOP, LV_OBJ_FLAG_HIDDEN);
+
+  switch (state) {
+    case PullState::READY:
+      lv_obj_clear_flag(ui_MainContainerStateREADY, LV_OBJ_FLAG_HIDDEN);
+      break;
+    case PullState::STAGED:
+      lv_obj_clear_flag(ui_MainContainerStateSTAGED, LV_OBJ_FLAG_HIDDEN);
+      break;
+    case PullState::PULLING:
+      lv_obj_clear_flag(ui_MainContainerStatePULLING, LV_OBJ_FLAG_HIDDEN);
+      break;
+    case PullState::PULLEND:
+      lv_obj_clear_flag(ui_MainContainerStatePULLEND, LV_OBJ_FLAG_HIDDEN);
+      break;
+    case PullState::EMERGENCYSTOP:
+      lv_obj_clear_flag(ui_MainContainerStateEMERGENCYSTOP, LV_OBJ_FLAG_HIDDEN);
+      break;
+  }
+}
+
+void PullStateManager::triggerRelaysForState(PullState state) {
+  // You can customize which relays are activated depending on the state
+  // Example:
+  for (int i = 0; i < 4; ++i) {
+    if (StateManager::prefs().relayEnabled[i]) {
+      StateManager::setRelayState(i, (state == PullState::PULLING ? RelayState::ENGAGED : RelayState::DISENGAGED));
+    }
+  }
+}
+
+
+// src/ScreenUpdater.cpp
+#include "ScreenUpdater.h"
+
+#include "../ui/ui.h"
+#include "PullStateManager.h"
+#include "StateManager.h"
+
+// Last known values to avoid unnecessary redraws
+static float lastDisplayedSpeed = -1.0f;
+static float lastDisplayedDistance = -1.0f;
+static float lastDisplayedRPM = -1.0f;
+static std::string lastClassName;
+static std::string lastDriverName;
+static int lastDriverNumber = -1;
+
+static void setIndicatorColor(lv_obj_t* obj, uint8_t themeID) {
+  lv_color_t color = COLOR_INDIC_DISABLED;
+
+  switch (themeID) {
+    case UI_THEME_COLOR_INDICGREEN:
+      color = COLOR_INDIC_GREEN;
+      break;
+    case UI_THEME_COLOR_INDICRED:
+      color = COLOR_INDIC_RED;
+      break;
+    case UI_THEME_COLOR_INDICDISABLED:
+      color = COLOR_INDIC_DISABLED;
+      break;
+    case UI_THEME_COLOR_YELLOW:
+      color = COLOR_INDIC_YELLOW;
+      break;
+  }
+
+  lv_obj_set_style_bg_color(obj, color, 0);
+}
+
+void updateMainScreen() {
+  PullState pullState = StateManager::getPullState();
+  bool showMax = (pullState == PullState::PULLEND);
+
+  // Speed
+  float speed = showMax ? StateManager::getMaxSpeed() : StateManager::getSpeed();
+  if (uic_MainLabelSpeedValue && speed != lastDisplayedSpeed) {
+    if (speed < 0 || isnan(speed)) {
+      lv_label_set_text(uic_MainLabelSpeedValue, "--.-");
+    } else {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "%.1f", speed);
+      lv_label_set_text(uic_MainLabelSpeedValue, buf);
+    }
+    lastDisplayedSpeed = speed;
+  }
+
+  // Distance
+  float distance = showMax ? StateManager::getMaxDistance() : StateManager::getDistance();
+  if (uic_MainLabelDistanceValue && distance != lastDisplayedDistance) {
+    if (distance < 0 || isnan(distance)) {
+      lv_label_set_text(uic_MainLabelDistanceValue, "---.--");
+    } else {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "%.2f", distance);
+      lv_label_set_text(uic_MainLabelDistanceValue, buf);
+    }
+    lastDisplayedDistance = distance;
+  }
+
+  // RPM
+  float rpm = showMax ? StateManager::getMaxRPM() : StateManager::getRPM();
+  if (uic_MainLabelTachValue && rpm != lastDisplayedRPM) {
+    if (rpm < 0 || isnan(rpm)) {
+      lv_label_set_text(uic_MainLabelTachValue, "---");
+    } else {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "%.0f", rpm);
+      lv_label_set_text(uic_MainLabelTachValue, buf);
+    }
+    lastDisplayedRPM = rpm;
+  }
+
+  if (ui_MainLabelDistanceTitle) {
+    if (showMax) {
+      lv_obj_clear_flag(ui_MainLabelDistanceTitle, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(ui_MainLabelDistanceTitle, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+
+  if (ui_MainLabelSpeedTitle) {
+    lv_label_set_text(ui_MainLabelSpeedTitle, showMax ? "MAX SPEED" : "Speed");
+  }
+
+  if (ui_MainLabelTachTitle) {
+    lv_label_set_text(ui_MainLabelTachTitle, showMax ? "MAX RPM" : "Tach");
+  }
+
+  // Driver info
+  std::string driverName = StateManager::prefs().driverName.c_str();
+  int driverNumber = StateManager::prefs().driverNumber;
+  if (driverName != lastDriverName || driverNumber != lastDriverNumber) {
+    lv_label_set_text_fmt(uic_MainLabelDriverName, "%s", driverName.c_str());
+    lv_label_set_text_fmt(uic_MainLabelDriverNumber, "#%d", driverNumber);
+    lastDriverName = driverName;
+    lastDriverNumber = driverNumber;
+  }
+
+  // Class name
+  std::string className = StateManager::prefs().pullingClassName.c_str();
+  if (className != lastClassName) {
+    lv_label_set_text_fmt(uic_MainLabelClassName, "%s", className.c_str());
+    lastClassName = className;
+  }
+
+  //
+  // Tach Alarm Indicator
+  //
+  float tach1 = StateManager::prefs().tachAlarm1;
+  float tach2 = StateManager::prefs().tachAlarm2;
+
+  if (rpm > tach1 && rpm > tach2) {
+    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_INDICRED);
+  } else if (rpm > tach1 || rpm > tach2) {
+    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_YELLOW);
+  } else {
+    setIndicatorColor(uic_MainPanelTachAlarmIndicatorIcon, UI_THEME_COLOR_INDICDISABLED);
+  }
+
+  //
+  // Speed Alarm Indicator
+  //
+  float speed1 = StateManager::prefs().mphAlarm1;
+  float speed2 = StateManager::prefs().mphAlarm2;
+
+  if (speed > speed1 && speed > speed2) {
+    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_INDICRED);
+  } else if (speed > speed1 || speed > speed2) {
+    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_YELLOW);
+  } else {
+    setIndicatorColor(uic_MainPanelSpeedAlarmIndicatorIcon, UI_THEME_COLOR_INDICDISABLED);
+  }
+
+  //
+  // Limit Switch Indicators
+  //
+  for (int i = 0; i < 2; ++i) {
+    bool enabled = StateManager::isLimitSwitchEnabled(i);
+    bool triggered = StateManager::getLimitSwitchTriggered(i);
+
+    setIndicatorColor(
+        (i == 0 ? uic_MainPanelLimitIndicatorIcon1 : uic_MainPanelLimitIndicatorIcon2),
+        enabled ? (triggered ? UI_THEME_COLOR_INDICGREEN : UI_THEME_COLOR_INDICRED) : UI_THEME_COLOR_INDICDISABLED);
+  }
+
+  //
+  // Relay Indicators
+  //
+  for (int i = 0; i < 4; ++i) {
+    lv_obj_t* icon = nullptr;
+    switch (i) {
+      case 0:
+        icon = uic_MainPanelRelayIndicatorIcon1;
+        break;
+      case 1:
+        icon = uic_MainPanelRelayIndicatorIcon2;
+        break;
+      case 2:
+        icon = uic_MainPanelRelayIndicatorIcon3;
+        break;
+      case 3:
+        icon = uic_MainPanelRelayIndicatorIcon4;
+        break;
+    }
+
+    if (!StateManager::prefs().relayEnabled[i]) {
+      setIndicatorColor(icon, UI_THEME_COLOR_INDICDISABLED);
+    } else {
+      RelayState state = StateManager::state().relayStates[i];
+      setIndicatorColor(icon, state == RelayState::ENGAGED ? UI_THEME_COLOR_INDICGREEN : UI_THEME_COLOR_INDICRED);
+    }
+  }
+
+  // Distance Progress bar Graphs
+  // Track bar graph updates
+  float trackLength = StateManager::getTrackLength();
+  float currentDistance = StateManager::getDistance();
+  float alarm1 = StateManager::prefs().distanceAlarm1;
+  float alarm2 = StateManager::prefs().distanceAlarm2;
+
+  // Set min/max range (always 0 to track length)
+  lv_bar_set_range(ui_MainBarDistanceProgress, 0, (int)trackLength);
+  lv_bar_set_range(ui_MainBarDistanceAlarm1, 0, (int)trackLength);
+  lv_bar_set_range(ui_MainBarDistanceAlarm2, 0, (int)trackLength);
+
+  // Set values
+  lv_bar_set_value(ui_MainBarDistanceProgress, (int)currentDistance, LV_ANIM_OFF);
+  lv_bar_set_value(ui_MainBarDistanceAlarm1, (int)alarm1, LV_ANIM_OFF);
+  lv_bar_set_value(ui_MainBarDistanceAlarm2, (int)alarm2, LV_ANIM_OFF);
+
+  if (!uic_MainLabelSpeedValue) Serial.println("❌ uic_MainLabelSpeedValue is NULL");
+  if (!uic_MainLabelDistanceValue) Serial.println("❌ uic_MainLabelDistanceValue is NULL");
+  if (!uic_MainLabelTachValue) Serial.println("❌ uic_MainLabelTachValue is NULL");
+}
+
+
+// src/SpeedModule.cpp
+#include "SpeedModule.h"
+
+#include <cmath>
+
+#include "StateManager.h"
+#include "lvgl.h"
+
+#define SPEED_TIMEOUT_MICROS 500000  // 500ms
+
+static unsigned long lastPulseMicros = 0;
+static float currentSpeedMPH = 0.0f;
+static volatile int pendingPulses = 0;
+static volatile bool pulseReceived = false;
+
+static const int SPEED_BUFFER_SIZE = 10;
+static float deltaSecHistory[SPEED_BUFFER_SIZE];
+static volatile int timingIndex = 0;
+static volatile bool bufferFull = false;
+
+// UI Elements (externs from UI event screen)
+extern lv_obj_t *ui_SettingsTextareaCalibrationNumberTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea;
+extern lv_obj_t *ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea;
+extern lv_obj_t *ui_SettingsLabelGearToothCalculatorPulses;
+extern lv_obj_t *ui_SettingsLabelAutoDriveCurrentPulses;
+
+// Internal state
+static int calibrationPulses = 1000;  // default/fallback
+static int pulseCount = 0;
+static bool driveOffMode = false;
+static PullState currentPullState = PullState::READY;
+
+static void IRAM_ATTR onSpeedSensorPulseISR() {
+  pendingPulses++;
+  pulseReceived = true;
+}
+
+void SpeedModule::begin() {
+  pinMode(SPEED_SENSOR_PIN, INPUT_PULLUP);  // Assuming open-drain or contact-closure type sensor
+  attachInterrupt(digitalPinToInterrupt(SPEED_SENSOR_PIN), onSpeedSensorPulseISR, RISING);
+
+  timingIndex = 0;
+  bufferFull = false;
+  lastPulseMicros = 0;
+  pulseCount = 0;
+  currentSpeedMPH = 0.0f;
+
+  for (int i = 0; i < SPEED_BUFFER_SIZE; i++) {
+    deltaSecHistory[i] = 0.0f;
+  }
+}
+
+// void SpeedModule::tick() {
+//   unsigned long now = micros();
+
+//   if (driveOffMode) {
+//     handlePulseDuringDriveOff();
+//     return;
+//   }
+
+//   // Handle pulse updates
+//   if (pulseReceived) {
+//     noInterrupts();
+//     int pulses = pendingPulses;
+//     pendingPulses = 0;
+//     pulseReceived = false;
+//     interrupts();
+
+//     if (currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) {
+//       if (pulses > 0) {
+//         pulseCount += pulses;
+
+//         if (lastPulseMicros > 0 && pulses == 1) {
+//           float deltaSec = (now - lastPulseMicros) / 1e6f;
+//           if (deltaSec > 0.0f && calibrationPulses > 0) {
+//             float feetPerPulse = 300.0f / calibrationPulses;
+//             float feetPerSecond = feetPerPulse / deltaSec;
+//             currentSpeedMPH = feetPerSecond * 0.681818f;
+//           }
+//         }
+
+//         lastPulseMicros = now;
+//       }
+
+//       updateSpeedAndDistance();
+//       if (currentPullState == PullState::STAGED) {
+//         resetDistance();
+//         //lastPulseMicros = 0;
+//       }
+//     }
+//     return;
+//   }
+
+//   // Handle speed decay if no new pulse
+//   if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+//     if (currentSpeedMPH > 0.01f) {
+//       currentSpeedMPH = 0.0f;
+//       updateSpeedAndDistance();
+//     }
+//   }
+// }
+void SpeedModule::tick() {
+  unsigned long now = micros();
+
+
+
+  if (pulseReceived) {
+    noInterrupts();
+    int pulses = pendingPulses;
+    pendingPulses = 0;
+    pulseReceived = false;
+    interrupts();
+
+    if (driveOffMode) {
+      handlePulseDuringDriveOff();
+      return;
+    }
+
+    if ((currentPullState == PullState::PULLING || currentPullState == PullState::STAGED) && pulses > 0) {
+      pulseCount += pulses;
+
+      for (int i = 0; i < pulses; i++) {
+        unsigned long thisPulseMicros = now;  // could add per-pulse micro timing here if needed
+        if (lastPulseMicros > 0) {
+          float deltaSec = (thisPulseMicros - lastPulseMicros) / 1e6f;
+
+          // Skip obviously bad values
+          if (deltaSec >= 0.001f && deltaSec <= 2.0f && calibrationPulses > 0) {
+            deltaSecHistory[timingIndex] = deltaSec;
+            timingIndex = (timingIndex + 1) % SPEED_BUFFER_SIZE;
+            if (timingIndex == 0) bufferFull = true;
+
+            float avgDelta = getAverageDeltaSec();
+            float feetPerPulse = 300.0f / calibrationPulses;
+            currentSpeedMPH = (feetPerPulse / avgDelta) * 0.681818f;
+          }
+        }
+
+        lastPulseMicros = thisPulseMicros;
+      }
+
+      updateSpeedAndDistance();
+      if (currentPullState == PullState::STAGED) {
+        resetDistance();
+      }
+    }
+    return;
+  }
+
+  // Speed decay
+  if (lastPulseMicros > 0 && (now - lastPulseMicros > SPEED_TIMEOUT_MICROS)) {
+    if (currentSpeedMPH > 0.01f) {
+      currentSpeedMPH = 0.0f;
+      updateSpeedAndDistance();
+    }
+  }
+}
+
+float SpeedModule::getAverageDeltaSec() {
+  int count = bufferFull ? SPEED_BUFFER_SIZE : timingIndex;
+  if (count == 0) return 1.0f;  // prevent div/0 on boot
+
+  float sum = 0.0f;
+  for (int i = 0; i < count; i++) {
+    sum += deltaSecHistory[i];
+  }
+  return sum / count;
+}
+
+// ---- Validation ----
+bool SpeedModule::isValidCalibrationNumber(int pulses) {
+  return pulses >= CALIBRATION_MIN && pulses <= CALIBRATION_MAX;
+}
+
+// ---- Manual Calibration ----
+void SpeedModule::saveManualCalibration(int pulses) {
+  if (!isValidCalibrationNumber(pulses)) return;
+  calibrationPulses = pulses;
+  StateManager::setSpeedCalibrationNumber(pulses);
+}
+
+// ---- Presets ----
+void SpeedModule::applyRadarCalibration() {
+  saveManualCalibration(RADAR_CALIBRATION_PULSES);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(RADAR_CALIBRATION_PULSES).c_str());
+}
+
+void SpeedModule::applyGPSCalibration() {
+  saveManualCalibration(GPS_CALIBRATION_PULSES);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(GPS_CALIBRATION_PULSES).c_str());
+}
+
+// ---- Gear Tooth Calculation ----
+int SpeedModule::calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio) {
+  float wheelCircumference = M_PI * wheelDiameterInches;
+  float rotationsIn300ft = 300.0f / (wheelCircumference / 12.0f);  // Convert inches to feet
+  int pulses = static_cast<int>(roundf(numTeeth * rotationsIn300ft * gearRatio));
+  return pulses;
+}
+
+void SpeedModule::saveCalculatorCalibration() {
+  int teeth = atoi(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorNumTeethTextArea));
+  float diameter = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorWheelDiameterTextArea));
+  float ratio = atof(lv_textarea_get_text(ui_SettingsTextareaCalibrationCalculatorGearRatioTextArea));
+
+  int pulses = calculateCalibrationFromInputs(teeth, diameter, ratio);
+  if (!isValidCalibrationNumber(pulses)) {
+    // Show error
+    static const char *btn_txts[] = {NULL};
+
+    // Help text
+    const char *help_text = "Invalid calibration number. Must be between 250 and 25,000.";
+
+    // Create a modal message box
+    lv_obj_t *mbox = lv_msgbox_create(NULL, "INVALID CALIBRATION NUMBER", help_text, btn_txts, true);
+
+    // Center the message box on the screen
+    lv_obj_set_width(mbox, 300);  // Adjust the width here
+    lv_obj_center(mbox);
+    return;
+  }
+
+  lv_label_set_text_fmt(ui_SettingsLabelGearToothCalculatorPulses, "%d pulses", pulses);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulses).c_str());
+  saveManualCalibration(pulses);
+}
+
+// ---- Drive-Off Calibration ----
+void SpeedModule::startDriveOffCalibration() {
+  driveOffMode = true;
+  pulseCount = 0;
+  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+}
+
+void SpeedModule::stopDriveOffCalibration() {
+  driveOffMode = false;
+  saveManualCalibration(pulseCount);
+  lv_textarea_set_text(ui_SettingsTextareaCalibrationNumberTextArea, std::to_string(pulseCount).c_str());
+}
+
+bool SpeedModule::isDriveOffModeActive() { return driveOffMode; }
+
+void SpeedModule::handlePulseDuringDriveOff() {
+  if (!driveOffMode) return;
+  pulseCount++;
+  lv_label_set_text_fmt(ui_SettingsLabelAutoDriveCurrentPulses, "%d", pulseCount);
+}
+
+// ---- Runtime Tracking ----
+void SpeedModule::onPulseDetected() {
+  unsigned long now = micros();
+
+  if (driveOffMode) {
+    handlePulseDuringDriveOff();
+    return;
+  }
+
+  if (currentPullState == PullState::PULLING) {
+    pulseCount++;
+
+    if (lastPulseMicros != 0) {
+      unsigned long deltaMicros = now - lastPulseMicros;
+      if (deltaMicros > 0) {
+        float timeSeconds = deltaMicros / 1e6f;
+
+        // Distance per pulse in feet
+        float feetPerPulse = 300.0f / static_cast<float>(calibrationPulses);
+        float feetPerSecond = feetPerPulse / timeSeconds;
+        currentSpeedMPH = feetPerSecond * 0.681818f;  // 1 fps = 0.681818 mph
+      }
+    }
+
+    lastPulseMicros = now;
+
+    updateSpeedAndDistance();
+  } else if (currentPullState == PullState::STAGED) {
+    resetDistance();
+    lastPulseMicros = 0;
+  }
+}
+
+void SpeedModule::notifyPullStateChanged(PullState newState) {
+  currentPullState = newState;
+  if (newState == PullState::STAGED) resetDistance();
+}
+
+void SpeedModule::resetDistance() {
+  pulseCount = 0;
+  StateManager::setDistance(0.0f);
+}
+
+void SpeedModule::updateSpeedAndDistance() {
+  float distanceFeet = (300.0f * static_cast<float>(pulseCount)) / calibrationPulses;
+
+  Serial.printf("[SpeedModule] Pulses: %d | Distance: %.2f ft | Speed: %.2f MPH\n", pulseCount, distanceFeet,
+                currentSpeedMPH);
+
+  StateManager::setSpeed(currentSpeedMPH);  // Always track live speed
+  StateManager::setDistance(distanceFeet);  // Always track live distance
+}
+
+// ---- Optional Accessors ----
+int SpeedModule::getCurrentPulseCount() { return pulseCount; }
+float SpeedModule::getCurrentDistance() { return (300.0f * static_cast<float>(pulseCount)) / calibrationPulses; }
+float SpeedModule::getCurrentSpeed() { return 0.0f; }  // Placeholder
+
+// src/M4CommsHelpers.cpp
+#include "M4CommsHelpers.h"
+
+#include "../ui/ui.h"
+
+// Define the global variables declared in M4CommsHelpers.h
+int CHECK_REMOTE_CONNECTION_RATE = 5000;
+
+bool isPairing = false;
+uint8_t pairedTractorAddress[6];
+int pairedTractorRSSI = -100;
+bool isTractorConnected = false;
+unsigned long isTractorConnectedMillis = 0;
+
+bool isRemoteDisplayConnected = false;
+unsigned long isRemoteDisplayConnectedMillis = 0;
+uint8_t pairedRemoteDisplayAddress[6];
+int pairedRemoteRSSI = -100;
+
+bool SendTestPatternToSignFlag = false;
+bool SendSignalStrengthToSignFlag = false;
+
+unsigned long pairingStartedMillis = 0;
+unsigned long pairingDelay;
+bool isWaitingForPairingDelay = false;
+bool isInPull = false;
+
+VERSION pairedTractorVersion = {0, 0, 0};
+VERSION pairedRemoteVersion = {0, 0, 0};
+
+void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
+                       uint8_t len, int rssi, bool broadcast) {
+  M4Message message;
+  memcpy(&message, incomingData, sizeof(message));
+
+  JsonDocument doc;
+
+  auto error = deserializeJson(doc, message.payload);
+  if (error) {
+    Serial.print("deserializeJson() failed: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  Serial.print("Received message: ");
+  Serial.println(message.payload);
+
+  action_type action = doc["action"];
+  const float value = doc["value"];
+  const char *unit = doc["unit"];
+  switch (action) {
+    case PAIRING_RESPONSE:
+      processPairingResponse(senderAddress, rssi);
+      break;
+    case PAIRING_REMOTE_RESPONSE:
+      processPairingRemoteResponse(senderAddress);
+      break;
+    case SEND_RPM:
+      processSendRPM(value, rssi);
+      if (doc.containsKey("version")) {
+        JsonObject versionObj = doc["version"].as<JsonObject>();
+        updateVersion(pairedTractorVersion, versionObj["major"].as<int>(),
+                      versionObj["minor"].as<int>(),
+                      versionObj["patch"].as<int>());
+      }
+      break;
+    case REMOTE_ACK:
+      processRemoteAck(rssi);
+      if (doc.containsKey("version")) {
+        JsonObject versionObj = doc["version"].as<JsonObject>();
+        updateVersion(pairedRemoteVersion, versionObj["major"].as<int>(),
+                      versionObj["minor"].as<int>(),
+                      versionObj["patch"].as<int>());
+      }
+      break;
+    default:
+      Serial.println("Unknown action received.");
+      break;
+  }
+}
+void formatMACAddress(char *macStr, const uint8_t *macAddress) {
+  sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", macAddress[0], macAddress[1],
+          macAddress[2], macAddress[3], macAddress[4], macAddress[5]);
+}
+
+void updateDisplayWithMAC(uint8_t *macAddress, lv_obj_t *btn, lv_obj_t *label) {
+  char btnLabel[5];  // Buffer for last 4 digits + null terminator
+  // Format the last 4 digits of the MAC address
+  snprintf(btnLabel, sizeof(btnLabel), "%02X%02X", macAddress[4],
+           macAddress[5]);
+
+  if (btn && label) {
+    showUIObject(btn, true);  // Show the button if it's not already visible
+    lv_label_set_text(
+        label,
+        btnLabel);  // Set the label to the last 4 digits of the MAC address
+  }
+}
+
+void processPairingResponse(uint8_t *senderAddress, int rssi) {
+  if (isPairing && rssi > pairedTractorRSSI) {
+    char macStr[18];
+    formatMACAddress(macStr, senderAddress);
+    Serial.println("Action: PAIRING_RESPONSE");
+    Serial.print("Found a closer tractor (Sender Address): ");
+    Serial.println(macStr);
+
+    memcpy(pairedTractorAddress, senderAddress, 6);
+    StateManager::setPairedTractorAddress(senderAddress);
+    pairedTractorRSSI = rssi;
+    //peakRPM = 0.00;
+    StateManager::resetMaxRPM();
+
+    formatMACAddress(macStr, pairedTractorAddress);
+    Serial.print("New paired tractor (pairedTractorAddress): ");
+    Serial.println(macStr);
+
+    Serial.print("New paired tractor with RSSI: ");
+    Serial.println(pairedTractorRSSI);
+  }
+}
+
+void processPairingRemoteResponse(uint8_t *senderAddress) {
+  char macStr[18];
+  formatMACAddress(macStr, senderAddress);
+  Serial.print("Found a Remote Display (Sender Address): ");
+  Serial.println(macStr);
+  
+  // This code was brought over from the Tach Monitor UI. TODO: Update this
+  // for (int i = 0; i < MAX_PAIRABLE_REMOTE_DISPLAYS; i++) {
+  //   if (pairableDevicesMAC[i][0] == 0) {  // Assuming 0 indicates an empty slot
+  //     memcpy(pairableDevicesMAC[i], senderAddress, 6);
+
+  //     lv_obj_t *btn = NULL;
+  //     lv_obj_t *label = NULL;
+  //     switch (i) {
+  //       case 0:
+  //         btn = ui_AvailableSignBtn1;
+  //         label = ui_AvailableSignBtnLabel1;
+  //         break;
+  //       case 1:
+  //         btn = ui_AvailableSignBtn2;
+  //         label = ui_AvailableSignBtnLabel2;
+  //         break;
+  //       case 2:
+  //         btn = ui_AvailableSignBtn3;
+  //         label = ui_AvailableSignBtnLabel3;
+  //         break;
+  //       case 3:
+  //         btn = ui_AvailableSignBtn4;
+  //         label = ui_AvailableSignBtnLabel4;
+  //         break;
+  //       default:
+  //         Serial.println("Error: No available slot for new remote display.");
+  //         return;
+  //     }
+
+  //     updateDisplayWithMAC(senderAddress, btn, label);
+  //     break;  // Exit loop after adding the MAC address and updating the display
+  //   }
+  // }
+}
+
+void processSendRPM(const float value, int rssi) {
+  StateManager::setRPM(value);
+  pairedTractorRSSI = rssi;
+  isTractorConnected = true;
+  isTractorConnectedMillis = millis();
+}
+
+void processRemoteAck(int rssi) {
+  isRemoteDisplayConnected = true;
+  isRemoteDisplayConnectedMillis = millis();
+  pairedRemoteRSSI = rssi;
+}
+
+int convertRssiToSignalStrength(int rssi) {
+  const int MIN_RSSI = -90;
+  const int MAX_RSSI = 0;
+  const int MIN_STRENGTH = 0;
+  const int MAX_STRENGTH = 1000;
+
+  if (rssi <= MIN_RSSI) {
+    return MIN_STRENGTH;
+  }
+  if (rssi >= MAX_RSSI) {
+    return MAX_STRENGTH;
+  }
+
+  return (rssi - MIN_RSSI) * (MAX_STRENGTH - MIN_STRENGTH) /
+         (MAX_RSSI - MIN_RSSI);
+}
+
+String convertRssiToSignalQuality(int rssi) {
+  if (rssi > -30) return "Amazing";
+  if (rssi > -55) return "Good";
+  if (rssi > -67) return "Fair";
+  if (rssi > -70) return "Okay";
+  if (rssi > -80) return "Poor";
+  if (rssi > -90) return "Weak";
+  return "Unusable";
+}
+
+void changeRSSISymbol(signed int rssi, wirelessSymbols symbol) {
+  // TODO Carry over from Tach Monitor UI
+  // switch (symbol) {
+  //   case REMOTE_SETTINGS: {
+  //     // Hide all wireless symbol images first ex: ui_Wireless0 through
+  //     // ui_Wireless5
+  //     showUIObject(ui_Wireless0, false);
+  //     showUIObject(ui_Wireless1, false);
+  //     showUIObject(ui_Wireless2, false);
+  //     showUIObject(ui_Wireless3, false);
+  //     showUIObject(ui_Wireless4, false);
+  //     showUIObject(ui_Wireless5, false);
+
+  //     // Show the correct wireless symbol image based on the rssi value
+  //     if (rssi > -30)
+  //       showUIObject(ui_Wireless0, true);
+  //     else if (rssi > -55)
+  //       showUIObject(ui_Wireless1, true);
+  //     else if (rssi > -67)
+  //       showUIObject(ui_Wireless2, true);
+  //     else if (rssi > -70)
+  //       showUIObject(ui_Wireless3, true);
+  //     else if (rssi > -80)
+  //       showUIObject(ui_Wireless4, true);
+  //     else if (rssi > -90)
+  //       showUIObject(ui_Wireless5, true);
+  //   }
+  //   case REMOTE_RUN: {
+  //     // Hide all wireless symbol images first ex: ui_RunRemoteWireless0
+  //     // through ui_RunRemoteWireless5
+  //     showUIObject(ui_RunRemoteWireless0, false);
+  //     showUIObject(ui_RunRemoteWireless1, false);
+  //     showUIObject(ui_RunRemoteWireless2, false);
+  //     showUIObject(ui_RunRemoteWireless3, false);
+  //     showUIObject(ui_RunRemoteWireless4, false);
+  //     showUIObject(ui_RunRemoteWireless5, false);
+
+  //     // Show the correct wireless symbol image based on the rssi value
+  //     if (rssi > -30)
+  //       showUIObject(ui_RunRemoteWireless5, true);
+  //     else if (rssi > -55)
+  //       showUIObject(ui_RunRemoteWireless4, true);
+  //     else if (rssi > -67)
+  //       showUIObject(ui_RunRemoteWireless3, true);
+  //     else if (rssi > -70)
+  //       showUIObject(ui_RunRemoteWireless2, true);
+  //     else if (rssi > -80)
+  //       showUIObject(ui_RunRemoteWireless1, true);
+  //     else if (rssi > -90)
+  //       showUIObject(ui_RunRemoteWireless0, true);
+  //   }
+  //   case TRACTOR_RUN: {
+  //     // Hide all wireless symbol images first ex: ui_RunTractorWireless0
+  //     // through ui_RunTractorWireless5
+  //     showUIObject(ui_RunTractorWireless0, false);
+  //     showUIObject(ui_RunTractorWireless1, false);
+  //     showUIObject(ui_RunTractorWireless2, false);
+  //     showUIObject(ui_RunTractorWireless3, false);
+  //     showUIObject(ui_RunTractorWireless4, false);
+  //     showUIObject(ui_RunTractorWireless5, false);
+
+  //     // Show the correct wireless symbol image based on the rssi value
+  //     if (rssi > -30)
+  //       showUIObject(ui_RunTractorWireless5, true);
+  //     else if (rssi > -55)
+  //       showUIObject(ui_RunTractorWireless4, true);
+  //     else if (rssi > -67)
+  //       showUIObject(ui_RunTractorWireless3, true);
+  //     else if (rssi > -70)
+  //       showUIObject(ui_RunTractorWireless2, true);
+  //     else if (rssi > -80)
+  //       showUIObject(ui_RunTractorWireless1, true);
+  //     else if (rssi > -90)
+  //       showUIObject(ui_RunTractorWireless0, true);
+  //   }
+  // }
+}
+
+void isRemoteDisplayConnectedHelper() {
+  if (millis() - isRemoteDisplayConnectedMillis >=
+      CHECK_REMOTE_CONNECTION_RATE) {
+    isRemoteDisplayConnected = false;
+  }
+  if (isRemoteDisplayConnected) {
+    // TODO update Display stuff from tach
+    // showUIObject(ui_isRemoteDisplayConnectedStatusIcon, true);
+    // // Change text of ui_pairedStatusLabel to "PAIRED"
+    // lv_label_set_text(ui_pairedStatusLabel, LV_SYMBOL_OK " PAIRED");
+    // // clear object state for ui_testPatternBtn to undisable button
+    // _ui_state_modify(ui_testPatternBtn, LV_STATE_DISABLED,
+    //                  _UI_MODIFY_FLAG_REMOVE);
+    // // clear object state for ui_signalTestBtn to undisable button
+    // _ui_state_modify(ui_signalTestBtn, LV_STATE_DISABLED,
+    //                  _UI_MODIFY_FLAG_REMOVE);
+    // // Show Wireless signal strength
+    // showUIObject(ui_RemoteRSSIStrengthContainer, true);
+    // // update D35 with the signal strength
+    // // change ui_WirelessSymbol to a different icon
+    // changeRSSISymbol(pairedRemoteRSSI, REMOTE_SETTINGS);
+
+    // // update label ui_RemoteRSSIScaleLabel with the signal strength scale
+    // // cast to a string
+    // lv_label_set_text(
+    //     ui_RemoteRSSIScaleLabel,
+    //     String(convertRssiToSignalStrength(pairedRemoteRSSI)).c_str());
+    // // update label ui_RemoteRSSITextLabel with the signal strength text cast
+    // // to a string
+    // lv_label_set_text(ui_RemoteRSSITextLabel,
+    //                   convertRssiToSignalQuality(pairedRemoteRSSI).c_str());
+    // update label ui_RemoteRSSILabel with signal strenght as "RSSI: -30dBm"
+    char buff[25];
+    snprintf(buff, sizeof(buff), "RSSI: %d dBm", pairedRemoteRSSI);
+    // lv_label_set_text(ui_RemoteRSSILabel, buff);
+  } else {
+        // TODO update Display stuff from tach
+
+    // showUIObject(ui_isRemoteDisplayConnectedStatusIcon, false);
+    // // Change text of ui_pairedStatusLabel to "NOT PAIRED"
+    // lv_label_set_text(ui_pairedStatusLabel, LV_SYMBOL_CLOSE " NOT PAIRED");
+    // // add object state for ui_testPatternBtn to disable button
+    // lv_obj_add_state(ui_testPatternBtn, LV_STATE_DISABLED);
+    // // add object state for ui_signalTestBtn to disable button
+    // lv_obj_add_state(ui_signalTestBtn, LV_STATE_DISABLED);
+    // // Hide Wireless signal strength
+    // showUIObject(ui_RemoteRSSIStrengthContainer, false);
+  }
+}
+
+void signalStrengthHelper() {
+  // if tractor is connected then show ui_RunTractorContainer and hide
+  // ui_NoTractorConnectedLabelContainer
+  if (isTractorConnected) {
+        // TODO update Display stuff from tach
+
+    // showUIObject(ui_RunTractorContainer, true);
+    // showUIObject(ui_NoTractorConnectedLabelContainer, false);
+    // // update D35 with the signal strength
+    // // change ui_WirelessSymbol to a different icon
+    // changeRSSISymbol(pairedTractorRSSI, TRACTOR_RUN);
+
+    // // update label ui_RemoteRSSIScaleLabel with the signal strength scale
+    // // cast to a string
+    // lv_label_set_text(
+    //     ui_RunTractorRSSIScaleLabel,
+    //     String(convertRssiToSignalStrength(pairedTractorRSSI)).c_str());
+    // // update label ui_RemoteRSSITextLabel with the signal strength text cast
+    // // to a string
+    // lv_label_set_text(ui_RunTractorRSSITextLabel,
+    //                   convertRssiToSignalQuality(pairedTractorRSSI).c_str());
+    // // update label ui_RemoteRSSILabel with signal strenght as "RSSI: -30dBm"
+    char buff[25];
+    snprintf(buff, sizeof(buff), "RSSI: %d dBm", pairedTractorRSSI);
+    // lv_label_set_text(ui_RunTractorRSSILabel, buff);
+  } else {
+    // showUIObject(ui_RunTractorContainer, false);
+    // showUIObject(ui_NoTractorConnectedLabelContainer, true);
+  }
+  // if isRemoteDisplayConnected then show ui_RemoteContainer and hide
+  // ui_NoRemoteConnectedLabelContainer
+  if (isRemoteDisplayConnected) {
+    // showUIObject(ui_RunRemoteContainer, true);
+    // showUIObject(ui_NoRemoteConnectedLabelContainer, false);
+    // // update D35 with the signal strength
+    // // change ui_WirelessSymbol to a different icon
+    // changeRSSISymbol(pairedRemoteRSSI, REMOTE_RUN);
+
+    // // update label ui_RemoteRSSIScaleLabel with the signal strength scale
+    // // cast to a string
+    // lv_label_set_text(
+    //     ui_RunRemoteRSSIScaleLabel,
+    //     String(convertRssiToSignalStrength(pairedRemoteRSSI)).c_str());
+    // // update label ui_RemoteRSSITextLabel with the signal strength text cast
+    // // to a string
+    // lv_label_set_text(ui_RunRemoteRSSITextLabel,
+    //                   convertRssiToSignalQuality(pairedRemoteRSSI).c_str());
+    // // update label ui_RemoteRSSILabel with signal strenght as "RSSI: -30dBm"
+    char buff[25];
+    snprintf(buff, sizeof(buff), "RSSI: %d dBm", pairedRemoteRSSI);
+    // lv_label_set_text(ui_RunRemoteRSSILabel, buff);
+  } else {
+    // showUIObject(ui_RunRemoteContainer, false);
+    // showUIObject(ui_NoRemoteConnectedLabelContainer, true);
+  }
+}
+
+void updateRemoteDisplay(float value) {
+  // Create a JSON object and populate it
+  JsonDocument doc;
+  String payload;
+
+  // doc["macAddress"] = deviceSelf.getMacAddress();
+  // Convert MAC address to a human-readable string
+  char macStr[18] = {0};  // 17 for MAC address in format XX:XX:XX:XX:XX:XX +
+                          // 1 for null terminator
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           deviceSelf.getMacAddress()[0], deviceSelf.getMacAddress()[1],
+           deviceSelf.getMacAddress()[2], deviceSelf.getMacAddress()[3],
+           deviceSelf.getMacAddress()[4], deviceSelf.getMacAddress()[5]);
+
+  doc["macAddress"] = macStr;
+
+  doc["name"] = deviceSelf.getName();
+  doc["type"] = deviceSelf.getType();
+  doc["action"] = SEND_REMOTE_VALUE;
+  // doc["value"] = value;
+  doc["value"] = static_cast<int>(value);
+  doc["units"] = "RPM";
+
+  // Convert JSON object to String
+  serializeJson(doc, payload);
+
+  // Register peer
+  esp_now_peer_info_t peerInfo;
+  memset(&peerInfo, 0, sizeof(peerInfo));
+  memcpy(peerInfo.peer_addr, pairedRemoteDisplayAddress, 6);
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+
+  // Delete the peer in case it is already added
+  esp_now_del_peer(pairedRemoteDisplayAddress);
+
+  // Add peer
+  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+    Serial.println("Failed to add peer");
+    return;
+  }
+
+  sendMessage(pairedRemoteDisplayAddress, RESPONSE, REMOTE_VALUE_RESPONSE,
+              payload, HIGH_PRIORITY);
+}
+
+void updateRemoteDisplay(String value) {
+  // Create a JSON object and populate it
+  JsonDocument doc;
+  String payload;
+
+  // doc["macAddress"] = deviceSelf.getMacAddress();
+  // Convert MAC address to a human-readable string
+  char macStr[18] = {0};  // 17 for MAC address in format XX:XX:XX:XX:XX:XX +
+                          // 1 for null terminator
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X",
+           deviceSelf.getMacAddress()[0], deviceSelf.getMacAddress()[1],
+           deviceSelf.getMacAddress()[2], deviceSelf.getMacAddress()[3],
+           deviceSelf.getMacAddress()[4], deviceSelf.getMacAddress()[5]);
+
+  doc["macAddress"] = macStr;
+
+  doc["name"] = deviceSelf.getName();
+  doc["type"] = deviceSelf.getType();
+  doc["action"] = SEND_REMOTE_VALUE;
+  // doc["value"] = value;
+  doc["value"] = value;
+  doc["units"] = "RPM";
+
+  // Convert JSON object to String
+  serializeJson(doc, payload);
+
+  // Register peer
+  esp_now_peer_info_t peerInfo;
+  memset(&peerInfo, 0, sizeof(peerInfo));
+  memcpy(peerInfo.peer_addr, pairedRemoteDisplayAddress, 6);
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+
+  // Delete the peer in case it is already added
+  esp_now_del_peer(pairedRemoteDisplayAddress);
+
+  // Add peer
+  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+    Serial.println("Failed to add peer");
+    return;
+  }
+
+  sendMessage(pairedRemoteDisplayAddress, RESPONSE, REMOTE_VALUE_RESPONSE,
+              payload, HIGH_PRIORITY);
+}
+
+// Function to handle the test pattern update
+void handleTestPattern(bool &SendTestPatternToSignFlag) {
+  static unsigned long lastUpdateTime = 0;
+  static int currentNumber = 1234;
+  const unsigned long updateInterval =
+      1000;  // Update every 1000 milliseconds (1 second)
+
+  unsigned long currentTime = millis();
+  if (SendTestPatternToSignFlag &&
+      currentTime - lastUpdateTime >= updateInterval) {
+    updateRemoteDisplay(currentNumber);
+    lastUpdateTime = currentTime;
+
+    // Logic to increment each digit, wrapping around as described
+    int thousands = (currentNumber / 1000) % 10;
+    int hundreds = (currentNumber / 100) % 10;
+    int tens = (currentNumber / 10) % 10;
+    int ones = currentNumber % 10;
+
+    // Increment digits
+    thousands = (thousands + 1) % 10;
+    hundreds = (hundreds + 1) % 10;
+    tens = (tens + 1) % 10;
+    ones = (ones + 1) % 10;
+
+    // Construct the new number
+    currentNumber = thousands * 1000 + hundreds * 100 + tens * 10 + ones;
+
+    // Reset to 1234 if the currentNumber exceeds 9012
+    if (currentNumber > 9012) {
+      currentNumber = 1234;
+    }
+  } else if (SendSignalStrengthToSignFlag &&
+             currentTime - lastUpdateTime >= updateInterval) {
+    updateRemoteDisplay(convertRssiToSignalStrength(pairedRemoteRSSI));
+    lastUpdateTime = currentTime;
+  }
+}
+
+bool isAddressEmpty(const uint8_t *address, size_t size) {
+  for (size_t i = 0; i < size; i++) {
+    if (address[i] != 0) {
+      return false;  // Found a non-zero byte, address is not empty
+    }
+  }
+  return true;  // All bytes were 0, address is empty
+}
+
+void pairingStateSwitcher() {
+  if (isPairing) {
+    int speedupPairingFactor = 1;
+    if (!isAddressEmpty(pairedTractorAddress, 6)) {
+      speedupPairingFactor = .5;
+    }
+    if (millis() - pairingStartedMillis >=
+        (pairingDelay * speedupPairingFactor)) {
+      isWaitingForPairingDelay = false;  // End the waiting period
+      isPairing = false;
+      // Check if the pairing was successful
+      if (!isAddressEmpty(pairedTractorAddress, 6)) {
+        // Pairing was successful
+        isInPull = true;
+        // Set run screen ui buttons to show end pull button
+        // showUIObject(ui_EndPullButton, true);
+        // showUIObject(ui_PairButton, false);
+        // showUIObject(ui_PairingIndicator, false);
+
+        // Hide and show the test Remote Buttons
+        showRemoteTestButtons(false);
+      } else {
+        // Pairing was unsuccessful
+        isInPull = false;
+        // Set run screen ui buttons to show Pair button
+        // showUIObject(ui_PairButton, true);
+        // showUIObject(ui_PairingIndicator, false);
+        // showUIObject(ui_EndPullButton, false);
+        // showRemoteTestButtons(true);
+      }
+    }
+  }
+}
+
+void showUIObject(lv_obj_t *obj, bool show) {
+  _ui_flag_modify(obj, LV_OBJ_FLAG_HIDDEN,
+                  show ? _UI_MODIFY_FLAG_REMOVE : _UI_MODIFY_FLAG_ADD);
+}
+
+void showRemoteTestButtons(bool show) {
+  // This code was brought over from the Tach Monitor UI. TODO: Update this
+  // showUIObject(ui_testPatternBtn, show);
+  // showUIObject(ui_signalTestBtn, show);
+  // showUIObject(ui_noTestLabel, !show);
+}
+
+void updateVersion(struct VERSION &version, int major, int minor, int patch) {
+  version.major = major;
+  version.minor = minor;
+  version.patch = patch;
+}
+
+void initializeM4Communications() {
+  // Load persistent data from StateManager
+  const uint8_t* tractorAddr = StateManager::getPairedTractorAddress();
+  const uint8_t* remoteAddr = StateManager::getPairedRemoteDisplayAddress();
+  
+  memcpy(pairedTractorAddress, tractorAddr, 6);
+  memcpy(pairedRemoteDisplayAddress, remoteAddr, 6);
+  pairingDelay = StateManager::getPairingDelay();
+}
+
+
+
+// src/StateManager.cpp
+#include "StateManager.h"
+
+#include <Preferences.h>
+// #include <cstring>
+
+static ::Preferences storage;
+
+SystemState StateManager::systemState;
+SystemPreferences StateManager::preferences;
+
+SystemState& StateManager::state() { return systemState; }
+SystemPreferences& StateManager::prefs() { return preferences; }
+
+// ----- Unit-aware getters -----
+
+UnitSystem StateManager::getUnitSystem() { return preferences.unitSystem; }
+
+float StateManager::getDistance() {
+  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.distanceInFeet
+                                                          : systemState.distanceInFeet * 0.3048f;
+}
+
+float StateManager::getSpeed() {
+  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.speedInMPH : systemState.speedInMPH * 1.60934f;
+}
+
+float StateManager::getTrackLength() {
+  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? preferences.trackLengthFeet
+                                                          : preferences.trackLengthFeet * 0.3048f;
+}
+
+float StateManager::getRPM() { return systemState.rpm; }
+
+float StateManager::getMaxRPM() { return systemState.maxRpm; }
+
+float StateManager::getMaxSpeed() { 
+  return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxSpeedInMPH : systemState.maxSpeedInMPH * 1.60934f; 
+}
+
+float StateManager::getMaxDistance() { 
+      return (preferences.unitSystem == UnitSystem::IMPERIAL) ? systemState.maxDistanceInFeet : systemState.maxDistanceInFeet *
+  0.3048f;
+}
+
+// ----- Setters -----
+
+void StateManager::setUnitSystem(UnitSystem system) {
+  preferences.unitSystem = system;
+  savePreferences();  // Save preferences when unit system changes
+}
+
+void StateManager::setRPM(float rpm) {
+  systemState.rpm = rpm;
+  if (systemState.currentPullState == PullState::PULLING && rpm > systemState.maxRpm) {
+    systemState.maxRpm = rpm;
+  }
+}
+
+void StateManager::setSpeed(float mph) {
+  systemState.speedInMPH = mph;
+  if (systemState.currentPullState == PullState::PULLING && mph > systemState.maxSpeedInMPH) {
+    systemState.maxSpeedInMPH = mph;
+  }
+}
+
+void StateManager::setDistance(float ft) {
+  systemState.distanceInFeet = ft;
+  if (systemState.currentPullState == PullState::PULLING && ft > systemState.maxDistanceInFeet) {
+    systemState.maxDistanceInFeet = ft;
+  }
+}
+
+void StateManager::resetMaxRPM() { systemState.maxRpm = 0.0f; }
+
+void StateManager::resetMaxSpeed() { systemState.maxSpeedInMPH = 0.0f; }
+
+void StateManager::resetMaxDistance() { systemState.maxDistanceInFeet = 0.0f; }
+
+void StateManager::resetAllMaxValues() {
+  resetMaxRPM();
+  resetMaxSpeed();
+  resetMaxDistance();
+}
+void StateManager::setPullState(PullState newState) { systemState.currentPullState = newState; }
+
+PullState StateManager::getPullState() { return systemState.currentPullState; }
+
+int StateManager::getSpeedCalibrationNumber() { return preferences.speedCalibrationPulses; }
+
+void StateManager::setSpeedCalibrationNumber(int pulses) {
+  preferences.speedCalibrationPulses = pulses;
+  savePreferences();
+}
+
+void StateManager::setScreenRotation(bool rotation180) {
+  preferences.screenRotation180 = rotation180;
+  
+  savePreferences();
+  Serial.printf("[StateManager] Screen rotation set to %s\n", rotation180 ? "180°" : "0°");
+}
+
+bool StateManager::getScreenRotation() {
+  bool rotation180 = preferences.screenRotation180;
+  Serial.printf("[StateManager] Current screen rotation is %s\n", rotation180 ? "180°" : "0°");
+  return rotation180;
+}
+
+// M4 Communication methods
+const uint8_t* StateManager::getPairedTractorAddress() {
+  return preferences.pairedTractorAddress;
+}
+
+void StateManager::setPairedTractorAddress(const uint8_t* address) {
+  memcpy(preferences.pairedTractorAddress, address, 6);
+  savePreferences();
+}
+
+const uint8_t* StateManager::getPairedRemoteDisplayAddress() {
+  return preferences.pairedRemoteDisplayAddress;
+}
+
+void StateManager::setPairedRemoteDisplayAddress(const uint8_t* address) {
+  memcpy(preferences.pairedRemoteDisplayAddress, address, 6);
+  savePreferences();
+}
+
+unsigned long StateManager::getPairingDelay() {
+  return preferences.pairingDelay;
+}
+
+void StateManager::setPairingDelay(unsigned long delay) {
+  preferences.pairingDelay = delay;
+  savePreferences();
+}
+
+void StateManager::savePullResult() {
+  PullResult newPull;
+  newPull.driverName = preferences.driverName;
+  newPull.driverNumber = preferences.driverNumber;
+  newPull.className = preferences.pullingClassName;
+  newPull.classWeight = preferences.pullingClassWeight;
+  newPull.maxSpeedMPH = systemState.maxSpeedInMPH;
+  newPull.maxDistanceFeet = systemState.maxDistanceInFeet;
+  newPull.maxRPM = systemState.maxRpm;
+  newPull.timestamp = millis() / 1000;  // Convert to seconds
+
+  // Shift existing pulls down if at capacity
+  if (preferences.pullHistoryCount >= MAX_PULL_HISTORY) {
+    for (int i = 1; i < MAX_PULL_HISTORY; i++) {
+      preferences.pullHistory[i - 1] = preferences.pullHistory[i];
+    }
+    preferences.pullHistory[MAX_PULL_HISTORY - 1] = newPull;
+  } else {
+    // Add to end
+    preferences.pullHistory[preferences.pullHistoryCount] = newPull;
+    preferences.pullHistoryCount++;
+  }
+
+  savePreferences();
+  Serial.printf("[StateManager] Pull saved: Driver: %s (#%d), Max Speed: %.2f MPH, Max Distance: %.2f ft, Max RPM: %.1f\n", 
+                newPull.driverName.c_str(), newPull.driverNumber, newPull.maxSpeedMPH, newPull.maxDistanceFeet, newPull.maxRPM);
+}
+
+int StateManager::getPullHistoryCount() {
+  return preferences.pullHistoryCount;
+}
+
+const PullResult* StateManager::getPullHistory() {
+  return preferences.pullHistory;
+}
+
+const PullResult* StateManager::getPullResult(int index) {
+  if (index < 0 || index >= preferences.pullHistoryCount) {
+    return nullptr;
+  }
+  return &preferences.pullHistory[index];
+}
+
+void StateManager::clearPullHistory() {
+  // Reset pull history count to 0
+  preferences.pullHistoryCount = 0;
+  
+  // Reset driver number to 1
+  preferences.driverNumber = 1;
+  
+  // Clear all pull history entries (optional, but good practice)
+  for (int i = 0; i < MAX_PULL_HISTORY; i++) {
+    preferences.pullHistory[i] = PullResult{};
+  }
+  
+  // Save preferences to persist changes
+  savePreferences();
+  
+  Serial.println("[StateManager] Pull history cleared and driver number reset to 1");
+}
+
+RelayState StateManager::getRelayState(int index) {
+  if (index < 0 || index >= 4) return RelayState::DISENGAGED;
+  return systemState.relayStates[index];
+}
+
+void StateManager::setRelayState(int index, RelayState state) {
+  if (index < 0 || index >= 4) return;
+  systemState.relayStates[index] = state;
+}
+
+bool StateManager::getLimitSwitchTriggered(int index) {
+  if (index < 0 || index >= 2) return false;
+  return systemState.limitSwitchTriggered[index];
+}
+
+void StateManager::setLimitSwitchTriggered(int index, bool triggered) {
+  if (index < 0 || index >= 2) return;
+  systemState.limitSwitchTriggered[index] = triggered;
+}
+
+bool StateManager::isLimitSwitchEnabled(int index) {
+  if (index < 0 || index >= 2) return false;
+  return preferences.limitSwitchEnabled[index];
+}
+
+void StateManager::setLimitSwitchEnabled(int index, bool enabled) {
+  if (index < 0 || index >= 2) return;
+  preferences.limitSwitchEnabled[index] = enabled;
+}
+
+// ----- Preferences -----
+
+void StateManager::loadPreferences() {
+  storage.begin("m4prefs", false);
+
+  preferences.unitSystem =
+      static_cast<UnitSystem>(storage.getUChar("unitSystem", static_cast<uint8_t>(UnitSystem::IMPERIAL)));
+
+  preferences.pullingClassName = storage.getString("className", "M4 Sled Monitor - " + String(DEVICE_VERSION));
+  preferences.pullingClassWeight = storage.getInt("classWeight", 0);
+  preferences.driverName = storage.getString("driverName", "Driver");
+  preferences.driverNumber = storage.getInt("driverNumber", 1);
+
+  preferences.limitSwitchEnabled[0] = storage.getBool("ls1_enabled", true);
+  preferences.limitSwitchEnabled[1] = storage.getBool("ls2_enabled", true);
+
+  for (int i = 0; i < 4; ++i) {
+    preferences.relayEnabled[i] = storage.getBool(("relayEn" + String(i)).c_str(), true);
+  }
+
+  preferences.distanceAlarm1 = storage.getFloat("distAlarm1", 0.0f);
+  preferences.distanceAlarm2 = storage.getFloat("distAlarm2", 0.0f);
+  preferences.tachAlarm1 = storage.getFloat("tachAlarm1", 0.0f);
+  preferences.tachAlarm2 = storage.getFloat("tachAlarm2", 0.0f);
+  preferences.mphAlarm1 = storage.getFloat("mphAlarm1", 0.0f);
+  preferences.mphAlarm2 = storage.getFloat("mphAlarm2", 0.0f);
+
+  preferences.trackLengthFeet = storage.getFloat("trackLength", 300.0f);
+
+  preferences.benchmarkMode = storage.getBool("benchmark", false);
+  preferences.screenBrightness = storage.getUChar("brightness", 100);
+  preferences.screenRotation180 = storage.getBool("screenRot180", false);
+  preferences.tachEnabled = storage.getBool("tachEnabled", true);
+  preferences.limitSwitchesEnabled = storage.getBool("limitsEnabled", true);
+  preferences.relaysEnabled = storage.getBool("relaysEnabled", true);
+
+  preferences.speedCalibrationPulses = storage.getInt("speedCal", 1000);
+
+  // Load M4 communication settings
+  storage.getBytes("tractorAddr", preferences.pairedTractorAddress, 6);
+  storage.getBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
+  preferences.pairingDelay = storage.getULong("pairingDelay", 10000);
+
+  // Load pull history
+  preferences.pullHistoryCount = storage.getInt("pullCount", 0);
+  if (preferences.pullHistoryCount > MAX_PULL_HISTORY) {
+    preferences.pullHistoryCount = MAX_PULL_HISTORY;
+  }
+  
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    String keyPrefix = "pull" + String(i) + "_";
+    preferences.pullHistory[i].driverName = storage.getString((keyPrefix + "driver").c_str(), "");
+    preferences.pullHistory[i].driverNumber = storage.getInt((keyPrefix + "drivNum").c_str(), 0);
+    preferences.pullHistory[i].className = storage.getString((keyPrefix + "class").c_str(), "");
+    preferences.pullHistory[i].classWeight = storage.getInt((keyPrefix + "weight").c_str(), 0);
+    preferences.pullHistory[i].maxSpeedMPH = storage.getFloat((keyPrefix + "speed").c_str(), 0.0f);
+    preferences.pullHistory[i].maxDistanceFeet = storage.getFloat((keyPrefix + "distance").c_str(), 0.0f);
+    preferences.pullHistory[i].maxRPM = storage.getFloat((keyPrefix + "rpm").c_str(), 0.0f);
+    preferences.pullHistory[i].timestamp = storage.getULong((keyPrefix + "time").c_str(), 0);
+  }
+
+  storage.end();
+  Serial.printf("[Prefs] LimitSwitchEnabled: LS1 = %d, LS2 = %d\n", preferences.limitSwitchEnabled[0],
+                preferences.limitSwitchEnabled[1]);
+
+  // Print pull history
+  Serial.printf("[Prefs] Pull History (%d pulls):\n", preferences.pullHistoryCount);
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    const PullResult& pull = preferences.pullHistory[i];
+    Serial.printf("  %d: Driver %s (#%d), Speed: %.2f MPH, Distance: %.2f ft, RPM: %.1f, Time: %lu\n", 
+                  i, pull.driverName.c_str(), pull.driverNumber, pull.maxSpeedMPH, 
+                  pull.maxDistanceFeet, pull.maxRPM, pull.timestamp);
+  }
+
+  Serial.println("Preferences loaded successfully.");
+}
+
+void StateManager::savePreferences() {
+  storage.begin("m4prefs", false);
+
+  storage.putUChar("unitSystem", static_cast<uint8_t>(preferences.unitSystem));
+  storage.putString("className", preferences.pullingClassName);
+  storage.putInt("classWeight", preferences.pullingClassWeight);
+  storage.putString("driverName", preferences.driverName);
+  storage.putInt("driverNumber", preferences.driverNumber);
+
+  storage.putBool("ls1_enabled", preferences.limitSwitchEnabled[0]);
+  storage.putBool("ls2_enabled", preferences.limitSwitchEnabled[1]);
+
+  for (int i = 0; i < 4; ++i) {
+    storage.putBool(("relayEn" + String(i)).c_str(), preferences.relayEnabled[i]);
+  }
+
+  storage.putFloat("distAlarm1", preferences.distanceAlarm1);
+  storage.putFloat("distAlarm2", preferences.distanceAlarm2);
+  storage.putFloat("tachAlarm1", preferences.tachAlarm1);
+  storage.putFloat("tachAlarm2", preferences.tachAlarm2);
+  storage.putFloat("mphAlarm1", preferences.mphAlarm1);
+  storage.putFloat("mphAlarm2", preferences.mphAlarm2);
+
+  storage.putFloat("trackLength", preferences.trackLengthFeet);
+  storage.putBool("benchmark", preferences.benchmarkMode);
+  storage.putUChar("brightness", preferences.screenBrightness);
+  storage.putBool("screenRot180", preferences.screenRotation180);
+  storage.putBool("tachEnabled", preferences.tachEnabled);
+  storage.putBool("limitsEnabled", preferences.limitSwitchesEnabled);
+  storage.putBool("relaysEnabled", preferences.relaysEnabled);
+  storage.putInt("speedCal", preferences.speedCalibrationPulses);
+
+  // Save M4 communication settings
+  storage.putBytes("tractorAddr", preferences.pairedTractorAddress, 6);
+  storage.putBytes("remoteAddr", preferences.pairedRemoteDisplayAddress, 6);
+  storage.putULong("pairingDelay", preferences.pairingDelay);
+
+  // Save pull history
+  storage.putInt("pullCount", preferences.pullHistoryCount);
+  for (int i = 0; i < preferences.pullHistoryCount; i++) {
+    String keyPrefix = "pull" + String(i) + "_";
+    storage.putString((keyPrefix + "driver").c_str(), preferences.pullHistory[i].driverName);
+    storage.putInt((keyPrefix + "drivNum").c_str(), preferences.pullHistory[i].driverNumber);
+    storage.putString((keyPrefix + "class").c_str(), preferences.pullHistory[i].className);
+    storage.putInt((keyPrefix + "weight").c_str(), preferences.pullHistory[i].classWeight);
+    storage.putFloat((keyPrefix + "speed").c_str(), preferences.pullHistory[i].maxSpeedMPH);
+    storage.putFloat((keyPrefix + "distance").c_str(), preferences.pullHistory[i].maxDistanceFeet);
+    storage.putFloat((keyPrefix + "rpm").c_str(), preferences.pullHistory[i].maxRPM);
+    storage.putULong((keyPrefix + "time").c_str(), preferences.pullHistory[i].timestamp);
+  }
+
+  storage.end();
+}
+
+
+// src/main.cpp
+#include <Arduino.h>
+#include <lvgl/lvgl.h>
+
+#include "Config.h"
+#include "PullStateManager.h"
+#include "ScreenUpdater.h"
+#include "SpeedModule.h"
+#include "StateManager.h"
+#include "dev_utils/benchmark.h"
+#include "display/backlight.h"
+#include "display/display.h"
+#include "display/lvgl_callbacks.h"
+#include "touch/touch.h"
+
+
+// UI generated by Squareline
+#include "../ui/ui.h"
+
+void setup() {
+  Serial.begin(SERIAL_BAUD_RATE);
+  delay(1000);
+
+  StateManager::loadPreferences();
+  // Preferences prefs;
+  // prefs.begin("touch_cal", false);
+  // prefs.clear();  // ⚠️ This erases everything in "touch_cal"
+  // prefs.end();
+
+  Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
+  Serial.print("Version: ");
+  Serial.println(DEVICE_VERSION);
+  Serial.print("Build Date: ");
+  Serial.println(__DATE__ " " __TIME__);
+
+  // Initialize display first
+  init_display();
+
+  // Initialize touch hardware
+  init_touch();
+
+  init_lvgl();
+  ui_init();
+  
+  // Apply saved screen rotation
+  StateManager::setScreenRotation(StateManager::prefs().screenRotation180);
+  
+  PullStateManager::init();
+  SpeedModule::begin();
+
+
+  xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
+  // setRecalibrationFlag();
+  Serial.println("Setup complete");
+}
+
+bool isMainScreenReady() {
+  return uic_MainLabelSpeedValue && uic_MainLabelDistanceValue && uic_MainLabelTachValue && uic_MainLabelDriverName &&
+         uic_MainLabelDriverNumber && uic_MainLabelClassName;
+}
+
+unsigned long lastScreenUpdate = 0;
+
+void loop() {
+  lv_timer_handler();
+  updateBacklight();
+  benchmark_update();
+  PullStateManager::update();
+  SpeedModule::tick();
+
+  unsigned long now = millis();
+  if (isMainScreenReady() && now - lastScreenUpdate >= SCREEN_UPDATE_INTERVAL_MS) {
+    lastScreenUpdate = now;
+    updateMainScreen();
+  }
+  // TODO: look into removing this delay, if we need to slow down a task we should slow down the specific task.
+  // This is just to prevent the loop from running too fast and hogging CPU time.
+  // lv_timer_handler() should be enough to throttle the loop.
+  delay(5);
+}
 
 // src/touch/.DS_Store
 // Error reading file src/touch/.DS_Store: 'utf-8' codec can't decode byte 0x80 in position 3131: invalid start byte
@@ -25,16 +1780,17 @@ include/Config.h
 // Call up touch screen library
 #include <TFT_Touch.h>
 
-TFT_Touch touch = TFT_Touch(TOUCH_CS_PIN, TOUCH_SCK_PIN, TOUCH_MISO_PIN, TOUCH_MISO_PIN);
-extern LGFX lcd;
-
 bool recalibrateTouch = false;
+
+// TFT_Touch touch = TFT_Touch(DCS, DCLK, DIN, DOUT);
+TFT_Touch touch = TFT_Touch(TOUCH_CS_PIN, TOUCH_SCK_PIN, TOUCH_MOSI_PIN, TOUCH_MISO_PIN);
+extern LGFX lcd;
 
 int X_Raw = 0, Y_Raw = 0;
 
 void init_touch() {
-  if (!load_touch_calibration() || recalibrateTouch) {
-    Serial.println("Touch calibration not found or recalibration requested.");
+  if (!load_touch_calibration()) {
+    Serial.println("Touch calibration not found - running calibration...");
     Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
 
     while (!calibrate_touch()) {
@@ -43,8 +1799,21 @@ void init_touch() {
       delay(2000);  // Brief delay before retrying
     }
     Serial.println("Touch calibration completed successfully");
+    setRecalibrationFlag(false);  // Reset recalibration flag
+  } else if (recalibrateTouch) {
+    Serial.println("Recalibration requested - running calibration...");
+    Serial.println("TFT_Touch Calibration, follow TFT screen prompts..");
+
+    while (!calibrate_touch()) {
+      Serial.println("Touch calibration failed - trying again...");
+      Serial.println("Please follow the TFT screen prompts carefully.");
+      delay(2000);  // Brief delay before retrying
+    }
+    Serial.println("Touch calibration completed successfully");
+    setRecalibrationFlag(false);  // Reset recalibration flag
   } else {
     Serial.println("Touch calibration loaded successfully.");
+    setRecalibrationFlag(false);  // Ensure recalibration flag is reset
   }
 
   // Set Touch screen to the same landscape orientation
@@ -202,6 +1971,7 @@ bool calibrate_touch() {
 
   // Simple 15-second test
   Serial.println("Touch test - 15 seconds remaining...");
+  touch.setRotation(1);
   lcd.fillScreen(TFT_BLACK);
   lcd.setFont(&fonts::Font2);
   lcd.drawString("Touch test - touch anywhere", lcd.width() / 2, 50);
@@ -231,19 +2001,21 @@ bool calibrate_touch() {
 
     delay(100);
   }
-
-  return true;  // Success
+  recalibrateTouch = false;  // Reset recalibration flag after successful calibration
+  return true;               // Success
 }
 
 bool load_touch_calibration() {
   Preferences prefs;
   if (!prefs.begin("touch_cal", true)) {  // true = read-only mode
-    return false;                         // Failed to open preferences
+    Serial.println("Failed to open preferences for touch calibration");
+    return false;  // Failed to open preferences
   }
 
   // Check if calibration data exists by trying to get one key
   if (!prefs.isKey("x_min")) {
     prefs.end();
+    Serial.println("No touch calibration data found");
     return false;  // Calibration data doesn't exist
   }
 
@@ -254,17 +2026,19 @@ bool load_touch_calibration() {
   int vmax = prefs.getInt("y_max", 0);
   int h_res = prefs.getInt("h_res", HRES);
   int v_res = prefs.getInt("v_res", VRES);
+  recalibrateTouch = prefs.getBool("recalibrate");
 
   prefs.end();
 
   // Validate that we got reasonable values (not all zeros)
   if (hmin == 0 && hmax == 0 && vmin == 0 && vmax == 0) {
+    Serial.println("Invalid touch calibration data found");
     return false;  // Invalid calibration data
   }
 
   // Apply calibration to touch object
   touch.setCal(hmin, hmax, vmin, vmax, h_res, v_res, false);
-
+  Serial.println("Touch calibration loaded successfully");
   return true;  // Success
 }
 
@@ -281,6 +2055,7 @@ bool save_touch_calibration(int hmin, int hmax, int vmin, int vmax) {
   prefs.putInt("y_max", vmax);
   prefs.putInt("h_res", HRES);
   prefs.putInt("v_res", VRES);
+  prefs.putBool("recalibrate", recalibrateTouch);  // Store recalibration flag
   prefs.end();
 
   // Apply calibration to touch object
@@ -400,9 +2175,1832 @@ bool getCoord() {
     return 1;
 }
 
-void setRecalibrationFlag() {
-  recalibrateTouch = true;  // Set to true to force recalibration
+bool setRecalibrationFlag(bool force) {
+  recalibrateTouch = force;  // Set to true to force recalibration
+  Preferences prefs;
+  if (!prefs.begin("touch_cal", false)) {
+    Serial.println("Failed to open preferences for recalibration flag");
+    return false;  // Failed to open preferences
+  }
+
+  // Store calibration values
+  prefs.putBool("recalibrate", force);  // Store recalibration flag
+  prefs.end();
+  Serial.print("Recalibration flag set to ");
+  Serial.println(force ? "true" : "false");
+  return true;  // Success
 }
+
+// src/custom_ui/custom_keyboard.cpp
+#include "custom_ui/custom_keyboard.h"
+
+// Static styles
+static lv_style_t style_green_btn;
+static lv_style_t style_red_btn;
+static bool styles_initialized = false;
+
+// Static keymap and ctrl_map
+static const char *custom_keymap[] = {
+    "1",  "2",          "3", "\n", "4", "5", "6", "\n", "7", "8", "9", "\n", ".", "0", LV_SYMBOL_BACKSPACE,
+    "\n", LV_SYMBOL_OK, "",  "",   ""  // ENTER (3-wide) + fillers
+};
+
+static const lv_btnmatrix_ctrl_t custom_ctrl_map[] = {
+    1,
+    1,
+    1,  // Row 1
+    1,
+    1,
+    1,  // Row 2
+    1,
+    1,
+    1,  // Row 3
+    1,
+    1,
+    1 | LV_BTNMATRIX_CTRL_NO_REPEAT,  // Row 4
+    3 | LV_BTNMATRIX_CTRL_NO_REPEAT,
+    0,
+    0  // Row 5
+};
+
+// Custom draw event for coloring buttons
+static void keyboard_draw_event_cb(lv_event_t *e) {
+  lv_event_code_t code = lv_event_get_code(e);
+  if (code != LV_EVENT_DRAW_PART_BEGIN) return;
+
+  lv_obj_draw_part_dsc_t *dsc = (lv_obj_draw_part_dsc_t *)lv_event_get_param(e);
+  if (dsc->part != LV_PART_ITEMS) return;
+
+  const char *txt = lv_btnmatrix_get_btn_text(e->current_target, dsc->id);
+  if (!txt) return;
+
+  if (strcmp(txt, LV_SYMBOL_OK) == 0) {
+    dsc->rect_dsc->bg_color = lv_color_hex(0x1FA709);  // green
+  } else if (strcmp(txt, LV_SYMBOL_BACKSPACE) == 0) {
+    dsc->rect_dsc->bg_color = lv_color_hex(0xA70909);  // red
+  }
+}
+
+// Public setup function
+void setup_custom_number_keyboard(lv_obj_t *keyboard) {
+  // Initialize styles once
+  if (!styles_initialized) {
+    styles_initialized = true;
+
+    lv_style_init(&style_green_btn);
+    lv_style_set_bg_color(&style_green_btn, lv_color_hex(0x1FA709));
+    lv_style_set_bg_grad_color(&style_green_btn, lv_color_hex(0x1FA709));
+
+    lv_style_init(&style_red_btn);
+    lv_style_set_bg_color(&style_red_btn, lv_color_hex(0xA70909));
+    lv_style_set_bg_grad_color(&style_red_btn, lv_color_hex(0xA70909));
+  }
+
+  // Set custom layout
+  lv_keyboard_set_map(keyboard, LV_KEYBOARD_MODE_NUMBER, custom_keymap, custom_ctrl_map);
+
+  // Apply event callback for coloring
+  lv_obj_add_event_cb(keyboard, keyboard_draw_event_cb, LV_EVENT_ALL, NULL);
+}
+
+
+// src/display/display.cpp
+#include "display/display.h"
+
+#include "Config.h"
+#include "display/backlight.h"
+
+LGFX lcd;
+
+// Initialize the display and touch
+void init_display() {
+  // Initialize backlight
+  ledcSetup(LCD_BL_CHANNEL, LCD_BL_FREQ, LCD_BL_RESOLUTION);
+  ledcAttachPin(LCD_BL_PIN, LCD_BL_CHANNEL);
+  setBacklight(0);  // Start with backlight off
+
+  // Initialize display
+  if (!lcd.begin()) {
+    Serial.println("Display initialization failed!");
+    while (1) delay(100);
+  }
+
+  // Configure display
+  lcd.setRotation(SCREEN_ROTATION);  // Note: This will be adjusted based on Squareline Studio settings
+  setBacklight(192);   // Set to ~75% brightness
+}
+
+// src/display/lvgl_callbacks.cpp
+#include "display/lvgl_callbacks.h"
+
+#include <TFT_Touch.h>
+
+#include "Config.h"
+#include "touch/touch.h"
+#include "StateManager.h"
+
+extern TFT_Touch touch;
+
+//========================================================================
+// LVGL Callbacks
+//========================================================================
+
+// Display flushing callback for LVGL
+void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
+  uint32_t w = (area->x2 - area->x1 + 1);
+  uint32_t h = (area->y2 - area->y1 + 1);
+
+  lcd.startWrite();
+  lcd.setAddrWindow(area->x1, area->y1, w, h);
+  lcd.pushPixels((uint16_t *)color_p, w * h);
+  lcd.endWrite();
+
+  lv_disp_flush_ready(disp);
+}
+
+void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
+  static uint16_t last_x = 0, last_y = 0;
+  static bool was_pressed = false;
+  static uint8_t no_touch_counter = 0;
+  const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
+
+  bool currently_pressed = touch.Pressed();
+
+  if (currently_pressed) {
+    // Touch detected - reset counter
+    no_touch_counter = 0;
+    last_x = touch.X();
+    last_y = touch.Y();
+    data->point.x = last_x;
+    data->point.y = last_y;
+    data->state = LV_INDEV_STATE_PRESSED;
+
+    if (!was_pressed) {
+      Serial.print("Touch pressed at: ");
+      Serial.print(last_x);
+      Serial.print(", ");
+      Serial.println(last_y);
+    }
+    was_pressed = true;
+  } else {
+    // No touch detected
+    data->point.x = last_x;
+    data->point.y = last_y;
+
+    if (was_pressed) {
+      no_touch_counter++;
+      if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
+        // Confirmed release
+        data->state = LV_INDEV_STATE_RELEASED;
+        Serial.println("Touch released");
+        was_pressed = false;
+        no_touch_counter = 0;
+      } else {
+        // Still counting - maintain pressed state
+        data->state = LV_INDEV_STATE_PRESSED;
+      }
+    } else {
+      data->state = LV_INDEV_STATE_RELEASED;
+    }
+  }
+}
+
+//========================================================================
+// Core System Functions
+//========================================================================
+
+// LVGL task handler
+void lvgl_task(void *parameter) {
+  while (1) {
+    lv_timer_handler();
+    delay(5);
+  }
+}
+
+// Initialize LVGL
+void init_lvgl() {
+  lv_init();
+
+  // Initialize display buffer
+  // lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
+  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, SCREEN_WIDTH * 40);
+
+  // Initialize display driver
+  lv_disp_drv_init(&disp_drv);
+  disp_drv.flush_cb = my_disp_flush;
+  disp_drv.draw_buf = &draw_buf;
+  disp_drv.hor_res = SCREEN_WIDTH;
+  disp_drv.ver_res = SCREEN_HEIGHT;
+
+  // Enable software rotation
+  disp_drv.sw_rotate = 1;
+  bool rotation180 = StateManager::getScreenRotation();
+  disp_drv.rotated = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;;
+  disp_drv.full_refresh = 1;
+
+  lv_disp_drv_register(&disp_drv);
+
+  // Initialize input device driver
+  lv_indev_drv_init(&indev_drv);
+  indev_drv.type = LV_INDEV_TYPE_POINTER;
+  indev_drv.read_cb = my_touchpad_read;
+  lv_indev_drv_register(&indev_drv);
+}
+
+
+// src/display/backlight.cpp
+#include "display/backlight.h"
+
+// Constants
+static uint8_t current_brightness = 200;  // Default brightness (0-255)
+static uint8_t target_brightness = 200;   // Target brightness for smooth transitions
+static bool transition_active = false;    // Flag to indicate transition in progress
+static unsigned long last_update_time = 0;
+static const unsigned long UPDATE_INTERVAL = 5;  // 5ms between updates (faster)
+static const uint8_t STEP_SIZE = 5;              // Larger steps for faster transitions
+
+// Setup function - call this in your main setup()
+void setupBacklight(uint8_t pin, uint8_t channel, uint8_t initial_brightness) {
+  // Configure PWM with higher frequency for smoother operation
+  ledcSetup(channel, LCD_BL_FREQ, 8);  // 10kHz frequency, 8-bit resolution
+  ledcAttachPin(pin, channel);
+
+  // Set initial brightness
+  current_brightness = initial_brightness;
+  target_brightness = initial_brightness;
+  ledcWrite(channel, initial_brightness);
+}
+
+// Set backlight immediately
+void setBacklight(uint8_t brightness) {
+  current_brightness = brightness;  // Store the current brightness
+  target_brightness = brightness;   // Also set as target
+  ledcWrite(LCD_BL_CHANNEL, brightness);
+  transition_active = false;
+}
+
+// Start smooth transition to new brightness level
+void setBacklightSmooth(uint8_t brightness) {
+  target_brightness = brightness;
+  transition_active = true;
+}
+
+// Call this function regularly in your main loop
+void updateBacklight() {
+  if (!transition_active) return;
+
+  unsigned long current_time = millis();
+  if (current_time - last_update_time < UPDATE_INTERVAL) return;
+  last_update_time = current_time;
+
+  // Use larger step size for faster transitions
+  if (current_brightness < target_brightness) {
+    // Calculate step size based on difference (for very responsive UI)
+    uint8_t step = min((uint8_t)STEP_SIZE, (uint8_t)(target_brightness - current_brightness));
+    current_brightness += step;
+    ledcWrite(LCD_BL_CHANNEL, current_brightness);
+  } else if (current_brightness > target_brightness) {
+    uint8_t step = min((uint8_t)STEP_SIZE, (uint8_t)(current_brightness - target_brightness));
+    current_brightness -= step;
+    ledcWrite(LCD_BL_CHANNEL, current_brightness);
+  } else {
+    transition_active = false;  // Reached target, stop transition
+  }
+}
+
+// Fast mode for UI interactions like sliders
+void setBacklightFast(uint8_t brightness) {
+  // For UI sliders, we want immediate feedback
+  // Use a larger step size but still avoid an abrupt change
+  int difference = abs((int)brightness - (int)current_brightness);
+
+  // For small changes (like during slider movement), make it faster
+  if (difference < 20) {
+    current_brightness = brightness;
+    ledcWrite(LCD_BL_CHANNEL, brightness);
+    target_brightness = brightness;
+    transition_active = false;
+  } else {
+    // For larger changes, use smooth transition but faster
+    target_brightness = brightness;
+    transition_active = true;
+  }
+}
+
+// Fade backlight without blocking (just initiates the fade)
+void fadeBacklight(bool fadeIn, int duration) {
+  target_brightness = fadeIn ? 255 : 0;
+  transition_active = true;
+}
+
+uint8_t getBacklight() { return current_brightness; }
+
+// src/dev_utils/test_display.cpp
+#include "dev_utils/test_display.h"
+
+#include "display/backlight.h"
+#include "touch/touch.h"
+
+// extern TouchScreen touch;
+
+static uint8_t brightness = 128;  // Starting brightness level
+
+uint16_t rainbow(uint8_t hue) {
+  uint8_t r, g, b;
+  if (hue < 85) {
+    r = hue * 3;
+    g = 255 - hue * 3;
+    b = 0;
+  } else if (hue < 170) {
+    hue -= 85;
+    r = 255 - hue * 3;
+    g = 0;
+    b = hue * 3;
+  } else {
+    hue -= 170;
+    r = 0;
+    g = hue * 3;
+    b = 255 - hue * 3;
+  }
+  return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+#ifdef DEVELOPMENT_MODE
+
+void drawBrightnessButtons() {
+  // Top-left button for decreasing brightness
+  lcd.fillRect(10, 10, 50, 50, TFT_WHITE);
+  lcd.setTextColor(TFT_BLACK);
+  lcd.setTextSize(3);
+  lcd.setCursor(25, 20);
+  lcd.print("-");
+
+  // Top-right button for increasing brightness
+  lcd.fillRect(lcd.width() - 60, 10, 50, 50, TFT_WHITE);
+  lcd.setTextColor(TFT_BLACK);
+  lcd.setTextSize(3);
+  lcd.setCursor(lcd.width() - 45, 20);
+  lcd.print("+");
+}
+
+void handleBrightnessControl() {
+  uint16_t touch_x = 0, touch_y = 0, touch_z = 0;
+
+  if (touch.isTouched()) {
+    touch.readTouchPoint(&touch_x, &touch_y, &touch_z);
+
+    // Check if "-" button was pressed
+    if (touch_x > 10 && touch_x < 60 && touch_y > 10 && touch_y < 60) {
+      brightness = max(0, brightness - 10);
+      setBacklight(brightness);
+      displayBrightnessLevel();
+      delay(200);  // Debounce delay
+    }
+
+    // Check if "+" button was pressed
+    if (touch_x > lcd.width() - 60 && touch_x < lcd.width() - 10 && touch_y > 10 && touch_y < 60) {
+      brightness = min(255, brightness + 10);
+      setBacklight(brightness);
+      displayBrightnessLevel();
+      delay(200);  // Debounce delay
+    }
+  }
+}
+
+void displayBrightnessLevel() {
+  int percentage = (brightness * 100) / 255;
+
+  // Clear the area where brightness text will appear
+  lcd.fillRect((lcd.width() / 2) - 50, 10, 100, 20, TFT_BLACK);
+  lcd.setTextColor(TFT_WHITE);
+  lcd.setTextSize(2);
+  lcd.setCursor((lcd.width() / 2) - 40, 15);  // Position slightly lower
+  lcd.printf("Brightness: %d%%", percentage);
+}
+
+void fadeInBacklightBlue() {
+  lcd.fillScreen(TFT_BLACK);
+  fadeBacklight(true, 1000);
+  lcd.fillScreen(TFT_BLUE);
+  displayBrightnessLevel();
+}
+
+void displaySolidGreen() { lcd.fillScreen(TFT_GREEN); }
+
+void fadeOutBacklight() { fadeBacklight(false, 500); }
+
+void fadeInBacklight() { fadeBacklight(true, 500); }
+
+void displaySolidRed() { lcd.fillScreen(TFT_RED); }
+
+void testBacklightLevels() {
+  for (int i = 255; i >= 0; i -= 64) {
+    setBacklight(i);
+    lcd.fillRect(0, lcd.height() - 40, lcd.width(), 40, TFT_BLACK);
+    lcd.setTextColor(TFT_WHITE);
+    lcd.setCursor(10, lcd.height() - 30);
+    lcd.printf("Backlight Level: %d", i);
+    delay(500);
+  }
+  for (int i = 0; i <= 255; i += 64) {
+    setBacklight(i);
+    lcd.fillRect(0, lcd.height() - 40, lcd.width(), 40, TFT_BLACK);
+    lcd.setTextColor(TFT_WHITE);
+    lcd.setCursor(10, lcd.height() - 30);
+    lcd.printf("Backlight Level: %d", i);
+    delay(500);
+  }
+}
+
+void showEBUColorBars() {
+  int width = lcd.width() / 7;
+  int height = lcd.height() / 3;
+
+  lcd.fillRect(0 * width, 40, width, height, TFT_WHITE);
+  lcd.fillRect(1 * width, 40, width, height, TFT_YELLOW);
+  lcd.fillRect(2 * width, 40, width, height, TFT_CYAN);
+  lcd.fillRect(3 * width, 40, width, height, TFT_GREEN);
+  lcd.fillRect(4 * width, 40, width, height, TFT_MAGENTA);
+  lcd.fillRect(5 * width, 40, width, height, TFT_RED);
+  lcd.fillRect(6 * width, 40, width, height, TFT_BLUE);
+}
+
+void displayMovingTextAnimation() {
+  static int bounce_pos = 0;
+  static int bounce_dir = 1;
+  static uint16_t hue = 0;
+
+  lcd.fillRect(0, lcd.height() / 2 - 50, lcd.width(), 100, TFT_BLACK);
+  lcd.setTextColor(rainbow(hue));
+  lcd.setTextSize(3);
+  lcd.setCursor(bounce_pos, lcd.height() / 2 - 20);
+  lcd.println("ESP32-S3 RGB TEST");
+
+  bounce_pos += bounce_dir * 10;
+  if (bounce_pos >= lcd.width() - 300 || bounce_pos <= 0) {
+    bounce_dir *= -1;
+  }
+
+  hue += 20;
+}
+
+void displayTouchCoordinates() {
+  static uint16_t touch_x = 0, touch_y = 0, touch_z = 0;
+  static bool was_touched = false;
+
+  if (touch.isTouched()) {
+    touch.readTouchPoint(&touch_x, &touch_y, &touch_z);
+    lcd.fillRect(0, lcd.height() - 40, lcd.width(), 40, TFT_BLACK);
+    lcd.setTextColor(TFT_WHITE);
+    lcd.setTextSize(2);
+    lcd.setCursor(10, lcd.height() - 30);
+    lcd.printf("Touch: X=%d Y=%d Z=%d", touch_x, touch_y, touch_z);
+    was_touched = true;
+  } else if (was_touched) {
+    lcd.fillRect(0, lcd.height() - 40, lcd.width(), 40, TFT_BLACK);
+    was_touched = false;
+  }
+}
+
+void runDisplayTest() {
+  fadeInBacklightBlue();
+  delay(1000);
+
+  displaySolidGreen();
+  fadeOutBacklight();
+  delay(250);
+  fadeInBacklight();
+  delay(1000);
+
+  displaySolidRed();
+  testBacklightLevels();
+
+  lcd.fillScreen(TFT_BLACK);
+  setBacklight(192);
+
+  showEBUColorBars();
+  drawBrightnessButtons();
+  displayBrightnessLevel();
+
+  while (true) {
+    displayMovingTextAnimation();
+    displayTouchCoordinates();
+    handleBrightnessControl();
+    delay(50);
+  }
+}
+
+#endif  // DEVELOPMENT_MODE
+
+
+// src/dev_utils/DevSimulator.cpp
+#include "dev_utils/DevSimulator.h"
+
+#include <Arduino.h>
+
+#include "StateManager.h"
+
+namespace devSimulator {
+
+// Constants for more realistic behavior
+const float INITIAL_ACCELERATION = 0.4f;      // Initial acceleration rate
+const float SLED_RESISTANCE_START = 0.025f;   // Initial sled resistance factor
+const float SLED_RESISTANCE_GAIN = 0.0006f;   // Base resistance increase with distance
+const float SLED_EXPONENTIAL = 1.6f;          // Exponential factor for sled resistance
+const float ENGINE_RESPONSE_DELAY = 0.85f;    // How quickly engine responds to load (lower = faster)
+const float TRACK_VARIANCE = 0.015f;          // Soil/track condition variance
+const float MAX_SPEED = 32.0f;                // Absolute maximum possible speed in ideal conditions
+const float GEAR_SHIFT_POINT = 145.0f;        // Distance at which shifting typically happens
+const float TRACK_END = 300.0f;               // End of the track in feet
+const float BRAKING_DECELERATION = 1.2f;      // How quickly tractor slows when braking
+const float DRIVER_SKILL_VARIANCE = 0.15f;    // How much driver skill affects performance
+const float SECOND_ALARM_SLED_FACTOR = 2.0f;  // How much heavier the sled gets at second alarm point
+
+// Simulation state variables
+static unsigned long lastUpdate = 0;
+static unsigned long pullStart = 0;
+static float speed = 0.0f;
+static float tach = 0.0f;
+static float distance = 0.0f;
+static bool fullPull = false;
+static bool engineStalled = false;
+static bool gearShifted = false;
+static bool braking = false;
+static float engineLoad = 0.0f;
+static float trackCondition = 1.0f;       // Multiplier for traction (randomized at start)
+static float sledWeight = 1.0f;           // Multiplier for sled weight (randomized at start)
+static float driverSkill = 1.0f;          // Multiplier for driver performance (randomized at start)
+static float maxPossibleDistance = 0.0f;  // Calculated max distance for this pull based on conditions
+static bool passedFirstAlarm = false;     // Flag for passing first distance alarm point
+static bool passedSecondAlarm = false;    // Flag for passing second distance alarm point
+static bool isLimitingSpeed = false;      // Flag to indicate if driver is actively limiting speed
+static bool isLimitingRPM = false;        // Flag to indicate if driver is actively limiting RPM
+static float targetSpeed = 0.0f;          // Driver's target speed based on alarms
+
+// Engine sound simulation
+static int tachDirection = 1;
+static float tachTargetRPM = 2200.0f;
+static float tachVariance = 0.0f;
+
+void update() {
+  unsigned long now = millis();
+  if (now - lastUpdate < 50) return;
+  unsigned long deltaTime = now - lastUpdate;
+  lastUpdate = now;
+
+  // Reset simulation for a new pull
+  if (pullStart == 0 || now - pullStart >= 20000) {
+    pullStart = now;
+    speed = 0.0f;
+    tach = 0.0f;
+    distance = 0.0f;
+    fullPull = false;
+    engineStalled = false;
+    gearShifted = false;
+    braking = false;
+    engineLoad = 0.0f;
+    tachDirection = 1;
+    tachTargetRPM = 2200.0f;
+    tachVariance = 0.0f;
+    passedFirstAlarm = false;
+    passedSecondAlarm = false;
+    isLimitingSpeed = false;
+    isLimitingRPM = false;
+    targetSpeed = 0.0f;
+
+    // Randomize track conditions for each pull (0.82-1.18 range)
+    trackCondition = 0.82f + (random(361) / 1000.0f);
+
+    // Randomize sled weight for each pull (0.9-1.15 range)
+    sledWeight = 0.9f + (random(251) / 1000.0f);
+
+    // Randomize driver skill for each pull (0.85-1.15 range)
+    driverSkill = 0.85f + (random(301) / 1000.0f);
+
+    // Calculate max possible distance for this run based on conditions
+    // This creates runs that naturally stop between 200-300ft
+    float runQuality = trackCondition * driverSkill / sledWeight;
+    maxPossibleDistance = TRACK_END * (0.7f + (runQuality * 0.3f));
+
+    // Ensure maxPossibleDistance is between 200-300ft with bias toward shorter pulls
+    if (maxPossibleDistance > TRACK_END) maxPossibleDistance = TRACK_END;
+    if (maxPossibleDistance < 200.0f) maxPossibleDistance = 200.0f + (random(501) / 10.0f);
+
+    // Set alarms based on driver skill and competition class
+    // More experienced drivers get closer to the limit
+    float skillFactor = 0.8f + (driverSkill * 0.2f);
+
+    // Randomize alarm points slightly to simulate different competition settings
+    float distanceAlarm1 = 50.0f + (random(151) / 10.0f);       // Between 50-65ft
+    float distanceAlarm2 = 180.0f + (random(41) / 10.0f);       // Between 180-184ft
+    float tachAlarm1 = 2400.0f + (random(401));                 // Between 2400-2800 RPM
+    float tachAlarm2 = tachAlarm1 + 150.0f + (random(251));     // 150-400 RPM above first alarm
+    float mphAlarm1 = 18.0f + (random(51) / 10.0f);             // Between 18-23 MPH
+    float mphAlarm2 = mphAlarm1 + 2.0f + (random(31) / 10.0f);  // 2-5 MPH above first alarm
+
+    StateManager::prefs().distanceAlarm1 = distanceAlarm1;
+    StateManager::prefs().distanceAlarm2 = distanceAlarm2;
+    StateManager::prefs().tachAlarm1 = tachAlarm1;
+    StateManager::prefs().tachAlarm2 = tachAlarm2;
+    StateManager::prefs().mphAlarm1 = mphAlarm1;
+    StateManager::prefs().mphAlarm2 = mphAlarm2;
+  }
+
+  unsigned long elapsed = now - pullStart;
+
+  // Stage 1: Idling at start line
+  if (elapsed < 3000) {
+    speed = distance = 0.0f;
+    tachTargetRPM = 900.0f + (random(201) - 100) / 10.0f;  // Idle around 900 RPM with small variations
+    tachVariance = 50.0f;
+
+    // Stage 2: Revving up before pull
+  } else if (elapsed < 5000) {
+    speed = distance = 0.0f;
+    tachTargetRPM = 1800.0f + (random(401) - 200) / 10.0f;  // Rev around 1800 RPM
+    tachVariance = 100.0f;
+
+    // Stage 3: Pull begins
+  } else if (!engineStalled && !fullPull) {
+    // Check distance alarms
+    if (!passedFirstAlarm && distance >= StateManager::prefs().distanceAlarm1) {
+      passedFirstAlarm = true;
+
+      // After first alarm, driver tries to maintain speed just under alarm1
+      targetSpeed = StateManager::prefs().mphAlarm1 * (0.95f + (driverSkill * 0.04f));
+      isLimitingSpeed = true;
+
+      // Set appropriate relay for first distance alarm
+      StateManager::setRelayState(2, RelayState::ENGAGED);
+    }
+
+    if (!passedSecondAlarm && distance >= StateManager::prefs().distanceAlarm2) {
+      passedSecondAlarm = true;
+
+      // After second alarm, increase sled weight dramatically
+      sledWeight *= SECOND_ALARM_SLED_FACTOR;
+
+      // Set appropriate relay for second distance alarm (sled pan drop)
+      StateManager::setRelayState(3, RelayState::ENGAGED);
+    }
+
+    // Check if tach is getting too high, skilled drivers manage RPM better
+    if (tach > StateManager::prefs().tachAlarm1 * (0.97f + (driverSkill * 0.03f))) {
+      isLimitingRPM = true;
+      tachTargetRPM = StateManager::prefs().tachAlarm1 * (0.95f + (driverSkill * 0.03f));
+    } else {
+      isLimitingRPM = false;
+    }
+
+    // Calculate sled resistance (increases with distance exponentially)
+    float distanceRatio = distance / TRACK_END;
+    float sledResistance = SLED_RESISTANCE_START +
+                           (distance * SLED_RESISTANCE_GAIN * sledWeight) * pow(1.0f + distanceRatio, SLED_EXPONENTIAL);
+
+    // Extra resistance as we approach the calculated max distance for this run
+    if (distance > maxPossibleDistance * 0.8f) {
+      float approachFactor = (distance - (maxPossibleDistance * 0.8f)) / (maxPossibleDistance * 0.2f);
+      sledResistance += approachFactor * sledWeight * 0.4f;
+    }
+
+    // Driver braking near the end of track
+    if (distance > TRACK_END - 10.0f && !braking) {
+      braking = true;
+    }
+
+    float acceleration = 0.0f;
+
+    if (braking) {
+      // Hard braking at end of track
+      acceleration = -BRAKING_DECELERATION;
+    } else {
+      // Normal acceleration calculation
+      acceleration = (INITIAL_ACCELERATION * trackCondition * driverSkill) - sledResistance;
+
+      // Random track variations (bumps, soil differences)
+      acceleration += ((random(201) / 1000.0f) - 0.1f) * TRACK_VARIANCE;
+
+      // Driver actively limits speed after first alarm point
+      if (isLimitingSpeed && speed > targetSpeed) {
+        // Apply "braking" proportional to how much over target speed
+        float overSpeedFactor = (speed - targetSpeed) / 5.0f;
+        acceleration -= overSpeedFactor * (0.1f + (driverSkill * 0.2f));
+      }
+    }
+
+    // Apply acceleration to speed
+    if (acceleration > 0) {
+      speed += acceleration;
+    } else {
+      // Slowing down due to resistance or braking
+      speed += acceleration * 2.0f;  // Deceleration happens faster than acceleration
+    }
+
+    // Full stop after braking
+    if (braking && speed <= 0.1f) {
+      speed = 0.0f;
+    }
+
+    // Speed limits - if we're over the second alarm, simulate being disqualified
+    if (speed > StateManager::prefs().mphAlarm2 && passedFirstAlarm) {
+      // Very skilled drivers catch this faster
+      if (random(0, 100) < (30 + (driverSkill * 70))) {
+        speed = StateManager::prefs().mphAlarm1;
+
+        // Blink the speed alarm indicator
+        StateManager::setLimitSwitchTriggered(0, true);
+      }
+    }
+
+    // Gear shift simulation around typical shift point
+    if (!gearShifted && distance > GEAR_SHIFT_POINT && distance < GEAR_SHIFT_POINT + 10) {
+      speed *= 0.85f;  // Momentary speed drop during shift
+      tach *= 0.7f;    // RPM drops during shift
+      gearShifted = true;
+    }
+
+    // Engine load increases with distance as sled gets heavier
+    engineLoad = min(1.0f, distance / 250.0f);
+
+    // Limit max speed
+    if (speed > MAX_SPEED) speed = MAX_SPEED;
+    if (speed < 0.0f) speed = 0.0f;
+
+    // Engine can stall if speed gets too low after starting the pull
+    if (elapsed > 8000 && speed < 0.2f && distance > 10.0f) {
+      engineStalled = true;
+      tachTargetRPM = 0.0f;
+    }
+
+    // Calculate distance based on speed (mph to feet conversion factor)
+    float distanceIncrement = speed * 0.05f * 1.467f;
+    distance += distanceIncrement;
+
+    // Target RPM changes based on load and speed
+    tachTargetRPM = 2200.0f + (800.0f * (1.0f - engineLoad));
+
+    // RPM variations increase with load
+    tachVariance = 150.0f + (300.0f * engineLoad);
+
+    // Check for full pull or stopping at max possible distance
+    if (distance >= TRACK_END) {
+      distance = TRACK_END;
+      fullPull = true;
+      braking = true;
+    } else if (distance >= maxPossibleDistance && acceleration <= 0) {
+      // Tractor bogged down and stopped
+      if (speed < 0.5f) {
+        speed = 0;
+        fullPull = false;  // Not a full pull
+      }
+    }
+
+    // Stage 4: After pull completion or engine stall
+  } else {
+    if (speed > 0.0f) {
+      speed -= 0.3f;
+      if (speed < 0.0f) speed = 0.0f;
+    }
+
+    if (engineStalled) {
+      tachTargetRPM = 0.0f;
+    } else {
+      // After successful pull, engine revs down
+      tachTargetRPM = max(900.0f, tachTargetRPM - 5.0f);
+    }
+
+    tachVariance = 50.0f;
+  }
+
+  // Smooth tach changes to mimic real engine behavior
+  float tachDiff = tachTargetRPM - tach;
+  tach += tachDiff * 0.1f;
+
+  // Add realistic RPM fluctuations
+  tach += ((random(int(tachVariance * 2 + 1)) - tachVariance) / 10.0f);
+
+  if (tach < 0.0f) tach = 0.0f;
+
+  // Randomly toggle relays and switches for dashboard effects
+  // Tied more to the stages of the pull rather than just random
+  if (elapsed > 5000 && random(0, 100) < 3) {
+    // Fuel pump always engaged during active pull
+    StateManager::setRelayState(0, RelayState::ENGAGED);
+
+    // Water pump relay active at higher RPMs
+    StateManager::setRelayState(1, tach > 2000.0f ? RelayState::ENGAGED : RelayState::DISENGAGED);
+
+    // First distance alarm relay - managed in pull logic
+    // Second distance alarm relay - managed in pull logic
+
+    // Speed alarm indicator flashes if too close to limit
+    if (passedFirstAlarm && speed > StateManager::prefs().mphAlarm1 * 0.95f) {
+      // Flash speed warning
+      StateManager::setLimitSwitchTriggered(0, (elapsed / 250) % 2 == 0);
+    } else {
+      StateManager::setLimitSwitchTriggered(0, false);
+    }
+
+    // RPM alarm indicator flashes if too close to limit
+    if (tach > StateManager::prefs().tachAlarm1 * 0.95f) {
+      // Flash RPM warning
+      StateManager::setLimitSwitchTriggered(1, (elapsed / 250) % 2 == 0);
+    } else {
+      StateManager::setLimitSwitchTriggered(1, false);
+    }
+  }
+
+  // Additional instrumentation to indicate pull quality
+  static float maxReachedSpeed = 0.0f;
+  if (speed > maxReachedSpeed) maxReachedSpeed = speed;
+
+  // If the pull is done (either stopped or reached track end)
+  if ((fullPull || (elapsed > 8000 && speed < 0.1f && distance > 10.0f)) && elapsed > 5000) {
+    // Log max stats to serial debug if available
+    if (Serial) {
+      if (elapsed % 1000 < 100) {  // Only print occasionally
+        Serial.print("Pull stats - Max Speed: ");
+        Serial.print(maxReachedSpeed);
+        Serial.print(" MPH, Distance: ");
+        Serial.print(distance);
+        Serial.print(" ft, Full Pull: ");
+        Serial.print(fullPull ? "YES" : "NO");
+        Serial.print(", Alarms: Speed=");
+        Serial.print(StateManager::prefs().mphAlarm1);
+        Serial.print("/");
+        Serial.print(StateManager::prefs().mphAlarm2);
+        Serial.print(" Dist=");
+        Serial.print(StateManager::prefs().distanceAlarm1);
+        Serial.print("/");
+        Serial.print(StateManager::prefs().distanceAlarm2);
+        Serial.println();
+      }
+    }
+  } else if (elapsed < 3000) {
+    // Reset max stats at the beginning of each pull
+    maxReachedSpeed = 0.0f;
+  }
+
+  // Update state
+  StateManager::setSpeed(speed);
+  StateManager::setRPM(tach);
+  StateManager::setDistance(distance);
+}
+
+}  // namespace devSimulator
+
+// src/dev_utils/benchmark.cpp
+#include "dev_utils/benchmark.h"
+
+// Benchmark containers and widgets
+static lv_obj_t *benchmark_cont = NULL;
+static lv_obj_t *perf_label = NULL;
+static lv_obj_t *mem_label = NULL;
+static bool benchmark_enabled = false;
+
+void benchmark_init() {
+  // Initialize module but don't create display yet
+  benchmark_enabled = false;
+}
+
+void create_benchmark_display() {
+  if (benchmark_cont != NULL) return;  // Already created
+
+  // Create a container for benchmark display
+  // benchmark_cont = lv_obj_create(lv_scr_act());
+  benchmark_cont = lv_obj_create(lv_layer_top());
+  lv_obj_set_size(benchmark_cont, 180, 80);
+  lv_obj_align(benchmark_cont, LV_ALIGN_BOTTOM_RIGHT, -10, -10);
+
+  // Set style for semi-transparent black background
+  lv_obj_set_style_bg_color(benchmark_cont, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(benchmark_cont, LV_OPA_50, LV_PART_MAIN);
+  lv_obj_set_style_radius(benchmark_cont, 5, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(benchmark_cont, 10, LV_PART_MAIN);
+
+  // Create performance monitor label
+  perf_label = lv_label_create(benchmark_cont);
+  lv_obj_align(perf_label, LV_ALIGN_TOP_LEFT, 0, 0);
+  lv_label_set_text(perf_label, "FPS: calculating...");
+
+  // Create memory usage label
+  mem_label = lv_label_create(benchmark_cont);
+  lv_obj_align(mem_label, LV_ALIGN_TOP_LEFT, 0, 25);
+
+  // Get initial memory info
+  lv_mem_monitor_t mem_mon;
+  lv_mem_monitor(&mem_mon);
+  lv_label_set_text_fmt(mem_label, "Memory: %d%% used", (int)(mem_mon.used_pct));
+}
+
+void remove_benchmark_display() {
+  if (benchmark_cont != NULL) {
+    lv_obj_del(benchmark_cont);
+    benchmark_cont = NULL;
+    perf_label = NULL;
+    mem_label = NULL;
+  }
+}
+
+void benchmark_set_enabled(bool enable) {
+  benchmark_enabled = enable;
+
+  if (benchmark_enabled) {
+    create_benchmark_display();
+  } else {
+    remove_benchmark_display();
+  }
+}
+
+bool benchmark_is_enabled() { return benchmark_enabled; }
+
+void benchmark_update() {
+  if (!benchmark_enabled || benchmark_cont == NULL) return;
+
+  // Get performance data
+  static uint32_t lastUpdate = 0;
+  static uint32_t frameCnt = 0;
+  static float fps = 0;
+
+  frameCnt++;
+  uint32_t now = millis();
+
+  // Initialize lastUpdate if this is the first call
+  if (lastUpdate == 0) {
+    lastUpdate = now;
+  }
+
+  // Update every second
+  if (now - lastUpdate >= 1000) {
+    fps = 1000.0f * frameCnt / (now - lastUpdate);
+    frameCnt = 0;
+    lastUpdate = now;
+
+    // Update FPS display
+    lv_label_set_text_fmt(perf_label, "FPS: %d", (int)fps);
+
+// Get memory info - ESP32 specific
+#ifdef ESP32
+    uint32_t freeHeap = ESP.getFreeHeap();
+    uint32_t totalHeap = ESP.getHeapSize();
+    int usedPercent = 100 - (freeHeap * 100 / totalHeap);
+    lv_label_set_text_fmt(mem_label, "Memory: %d%% used", usedPercent);
+#else
+    // Fallback to LVGL's memory monitor
+    lv_mem_monitor_t mem_mon;
+    lv_mem_monitor(&mem_mon);
+    lv_label_set_text_fmt(mem_label, "Memory: %d%% used", (int)(mem_mon.used_pct));
+#endif
+  }
+}
+
+// src/dev_utils/demo_ui.cpp
+#include "dev_utils/demo_ui.h"
+
+#include "dev_utils/benchmark.h"
+#include "display/backlight.h"
+
+// Demo UI elements
+static uint8_t brightness = 128;  // Start at 50%
+static lv_obj_t *brightness_label;
+
+//========================================================================
+// Demo UI Functions
+//========================================================================
+
+// Slider event handler
+static void slider_event_handler(lv_event_t *e) {
+  lv_obj_t *slider = lv_event_get_target(e);
+  brightness = (uint8_t)lv_slider_get_value(slider);
+
+  // Update the backlight
+  setBacklight(brightness);
+
+  // Update label
+  lv_label_set_text_fmt(brightness_label, "Brightness: %d%%", (brightness * 100) / 255);
+}
+
+// Color button event handler
+static void color_btn_event_handler(lv_event_t *e) {
+  lv_obj_t *btn = lv_event_get_target(e);
+  int btn_id = (int)lv_obj_get_user_data(btn);
+
+  lv_obj_t *cont = lv_obj_get_parent(btn);
+
+  if (btn_id == 0) {
+    // Dark Blue background
+    lv_obj_set_style_bg_color(cont, lv_color_make(0, 0, 64), LV_PART_MAIN);
+  } else {
+    // White background
+    lv_obj_set_style_bg_color(cont, lv_color_white(), LV_PART_MAIN);
+  }
+}
+
+// Checkbox event handler
+static void checkbox_event_handler(lv_event_t *e) {
+  lv_obj_t *cb = lv_event_get_target(e);
+  bool enabled = lv_obj_get_state(cb) & LV_STATE_CHECKED;
+  benchmark_set_enabled(enabled);
+}
+
+void demo_ui_init() {
+  // Initialize with default brightness
+  brightness = 128;
+}
+
+// Create the demo UI
+void create_demo_ui() {
+  // Create the main container that will hold our UI elements
+  lv_obj_t *cont = lv_obj_create(lv_scr_act());
+  lv_obj_set_size(cont, 800, 480);
+  lv_obj_align(cont, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_style_pad_all(cont, 10, LV_PART_MAIN);
+
+  // Create title at the top
+  lv_obj_t *title = lv_label_create(cont);
+  lv_label_set_text(title, "ESP32-S3 LVGL Demo");
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 20);
+
+  // Create brightness label
+  brightness_label = lv_label_create(cont);
+  lv_obj_align(brightness_label, LV_ALIGN_TOP_MID, 0, 60);
+  lv_label_set_text_fmt(brightness_label, "Brightness: %d%%", (brightness * 100) / 255);
+
+  // Create brightness slider
+  lv_obj_t *slider = lv_slider_create(cont);
+  lv_obj_set_width(slider, 400);
+  lv_obj_align(slider, LV_ALIGN_TOP_MID, 0, 100);
+  lv_slider_set_range(slider, 0, 255);
+  lv_slider_set_value(slider, brightness, LV_ANIM_OFF);
+  lv_obj_add_event_cb(slider, slider_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Create color change buttons
+  lv_obj_t *btn_blue = lv_btn_create(cont);
+  lv_obj_set_size(btn_blue, 150, 60);
+  lv_obj_align(btn_blue, LV_ALIGN_LEFT_MID, 50, 50);
+  lv_obj_add_event_cb(btn_blue, color_btn_event_handler, LV_EVENT_CLICKED, NULL);
+  lv_obj_set_user_data(btn_blue, (void *)0);  // ID 0 for blue
+
+  // Label for the blue button
+  lv_obj_t *blue_label = lv_label_create(btn_blue);
+  lv_label_set_text(blue_label, "Dark Blue");
+  lv_obj_center(blue_label);
+
+  // Create the "White" button
+  lv_obj_t *btn_white = lv_btn_create(cont);
+  lv_obj_set_size(btn_white, 150, 60);
+  lv_obj_align(btn_white, LV_ALIGN_RIGHT_MID, -50, 50);
+  lv_obj_add_event_cb(btn_white, color_btn_event_handler, LV_EVENT_CLICKED, NULL);
+  lv_obj_set_user_data(btn_white, (void *)1);  // ID 1 for white
+
+  // Label for the white button
+  lv_obj_t *white_label = lv_label_create(btn_white);
+  lv_label_set_text(white_label, "White");
+  lv_obj_center(white_label);
+
+  // Create benchmark checkbox
+  lv_obj_t *cb = lv_checkbox_create(cont);
+  lv_checkbox_set_text(cb, "Show Benchmark");
+  lv_obj_align(cb, LV_ALIGN_BOTTOM_MID, 0, -20);
+  lv_obj_add_event_cb(cb, checkbox_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+}
+
+// include/SpeedModule.h
+#ifndef SPEED_MODULE_H
+#define SPEED_MODULE_H
+
+#include "Config.h"            // For radar/gps cal values
+#include "PullStateManager.h"  // For pull state enum
+
+namespace SpeedModule {
+
+void begin();
+void tick();
+float getAverageDeltaSec();
+
+// ---- Calibration ----
+bool isValidCalibrationNumber(int pulses);
+void saveManualCalibration(int pulses);
+void applyRadarCalibration();
+void applyGPSCalibration();
+int calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio);
+void saveCalculatorCalibration();
+
+// ---- Drive-Off Calibration ----
+void startDriveOffCalibration();
+void stopDriveOffCalibration();
+bool isDriveOffModeActive();
+void handlePulseDuringDriveOff();
+
+// ---- Runtime Tracking ----
+void onPulseDetected();
+void notifyPullStateChanged(PullState newState);
+void resetDistance();
+void updateSpeedAndDistance();
+
+// ---- Internals (optional: expose for debugging/testing) ----
+int getCurrentPulseCount();
+float getCurrentSpeed();
+float getCurrentDistance();
+}  // namespace SpeedModule
+
+#endif  // SPEED_MODULE_H
+
+
+// include/.DS_Store
+// Error reading file include/.DS_Store: 'utf-8' codec can't decode byte 0x9d in position 1073: invalid start byte
+
+// include/Config.h
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Forcefully undefine the library's defaults
+#undef DEVICE_TYPE
+#undef DEFAULT_DEVICE_NAME
+
+#define DEVICE_TYPE M4_MAIN_CONTROLLER
+#define DEFAULT_DEVICE_NAME "M4 Sled Monitor"
+
+// Include Dependencies
+#include "M4Device.h"  // Include the M4Device header for the device_type enum
+#include "M4Callbacks.h"
+#include "M4CommProtocol.h"
+#include "M4OTAServer.h"
+#include "M4PairingControl.h"
+
+// SYSTEM SETTINGS
+#define SERIAL_BAUD_RATE 115200
+#define VERSION_MAJOR "0"
+#define VERSION_MINOR "0"
+#define VERSION_PATCH "4"
+#define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
+
+#ifdef VERSION_PRERELEASE
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE
+#else
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+#endif
+
+// DISPLAY SETTINGS
+#define SCREEN_UPDATE_INTERVAL_MS 200        // Interval for screen updates in milliseconds
+#define SCREEN_ROTATION 0U                   // Display rotation (0 = no rotation, 1 = 90 degrees, etc.)
+#define SCREEN_WIDTH 800                     // Display width in pixels
+#define SCREEN_HEIGHT 480                    // Display height in pixels
+// For Display Pin Settings see include/display/display.h
+
+// BACKLIGHT SETTINGS
+#define LCD_BL_FREQ 10000                 // Increased to 10kHz for smoother PWM
+#define LCD_BL_CHANNEL 0                  // PWM channel for backlight control
+#define LCD_BL_RESOLUTION 8               // 8-bit resolution (0-255)
+#define DEFAULT_BACKLIGHT_BRIGHTNESS 192  // Default backlight brightness (0-255)
+#define LCD_BL_PIN IO_LCD_BL_CTR             // Backlight control pin
+
+// TOUCH SETTINGS
+#define TOUCH_CS_PIN IO_TP_CS    // Touch CS pin
+#define TOUCH_MOSI_PIN IO_TP_IN  // Touch MOSI pin
+#define TOUCH_MISO_PIN IO_TP_OUT  // Touch MISO pin
+#define TOUCH_SCK_PIN IO_TP_CLK   // Touch SCK pin
+
+// Enable this for development-only features like fake pulls
+// #define DEVELOPMENT_MODE
+
+// Speed Calibration number boundaries
+#define CALIBRATION_MIN 250
+#define CALIBRATION_MAX 25000
+
+// Factory-default calibration values (pulses per 300 ft)
+#define RADAR_CALIBRATION_PULSES 3542
+#define GPS_CALIBRATION_PULSES 3780
+
+// Speed input pin
+#define SPEED_SENSOR_PIN GPIO_NUM_44  // This is one of the RX TX pins and the speed sensor needs to be disconeected before burning.
+
+// PULL HISTORY SETTINGS
+#define MAX_PULL_HISTORY 50  // Maximum number of pull results to store
+
+// Pin configuration for 800x480 RGB display
+#define IO_LCD_BL_CTR  GPIO_NUM_4
+#define IO_INTA        GPIO_NUM_5
+#define IO_INTB        GPIO_NUM_6
+#define IO_SENSOR      GPIO_NUM_7
+#define IO_BUTTON      GPIO_NUM_15
+#define IO_TP_OUT      GPIO_NUM_16
+#define IO_TP_IN       GPIO_NUM_17
+#define IO_TP_CS       GPIO_NUM_18
+#define IO_TP_CLK      GPIO_NUM_8
+#define IO_I2C_SDA     GPIO_NUM_19
+#define IO_I2C_SCL     GPIO_NUM_20
+#define IO_VSYNC       GPIO_NUM_3
+#define IO_HSYNC       GPIO_NUM_46
+#define IO_PCLK        GPIO_NUM_9
+#define IO_B7          GPIO_NUM_10
+#define IO_B6          GPIO_NUM_11
+#define IO_B5          GPIO_NUM_12
+#define IO_B4          GPIO_NUM_13
+#define IO_B3          GPIO_NUM_14
+#define IO_G7          GPIO_NUM_21
+#define IO_G6          GPIO_NUM_47
+#define IO_G5          GPIO_NUM_48
+#define IO_G4          GPIO_NUM_45
+#define IO_DE_BOOT     GPIO_NUM_0
+#define IO_G3          GPIO_NUM_38
+#define IO_G2          GPIO_NUM_39
+#define IO_R7          GPIO_NUM_40
+#define IO_R6          GPIO_NUM_41
+#define IO_R5          GPIO_NUM_42
+#define IO_R4          GPIO_NUM_2
+#define IO_R3          GPIO_NUM_1
+
+
+// OTHER PIN DEFINITIONS
+#define NO_CONNECTION_1 GPIO_NUM_35
+#define NO_CONNECTION_2 GPIO_NUM_36
+#define NO_CONNECTION_3 GPIO_NUM_37
+#define IO42 GPIO_NUM_42
+#define IO17 GPIO_NUM_17
+#define IO18 GPIO_NUM_18
+#define TF_CS GPIO_NUM_10
+#define I2C_SDA IO_I2C_SDA
+#define I2C_SCL IO_I2C_SCL
+
+
+
+
+
+
+#endif  // CONFIG_H
+
+
+// include/StateManager.h
+#ifndef STATEMANAGER_H
+#define STATEMANAGER_H
+
+#include <Arduino.h>
+
+#include "Config.h"
+
+//
+// ENUMS
+//
+
+enum class UnitSystem { IMPERIAL, METRIC };
+enum class LimitSwitchTriggerMode { MAKE, BREAK, LSM_DISABLED };
+enum class PullState { READY, STAGED, PULLING, PULLEND, EMERGENCYSTOP };
+enum class RelayState { ENGAGED, DISENGAGED };
+
+//
+// STRUCTS
+//
+
+struct PullResult {
+  String driverName;
+  int driverNumber;
+  String className;
+  int classWeight;
+  float maxSpeedMPH;
+  float maxDistanceFeet;
+  float maxRPM;
+  unsigned long timestamp;  // ticks since last boot.  not great but we dont have an RTC clock on the MCU
+};
+
+struct SystemPreferences {
+  UnitSystem unitSystem = UnitSystem::IMPERIAL;
+
+  String pullingClassName = "M4 Sled Monitor - " + String(DEVICE_VERSION);
+  int pullingClassWeight = 0;
+  String driverName = "Driver";
+  int driverNumber = 1;
+
+  bool limitSwitchEnabled[2] = {true, true};
+
+  bool relayEnabled[4] = {true, true, true, true};
+
+  float distanceAlarm1 = 0.0f;
+  float distanceAlarm2 = 0.0f;
+  float tachAlarm1 = 0.0f;
+  float tachAlarm2 = 0.0f;
+  float mphAlarm1 = 0.0f;
+  float mphAlarm2 = 0.0f;
+
+  float trackLengthFeet = 300.0f;
+
+  bool benchmarkMode = false;
+  uint8_t screenBrightness = 100;
+  bool screenRotation180 = false;  // false = 0°, true = 180°
+  bool tachEnabled = true;
+  bool limitSwitchesEnabled = true;
+  bool relaysEnabled = true;
+
+  int speedCalibrationPulses = 1000;
+
+  // Pull history
+  PullResult pullHistory[MAX_PULL_HISTORY];
+  int pullHistoryCount = 0;  // Number of saved pulls (0 to MAX_PULL_HISTORY)
+
+  // M4 Communication Settings
+  uint8_t pairedTractorAddress[6] = {0, 0, 0, 0, 0, 0};
+  uint8_t pairedRemoteDisplayAddress[6] = {0, 0, 0, 0, 0, 0};
+  unsigned long pairingDelay = 10000;  // Default 10 second pairing delay
+};
+
+struct SystemState {
+  float distanceInFeet = 0.0f;
+  float maxDistanceInFeet = 0.0f;
+
+  float speedInMPH = 0.0f;
+  float maxSpeedInMPH = 0.0f;
+
+  float rpm = 0.0f;
+  float maxRpm = 0.0f;
+
+  bool limitSwitchTriggered[2] = {false, false};
+
+  RelayState relayStates[4] = {RelayState::DISENGAGED, RelayState::DISENGAGED, RelayState::DISENGAGED,
+                               RelayState::DISENGAGED};
+
+  PullState currentPullState = PullState::READY;
+};
+
+//
+// CLASS
+//
+
+class StateManager {
+public:
+  static SystemState& state();
+  static SystemPreferences& prefs();
+
+  // Unit-aware getters
+  static UnitSystem getUnitSystem();
+  static float getDistance();     // Converts to meters if metric
+  static float getSpeed();        // Converts to km/h if metric
+  static float getRPM();          // Returns RPM
+  static float getTrackLength();  // Converts to meters if metric
+  static float getMaxRPM();       // Returns max RPM
+  static float getMaxSpeed();     // Converts to km/h if metric
+  static float getMaxDistance();  // Converts to meters if metric
+  static bool getScreenRotation();  // Returns current screen rotation state 
+
+  // State accessors
+  static void setUnitSystem(UnitSystem system);
+
+  static void setDistance(float ft);  // Sets distance in feet
+  static void setSpeed(float mph);    // Sets speed in mph
+  static void setRPM(float rpm);      // Sets RPM
+
+  static void resetMaxRPM();
+  static void resetMaxSpeed();
+  static void resetMaxDistance();
+  static void resetAllMaxValues();
+
+  static bool getLimitSwitchTriggered(int index);
+  static void setLimitSwitchTriggered(int index, bool triggered);
+
+  static bool isLimitSwitchEnabled(int index);
+  static void setLimitSwitchEnabled(int index, bool enabled);
+
+  static void setPullState(PullState state);
+  static PullState getPullState();
+
+  static RelayState getRelayState(int index);
+  static void setRelayState(int index, RelayState state);
+
+  static int getSpeedCalibrationNumber();
+  static void setSpeedCalibrationNumber(int pulses);
+  
+  static void setScreenRotation(bool rotation180);
+
+  // M4 Communication methods
+  static const uint8_t* getPairedTractorAddress();
+  static void setPairedTractorAddress(const uint8_t* address);
+  static const uint8_t* getPairedRemoteDisplayAddress();
+  static void setPairedRemoteDisplayAddress(const uint8_t* address);
+  static unsigned long getPairingDelay();
+  static void setPairingDelay(unsigned long delay);
+
+  // Pull result management
+  static void savePullResult();
+  static int getPullHistoryCount();
+  static const PullResult* getPullHistory();
+  static const PullResult* getPullResult(int index);
+  static void clearPullHistory();
+
+  // Persistence
+  static void loadPreferences();
+  static void savePreferences();
+
+private:
+  static SystemState systemState;
+  static SystemPreferences preferences;
+};
+
+#endif  // STATEMANAGER_H
+
+
+// include/ScreenUpdater.h
+#ifndef SCREEN_UPDATER_H
+#define SCREEN_UPDATER_H
+
+#define COLOR_INDIC_GREEN lv_color_make(0x00, 0xC8, 0x53)
+#define COLOR_INDIC_RED lv_color_make(0xF9, 0x2A, 0x1C)
+#define COLOR_INDIC_DISABLED lv_color_make(0x80, 0x80, 0x80)
+#define COLOR_INDIC_YELLOW lv_color_make(0xFF, 0xE0, 0x00)
+
+void updateMainScreen();  // Call this periodically to update UI elements based on state
+
+#endif  // SCREEN_UPDATER_H
+
+
+// include/lv_conf_check.h
+// include/lv_conf_check.h
+// This is just a placeholder file to satisfy LVGL's build system
+// The actual configuration is in platformio.ini
+#ifndef LV_CONF_CHECK_H
+#define LV_CONF_CHECK_H
+#endif
+
+// include/README
+
+This directory is intended for project header files.
+
+A header file is a file containing C declarations and macro definitions
+to be shared between several project source files. You request the use of a
+header file in your project source file (C, C++, etc) located in `src` folder
+by including it, with the C preprocessing directive `#include'.
+
+```src/main.c
+
+#include "header.h"
+
+int main (void)
+{
+ ...
+}
+```
+
+Including a header file produces the same results as copying the header file
+into each source file that needs it. Such copying would be time-consuming
+and error-prone. With a header file, the related declarations appear
+in only one place. If they need to be changed, they can be changed in one
+place, and programs that include the header file will automatically use the
+new version when next recompiled. The header file eliminates the labor of
+finding and changing all the copies as well as the risk that a failure to
+find one copy will result in inconsistencies within a program.
+
+In C, the usual convention is to give header files names that end with `.h'.
+It is most portable to use only letters, digits, dashes, and underscores in
+header file names, and at most one dot.
+
+Read more about using header files in official GCC documentation:
+
+* Include Syntax
+* Include Operation
+* Once-Only Headers
+* Computed Includes
+
+https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+
+
+// include/PullStateManager.h
+// PullStateManager.h
+#ifndef PULLSTATEMANAGER_H
+#define PULLSTATEMANAGER_H
+
+#include "StateManager.h"
+
+class PullStateManager {
+public:
+  static void init();    // optional setup if needed
+  static void update();  // Call this every loop iteration
+
+  // Button handlers (called from UI)
+  static void handleStagePressed();
+  static void handleCancelPressed();
+  static void handleStopPressed();
+  static void handleDiscardPressed();
+  static void handleSavePressed();
+  static void handleResetPressed();
+
+  // External triggers
+  static void triggerEmergencyStop();
+  static void detectPullStart(float currentSpeed);  // Can be called periodically to detect transition to PULLING
+
+private:
+  static void enterState(PullState newState);
+  static void updateUIForState(PullState state);
+  static void triggerRelaysForState(PullState state);
+  static void resetMaxValues();
+  static void resetCurrentValues();
+};
+
+#endif
+
+
+// include/lv_conf.h
+/**
+ * @file lv_conf.h
+ * Configuration file for v8.3 of LVGL
+ * Generated by SquareLine Studio for the ESP32-S3 800x480 LVGL Board
+ */
+
+#ifndef LV_CONF_H
+#define LV_CONF_H
+
+#include <stdint.h>
+
+/*====================
+   COLOR SETTINGS
+ *====================*/
+
+/*Color depth: 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
+#define LV_COLOR_DEPTH 16
+
+/*Swap the 2 bytes of RGB565 color. Useful if the display has an 8-bit interface (e.g. SPI)*/
+#define LV_COLOR_16_SWAP 1
+
+/*Enable more complex drawing routines to manage screens transparency.
+ *Can be used if the UI is above another layer, e.g. an OSD menu or video player.
+ *Requires `LV_COLOR_DEPTH = 32` colors and the screen's `bg_opa` should be set to non LV_OPA_COVER value*/
+#define LV_COLOR_SCREEN_TRANSP 0
+
+/*Images pixels with this color will not be drawn if they are chroma keyed)*/
+#define LV_COLOR_CHROMA_KEY lv_color_hex(0x00ff00) /*pure green*/
+
+/*=========================
+   MEMORY SETTINGS
+ *=========================*/
+
+/*1: use custom malloc/free, 0: use the built-in `lv_mem_alloc()` and `lv_mem_free()`*/
+#define LV_MEM_CUSTOM 0
+#if LV_MEM_CUSTOM == 0
+/*Size of the memory available for `lv_mem_alloc()` in bytes (>= 2kB)*/
+// #define LV_MEM_SIZE (48U * 1024U) /*[bytes]*/
+#define LV_MEM_SIZE (128U * 1024U)
+
+/*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
+#define LV_MEM_ADR 0 /*0: unused*/
+/*Instead of an address give a memory allocator that will be called to get a memory pool for LVGL. E.g. my_malloc*/
+#if LV_MEM_ADR == 0
+#undef LV_MEM_POOL_INCLUDE
+#undef LV_MEM_POOL_ALLOC
+#endif
+#endif /*LV_MEM_CUSTOM*/
+
+/*Use the standard `memcpy` and `memset` instead of LVGL's own functions. (Might or might not be faster).*/
+#define LV_MEMCPY_MEMSET_STD 0
+
+/*====================
+   HAL SETTINGS
+ *====================*/
+
+/*Default display refresh period. LVG will redraw changed areas with this period time*/
+#define LV_DISP_DEF_REFR_PERIOD 24 /*[ms]*/  // 30 was defaults
+
+/*Input device read period in milliseconds*/
+#define LV_INDEV_DEF_READ_PERIOD 24 /*[ms]*/  // 30 was default
+
+/*Use a custom tick source that tells the elapsed time in milliseconds.
+ *It removes the need to manually update the tick with `lv_tick_inc()`)*/
+#define LV_TICK_CUSTOM 1
+#if LV_TICK_CUSTOM
+#define LV_TICK_CUSTOM_INCLUDE "Arduino.h"      /*Header for the system time function*/
+#define LV_TICK_CUSTOM_SYS_TIME_EXPR (millis()) /*Expression evaluating to current system time in ms*/
+#endif                                          /*LV_TICK_CUSTOM*/
+
+/*Default Dot Per Inch. Used to initialize default sizes such as widgets sized, style paddings.
+ *(Not so important, you can adjust it to modify default sizes and spaces)*/
+#define LV_DPI_DEF 130 /*[px/inch]*/
+
+/*=======================
+ * FEATURE CONFIGURATION
+ *=======================*/
+
+/*-------------
+ * Drawing
+ *-----------*/
+
+/*Enable complex draw engine.
+ *Required to draw shadow, gradient, rounded corners, circles, arc, skew lines, image transformations or any masks*/
+#define LV_DRAW_COMPLEX 1
+#if LV_DRAW_COMPLEX != 0
+
+/*Allow buffering some shadow calculation.
+ *LV_SHADOW_CACHE_SIZE is the max. shadow size to buffer, where shadow size is `shadow_width + radius`
+ *Caching has LV_SHADOW_CACHE_SIZE^2 RAM cost*/
+#define LV_SHADOW_CACHE_SIZE 0
+
+/* Set number of maximally cached circle data.
+ * The circumference of 1/4 circle are saved for anti-aliasing
+ * radius * 4 bytes are used per circle (the most often used radiuses are saved)
+ * 0: to disable caching */
+#define LV_CIRCLE_CACHE_SIZE 4
+#endif /*LV_DRAW_COMPLEX*/
+
+/*Default image cache size. Image caching keeps the images opened.
+ *If only the built-in image formats are used there is no real advantage of caching. (I.e. if no new image decoder is
+ *added) With complex image decoders (e.g. PNG or JPG) caching can save the continuous open/decode of images. However
+ *the opened images might consume additional RAM. 0: to disable caching*/
+#define LV_IMG_CACHE_DEF_SIZE 0
+
+/*Number of stops allowed per gradient. Increase this to allow more stops.
+ *This adds (sizeof(lv_color_t) + 1) bytes per additional stop*/
+#define LV_GRADIENT_MAX_STOPS 2
+
+/*Default gradient buffer size.
+ *When LVGL calculates the gradient "maps" it can save them into a cache to avoid calculating them again.
+ *LV_GRAD_CACHE_DEF_SIZE sets the size of this cache in bytes.
+ *If the cache is too small the map will be allocated only while it's required for the drawing.
+ *0 mean no caching.*/
+#define LV_GRAD_CACHE_DEF_SIZE 0
+
+/*Allow dithering the gradients (to achieve visual smooth color gradients on limited color depth display)
+ *LV_DITHER_GRADIENT implies allocating one or two more lines of the object's rendering surface
+ *The increase in memory consumption is (32 bits * object width) plus 24 bits * object width if using error diffusion */
+#define LV_DITHER_GRADIENT 0
+#if LV_DITHER_GRADIENT
+/*Add support for error diffusion dithering.
+ *Error diffusion dithering gets a much better visual result, but implies more CPU consumption and memory when drawing.
+ *The increase in memory consumption is (24 bits * object's width)*/
+#define LV_DITHER_ERROR_DIFFUSION 0
+#endif
+
+/* This is a generic library to allow users to add a gradient of multiple stops to a screen.
+ * The gradients can be displayed by either drawing a rectangle or using a mask.
+ * CPU: Will use some CPU
+ * RAM: Uses about 200 bytes + LV_GRADIENT_MULTI_STOPS_MAX_SIZE * 12 bytes */
+#define LV_USE_DRAW_GRADIENT_MULTI_STOPS 0
+#if LV_USE_DRAW_GRADIENT_MULTI_STOPS
+/* Number of stops allowed per multi stop gradient. Increase this to allow more stops.
+ * This adds (sizeof(lv_color_t) + 2) bytes per additional stop */
+#define LV_GRADIENT_MULTI_STOPS_MAX_SIZE 20
+#endif
+
+/*=====================
+ * GPU CONFIGURATION
+ *=====================*/
+
+/*Use Arm's 2D acceleration library Arm-2D */
+#define LV_USE_GPU_ARM2D 0
+
+/*Use STM32's DMA2D (aka Chrom Art) GPU*/
+#define LV_USE_GPU_STM32_DMA2D 0
+#if LV_USE_GPU_STM32_DMA2D
+/*Must be defined to include path of CMSIS header of target processor
+e.g. "stm32f7xx.h" or "stm32f4xx.h"*/
+#define LV_GPU_DMA2D_CMSIS_INCLUDE
+#endif
+
+/*Use ESP32's SPI based GPU (gdma, using spi_device)
+ *Supported targets up to now:
+ * ESP32S3
+ * If using ESP-IDF < 5.0, please call `gdma_init()` and `spi_bus_initialize()` before initializing the display device.
+ */
+#define LV_USE_GPU_SPI_TRANS 0
+
+/*Use NXP's PXP GPU iMX RTxxx platforms*/
+#define LV_USE_GPU_NXP_PXP 0
+#if LV_USE_GPU_NXP_PXP
+/*1: Add default bare metal and FreeRTOS interrupt handling routines for PXP (lv_gpu_nxp_pxp_osa.c)
+ *   and calls _lv_gpu_nxp_pxp_init() automatically during lv_init(). Note that symbol SDK_OS_FREE_RTOS
+ *   has to be defined in order to use FreeRTOS OSA, otherwise bare-metal implementation is selected.
+ *0: Use custom implementation of devicedrv_utils.h*/
+#define LV_USE_GPU_NXP_PXP_AUTO_INIT 0
+#endif
+
+/*Use NXP's VG-Lite GPU iMX RTxxx platforms*/
+#define LV_USE_GPU_NXP_VG_LITE 0
+
+/*Use extneral renderer*/
+#define LV_USE_DRAW_SW 1
+#define LV_USE_DRAW_HW 0
+#if LV_USE_DRAW_HW
+#define LV_USE_DRAW_HW_STUB 0
+#define LV_USE_DRAW_HW_INC "lvgl/draw/stm32_dma2d/lv_gpu_stm32_dma2d.h"
+#endif
+
+/*-------------
+ * Others
+ *-----------*/
+
+/*Use LVGL's built in FreeType library*/
+#define LV_USE_FREETYPE 0
+#if LV_USE_FREETYPE
+/*Memory used by FreeType to cache characters in kilobytes*/
+#define LV_FREETYPE_CACHE_SIZE 0
+#define LV_FREETYPE_CACHE_TYPE 0
+#define LV_FREETYPE_HINT_MODES 1
+#define LV_FREETYPE_SBIT_CACHE 1
+#define LV_FREETYPE_AUTO_OFFSET 8
+#define LV_FREETYPE_DEFAULT_FONT nullptr
+#endif
+
+/*1: Handle print in C++ */
+#define LV_USE_LARGE_COORD 0
+
+/*Fonts*/
+#define LV_FONT_MONTSERRAT_8 0
+#define LV_FONT_MONTSERRAT_10 0
+#define LV_FONT_MONTSERRAT_12 1
+#define LV_FONT_MONTSERRAT_14 1
+#define LV_FONT_MONTSERRAT_16 1
+#define LV_FONT_MONTSERRAT_18 0
+#define LV_FONT_MONTSERRAT_20 1
+#define LV_FONT_MONTSERRAT_22 0
+#define LV_FONT_MONTSERRAT_24 0
+#define LV_FONT_MONTSERRAT_26 0
+#define LV_FONT_MONTSERRAT_28 0
+#define LV_FONT_MONTSERRAT_30 0
+#define LV_FONT_MONTSERRAT_32 0
+#define LV_FONT_MONTSERRAT_34 0
+#define LV_FONT_MONTSERRAT_36 0
+#define LV_FONT_MONTSERRAT_38 0
+#define LV_FONT_MONTSERRAT_40 0
+#define LV_FONT_MONTSERRAT_42 0
+#define LV_FONT_MONTSERRAT_44 0
+#define LV_FONT_MONTSERRAT_46 0
+#define LV_FONT_MONTSERRAT_48 0
+
+#define LV_FONT_DEFAULT &lv_font_montserrat_14
+
+#endif /*LV_CONF_H*/
+
+
+// include/M4CommsHelpers.h
+#ifndef M4COMMSHELPERS_H
+#define M4COMMSHELPERS_H
+
+#include <lvgl.h>
+#include <Arduino.h>
+
+#include "Config.h"
+#include "StateManager.h"
+
+extern int CHECK_REMOTE_CONNECTION_RATE;
+
+extern bool isPairing;
+extern uint8_t pairedTractorAddress[6];
+extern int pairedTractorRSSI;
+extern bool isTractorConnected;
+extern unsigned long isTractorConnectedMillis;
+
+extern bool isRemoteDisplayConnected;
+extern unsigned long isRemoteDisplayConnectedMillis;
+extern uint8_t pairedRemoteDisplayAddress[6];
+extern int pairedRemoteRSSI;
+
+extern bool SendTestPatternToSignFlag;
+extern bool SendSignalStrengthToSignFlag;
+
+extern unsigned long pairingStartedMillis;
+extern unsigned long pairingDelay;
+extern bool isWaitingForPairingDelay;
+extern bool isInPull;
+
+extern VERSION pairedTractorVersion;
+extern VERSION pairedRemoteVersion;
+
+enum wirelessSymbols { REMOTE_SETTINGS, REMOTE_RUN, TRACTOR_RUN };
+
+// Functions for message processing and pairing responses
+void processPairingResponse(uint8_t *senderAddress, int rssi);
+void processPairingRemoteResponse(uint8_t *senderAddress);
+void processSendRPM(const float value, int rssi);
+void processRemoteAck(int rssi);
+
+// Utility functions for MAC address formatting and UI updates
+void formatMACAddress(char *macStr, const uint8_t *macAddress);
+void onMessageReceived(uint8_t *senderAddress, uint8_t *incomingData,
+                       uint8_t len, int rssi, bool broadcast);
+void updateDisplayWithMAC(uint8_t *macAddress, lv_obj_t *btn, lv_obj_t *label);
+
+// Helper functions for remote display connectivity and updates
+void isRemoteDisplayConnectedHelper();
+void updateRemoteDisplay(float value);
+void updateRemoteDisplay(String value);
+
+// Test pattern update handling
+void handleTestPattern(bool &SendTestPatternToSignFlag);
+
+// Address checking and pairing state management
+bool isAddressEmpty(const uint8_t *address, size_t size);
+void pairingStateSwitcher();
+
+// RSSI conversion and signal strength handling
+int convertRssiToSignalStrength(int rssi);
+String convertRssiToSignalQuality(int rssi);
+void changeRSSISymbol(signed int rssi, wirelessSymbols symbol);
+
+// UI element visibility management
+void showRemoteTestButtons(bool show);
+void signalStrengthHelper();
+void showUIObject(lv_obj_t *obj, bool show);
+
+void updateVersion(struct VERSION &version, int major, int minor, int patch);
+
+// Initialization function to load persistent data from StateManager
+void initializeM4Communications();
+
+#endif // M4COMMSHELPERS_H
 
 // include/touch/.DS_Store
 // Error reading file include/touch/.DS_Store: 'utf-8' codec can't decode byte 0x80 in position 3131: invalid start byte
@@ -430,16 +4028,301 @@ void test(void);
 void drawPrompt(void);
 void drawCross(int x, int y, unsigned int color);
 bool getCoord();
-void setRecalibrationFlag();
+bool setRecalibrationFlag(bool force = true);
 
 #endif
+
+// include/custom_ui/custom_keyboard.h
+#ifndef CUSTOM_KEYBOARD_H
+#define CUSTOM_KEYBOARD_H
+
+#include "lvgl.h"
+
+void setup_custom_number_keyboard(lv_obj_t *keyboard);
+
+#endif  // CUSTOM_KEYBOARD_H
+
+
+// include/display/display.h
+#ifndef INCLUDE_DISPLAY_H_
+#define INCLUDE_DISPLAY_H_
+
+#include <Arduino.h>
+#include "Config.h"
+
+#include <LovyanGFX.hpp>
+#include <lgfx/v1/platforms/esp32s3/Bus_RGB.hpp>
+#include <lgfx/v1/platforms/esp32s3/Panel_RGB.hpp>
+
+class LGFX : public lgfx::LGFX_Device {
+public:
+  lgfx::Bus_RGB _bus_instance;
+  lgfx::Panel_RGB _panel_instance;
+
+  LGFX(void) {
+    {
+      auto cfg = _bus_instance.config();
+      cfg.panel = &_panel_instance;
+
+      // // Pin configuration for 800x480 RGB display (OLD BOARD)
+      // cfg.pin_d0 = GPIO_NUM_15;       // B3
+      // cfg.pin_d1 = GPIO_NUM_7;        // B4
+      // cfg.pin_d2 = GPIO_NUM_6;        // B5
+      // cfg.pin_d3 = GPIO_NUM_5;        // B6
+      // cfg.pin_d4 = GPIO_NUM_4;        // B7
+
+      // cfg.pin_d5 = GPIO_NUM_9;        // G2
+      // cfg.pin_d6 = GPIO_NUM_46;       // G3 
+      // cfg.pin_d7 = GPIO_NUM_3;        // G4
+      // cfg.pin_d8 = GPIO_NUM_8;        // G5
+      // cfg.pin_d9 = GPIO_NUM_16;       // G6
+      // cfg.pin_d10 = GPIO_NUM_1;       // G7
+
+      // cfg.pin_d11 = GPIO_NUM_14;      // R3
+      // cfg.pin_d12 = GPIO_NUM_21;      // R4
+      // cfg.pin_d13 = GPIO_NUM_47;      // R5
+      // cfg.pin_d14 = GPIO_NUM_48;      // R6
+      // cfg.pin_d15 = GPIO_NUM_45;      // R7
+
+      // cfg.pin_henable = GPIO_NUM_41;  // DE
+      // cfg.pin_vsync = GPIO_NUM_40;    // VSYNC
+      // cfg.pin_hsync = GPIO_NUM_39;    // HSYNC
+      // cfg.pin_pclk = GPIO_NUM_0;      // BOOT LCD PCLK
+
+      // Pin configuration for 800x480 RGB display
+      cfg.pin_d0  = IO_B3;       // B3
+      cfg.pin_d1  = IO_B4;       // B4
+      cfg.pin_d2  = IO_B5;       // B5
+      cfg.pin_d3  = IO_B6;       // B6
+      cfg.pin_d4  = IO_B7;       // B7
+
+      cfg.pin_d5  = IO_G2;       // G2
+      cfg.pin_d6  = IO_G3;       // G3
+      cfg.pin_d7  = IO_G4;       // G4
+      cfg.pin_d8  = IO_G5;       // G5
+      cfg.pin_d9  = IO_G6;       // G6
+      cfg.pin_d10 = IO_G7;       // G7
+
+      cfg.pin_d11 = IO_R3;       // R3
+      cfg.pin_d12 = IO_R4;       // R4
+      cfg.pin_d13 = IO_R5;       // R5
+      cfg.pin_d14 = IO_R6;       // R6
+      cfg.pin_d15 = IO_R7;       // R7
+
+      cfg.pin_henable = IO_DE_BOOT; // DE
+      cfg.pin_vsync   = IO_VSYNC;   // VSYNC
+      cfg.pin_hsync   = IO_HSYNC;   // HSYNC
+      cfg.pin_pclk    = IO_PCLK;    // PCLK
+
+
+      cfg.freq_write = 15000000;
+
+      cfg.hsync_polarity = 0;
+      cfg.hsync_front_porch = 40;
+      cfg.hsync_pulse_width = 48;
+      cfg.hsync_back_porch = 40;
+
+      cfg.vsync_polarity = 0;
+      cfg.vsync_front_porch = 1;
+      cfg.vsync_pulse_width = 31;
+      cfg.vsync_back_porch = 13;
+
+      cfg.pclk_active_neg = 1;
+      cfg.de_idle_high = 0;
+      cfg.pclk_idle_high = 0;
+
+      _bus_instance.config(cfg);
+    }
+    {
+      auto cfg = _panel_instance.config();
+      cfg.memory_width = 800;
+      cfg.memory_height = 480;
+      cfg.panel_width = 800;
+      cfg.panel_height = 480;
+      cfg.offset_x = 0;
+      cfg.offset_y = 0;
+
+      // cfg.rgb_order = 1;
+
+      _panel_instance.config(cfg);
+    }
+    _panel_instance.setBus(&_bus_instance);
+    setPanel(&_panel_instance);
+  }
+};
+
+extern LGFX lcd;
+
+// Initialize the display and touch
+void init_display();
+
+#endif  // INCLUDE_DISPLAY_H_
+
+// include/display/backlight.h
+#ifndef BACKLIGHT_H
+#define BACKLIGHT_H
+
+#include <Arduino.h>
+
+#include "Config.h"
+
+void setupBacklight(uint8_t pin = LCD_BL_PIN, uint8_t channel = LCD_BL_CHANNEL,
+                    uint8_t initial_brightness = DEFAULT_BACKLIGHT_BRIGHTNESS);
+void setBacklight(uint8_t brightness);
+void setBacklightSmooth(uint8_t brightness);
+void setBacklightFast(uint8_t brightness);
+void updateBacklight();
+uint8_t getBacklight();
+void fadeBacklight(bool fadeIn, int duration = 1000);
+
+#endif  // BACKLIGHT_H
+
+// include/display/lvgl_callbacks.h
+#ifndef LVGL_CALLBACKS_H
+#define LVGL_CALLBACKS_H
+
+#include <Arduino.h>
+#include <lvgl/lvgl.h>
+
+#include "display/display.h"
+#include "touch/touch.h"
+
+// LVGL buffers and drivers
+static lv_disp_draw_buf_t draw_buf;
+static lv_color_t buf1[800 * 40];
+static lv_disp_drv_t disp_drv;
+static lv_indev_drv_t indev_drv;
+
+// Display flushing callback for LVGL
+void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
+
+// Touchpad reading callback for LVGL
+void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data);
+
+void lvgl_task(void *parameter);
+
+// Initialize LVGL
+void init_lvgl();
+
+#endif  // LVGL_CALLBACKS_H
+
+// include/dev_utils/test_display.h
+#ifndef TEST_DISPLAY_H
+#define TEST_DISPLAY_H
+
+#include <Arduino.h>
+
+#include "display/display.h"
+
+uint16_t rainbow(uint8_t hue);
+
+#ifdef DEVELOPMENT_MODE
+void runDisplayTest();
+
+void fadeInBacklightBlue();
+void displaySolidGreen();
+void fadeOutBacklight();
+void fadeInBacklight();
+void displaySolidRed();
+void testBacklightLevels();
+void showEBUColorBars();
+void displayMovingTextAnimation();
+void displayTouchCoordinates();
+
+// New functions for brightness control
+void drawBrightnessButtons();
+void handleBrightnessControl();
+void displayBrightnessLevel();  // Display brightness level as a percentage
+
+#endif
+
+#endif  // TEST_DISPLAY_H
+
+
+// include/dev_utils/DevSimulator.h
+#ifndef DEV_SIMULATOR_H
+#define DEV_SIMULATOR_H
+
+namespace devSimulator {
+void update();  // Call this in the loop
+}
+
+#endif  // DEV_SIMULATOR_H
+
+
+// include/dev_utils/benchmark.h
+#ifndef BENCHMARK_H
+#define BENCHMARK_H
+
+#include <Arduino.h>
+#include <lvgl.h>
+
+/**
+ * @brief Initialize the benchmark module
+ * Call this once during setup
+ */
+void benchmark_init();
+
+/**
+ * @brief Toggle the benchmark display on or off
+ * @param enable True to enable, false to disable
+ */
+void benchmark_set_enabled(bool enable);
+
+/**
+ * @brief Check if benchmark display is currently enabled
+ * @return True if enabled, false if disabled
+ */
+bool benchmark_is_enabled();
+
+/**
+ * @brief Update the benchmark display
+ * Call this in your main loop or LVGL task
+ */
+void benchmark_update();
+
+#endif  // BENCHMARK_H
+
+// include/dev_utils/demo_ui.h
+#ifndef DEMO_UI_H
+#define DEMO_UI_H
+
+#include <Arduino.h>
+#include <lvgl.h>
+
+/**
+ * @brief Demo UI module
+ *
+ * This module provides a simple demonstration UI for testing the display
+ * and LVGL functionality. It includes brightness control, color change buttons,
+ * and benchmark functionality.
+ *
+ * When creating your own application:
+ * 1. You can use this as a reference for how to create LVGL UI elements
+ * 2. You can modify this code to suit your needs
+ * 3. Or you can create your own UI module and replace the call to create_demo_ui()
+ *    in the main.cpp file
+ */
+
+/**
+ * @brief Initialize the demo UI module
+ * Call this once during setup
+ */
+void demo_ui_init();
+
+/**
+ * @brief Create the demo UI elements
+ * Creates sliders, buttons, and other demo components
+ */
+void create_demo_ui();
+
+#endif  // DEMO_UI_H
 
 // src/main.cpp
 #include <Arduino.h>
 #include <lvgl/lvgl.h>
 
 #include "Config.h"
-#include "PreferencesManager.h"
 #include "PullStateManager.h"
 #include "ScreenUpdater.h"
 #include "SpeedModule.h"
@@ -448,9 +4331,7 @@ void setRecalibrationFlag();
 #include "display/backlight.h"
 #include "display/display.h"
 #include "display/lvgl_callbacks.h"
-#include "touch/calibration.h"
 #include "touch/touch.h"
-
 
 
 // UI generated by Squareline
@@ -468,7 +4349,7 @@ void setup() {
 
   Serial.println("Starting M4 7-inch RGB Display UI: M4_MCU_2025...");
   Serial.print("Version: ");
-  Serial.println(VERSION);
+  Serial.println(DEVICE_VERSION);
   Serial.print("Build Date: ");
   Serial.println(__DATE__ " " __TIME__);
 
@@ -480,13 +4361,16 @@ void setup() {
 
   init_lvgl();
   ui_init();
+  
+  // Apply saved screen rotation
+  StateManager::setScreenRotation(StateManager::prefs().screenRotation180);
+  
   PullStateManager::init();
   SpeedModule::begin();
 
-  StateManager::prefs().driverNumber = 1;
-  StateManager::savePreferences();
 
   xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 4096, NULL, 1, NULL, 1);
+  // setRecalibrationFlag();
   Serial.println("Setup complete");
 }
 
@@ -509,25 +4393,48 @@ void loop() {
     lastScreenUpdate = now;
     updateMainScreen();
   }
-  setRecalibrationFlag();
-
+  // TODO: look into removing this delay, if we need to slow down a task we should slow down the specific task.
+  // This is just to prevent the loop from running too fast and hogging CPU time.
+  // lv_timer_handler() should be enough to throttle the loop.
   delay(5);
-  
 }
 
 // include/Config.h
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Forcefully undefine the library's defaults
+#undef DEVICE_TYPE
+#undef DEFAULT_DEVICE_NAME
+
+#define DEVICE_TYPE M4_MAIN_CONTROLLER
+#define DEFAULT_DEVICE_NAME "M4 Sled Monitor"
+
+// Include Dependencies
+#include "M4Device.h"  // Include the M4Device header for the device_type enum
+#include "M4Callbacks.h"
+#include "M4CommProtocol.h"
+#include "M4OTAServer.h"
+#include "M4PairingControl.h"
+
 // SYSTEM SETTINGS
 #define SERIAL_BAUD_RATE 115200
-#define VERSION "0.0.3-alpha"
+#define VERSION_MAJOR "0"
+#define VERSION_MINOR "0"
+#define VERSION_PATCH "4"
+#define VERSION_PRERELEASE "alpha"  // Comment out or undefine for stable releases
+
+#ifdef VERSION_PRERELEASE
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH "-" VERSION_PRERELEASE
+#else
+    #define DEVICE_VERSION VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+#endif
 
 // DISPLAY SETTINGS
-#define SCREEN_UPDATE_INTERVAL_MS 200  // Interval for screen updates in milliseconds
-#define SCREEN_ROTATION 0U             // Display rotation (0 = no rotation, 1 = 90 degrees, etc.)
-#define SCREEN_WIDTH 800               // Display width in pixels
-#define SCREEN_HEIGHT 480              // Display height in pixels
+#define SCREEN_UPDATE_INTERVAL_MS 200        // Interval for screen updates in milliseconds
+#define SCREEN_ROTATION 0U                   // Display rotation (0 = no rotation, 1 = 90 degrees, etc.)
+#define SCREEN_WIDTH 800                     // Display width in pixels
+#define SCREEN_HEIGHT 480                    // Display height in pixels
 // For Display Pin Settings see include/display/display.h
 
 // BACKLIGHT SETTINGS
@@ -535,13 +4442,13 @@ void loop() {
 #define LCD_BL_CHANNEL 0                  // PWM channel for backlight control
 #define LCD_BL_RESOLUTION 8               // 8-bit resolution (0-255)
 #define DEFAULT_BACKLIGHT_BRIGHTNESS 192  // Default backlight brightness (0-255)
-#define LCD_BL_PIN GPIO_NUM_2             // Backlight control pin
+#define LCD_BL_PIN IO_LCD_BL_CTR             // Backlight control pin
 
 // TOUCH SETTINGS
-#define TOUCH_CS_PIN GPIO_NUM_38    // Touch CS pin
-#define TOUCH_MOSI_PIN GPIO_NUM_11  // Touch MOSI pin
-#define TOUCH_MISO_PIN GPIO_NUM_13  // Touch MISO pin
-#define TOUCH_SCK_PIN GPIO_NUM_12   // Touch SCK pin
+#define TOUCH_CS_PIN IO_TP_CS    // Touch CS pin
+#define TOUCH_MOSI_PIN IO_TP_IN  // Touch MOSI pin
+#define TOUCH_MISO_PIN IO_TP_OUT  // Touch MISO pin
+#define TOUCH_SCK_PIN IO_TP_CLK   // Touch SCK pin
 
 // Enable this for development-only features like fake pulls
 // #define DEVELOPMENT_MODE
@@ -555,7 +4462,44 @@ void loop() {
 #define GPS_CALIBRATION_PULSES 3780
 
 // Speed input pin
-#define SPEED_SENSOR_PIN GPIO_NUM_44  // TODO: Where is 44 coming from? I don't see it on the schematic
+#define SPEED_SENSOR_PIN GPIO_NUM_44  // This is one of the RX TX pins and the speed sensor needs to be disconeected before burning.
+
+// PULL HISTORY SETTINGS
+#define MAX_PULL_HISTORY 50  // Maximum number of pull results to store
+
+// Pin configuration for 800x480 RGB display
+#define IO_LCD_BL_CTR  GPIO_NUM_4
+#define IO_INTA        GPIO_NUM_5
+#define IO_INTB        GPIO_NUM_6
+#define IO_SENSOR      GPIO_NUM_7
+#define IO_BUTTON      GPIO_NUM_15
+#define IO_TP_OUT      GPIO_NUM_16
+#define IO_TP_IN       GPIO_NUM_17
+#define IO_TP_CS       GPIO_NUM_18
+#define IO_TP_CLK      GPIO_NUM_8
+#define IO_I2C_SDA     GPIO_NUM_19
+#define IO_I2C_SCL     GPIO_NUM_20
+#define IO_VSYNC       GPIO_NUM_3
+#define IO_HSYNC       GPIO_NUM_46
+#define IO_PCLK        GPIO_NUM_9
+#define IO_B7          GPIO_NUM_10
+#define IO_B6          GPIO_NUM_11
+#define IO_B5          GPIO_NUM_12
+#define IO_B4          GPIO_NUM_13
+#define IO_B3          GPIO_NUM_14
+#define IO_G7          GPIO_NUM_21
+#define IO_G6          GPIO_NUM_47
+#define IO_G5          GPIO_NUM_48
+#define IO_G4          GPIO_NUM_45
+#define IO_DE_BOOT     GPIO_NUM_0
+#define IO_G3          GPIO_NUM_38
+#define IO_G2          GPIO_NUM_39
+#define IO_R7          GPIO_NUM_40
+#define IO_R6          GPIO_NUM_41
+#define IO_R5          GPIO_NUM_42
+#define IO_R4          GPIO_NUM_2
+#define IO_R3          GPIO_NUM_1
+
 
 // OTHER PIN DEFINITIONS
 #define NO_CONNECTION_1 GPIO_NUM_35
@@ -565,8 +4509,13 @@ void loop() {
 #define IO17 GPIO_NUM_17
 #define IO18 GPIO_NUM_18
 #define TF_CS GPIO_NUM_10
-#define I2C_SDA GPIO_NUM_19
-#define I2C_SCL GPIO_NUM_20
+#define I2C_SDA IO_I2C_SDA
+#define I2C_SCL IO_I2C_SCL
+
+
+
+
+
 
 #endif  // CONFIG_H
 

@@ -6,12 +6,15 @@
 
 namespace SpeedModule {
 
-void begin();  // Call this once during setup()
-void tick();   // Call this every loop
+void begin();
+void tick();
+float getAverageDeltaSec();
+void startRun();           // call on STAGED -> PULLING
+bool isWarmupActive();     // for gating alarms if you want
 
 // ---- Calibration ----
 bool isValidCalibrationNumber(int pulses);
-void saveManualCalibration(int pulses);
+bool saveManualCalibration(int pulses);
 void applyRadarCalibration();
 void applyGPSCalibration();
 int calculateCalibrationFromInputs(int numTeeth, float wheelDiameterInches, float gearRatio);
@@ -20,6 +23,7 @@ void saveCalculatorCalibration();
 // ---- Drive-Off Calibration ----
 void startDriveOffCalibration();
 void stopDriveOffCalibration();
+bool saveDriveOffCalibration();
 bool isDriveOffModeActive();
 void handlePulseDuringDriveOff();
 
@@ -33,6 +37,11 @@ void updateSpeedAndDistance();
 int getCurrentPulseCount();
 float getCurrentSpeed();
 float getCurrentDistance();
+
+
+
+static float clampAccel(float current, float target);
+
 }  // namespace SpeedModule
 
 #endif  // SPEED_MODULE_H

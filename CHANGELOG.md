@@ -7,6 +7,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+---
+
+## [0.0.6-a] - 2026-06-21
+
+### Added
+
+- On-demand pull-history export over a temporary SoftAP, including CSV snapshot generation from in-memory pull history
+- New ExportScreen flow with QR-guided Wi-Fi join and browser navigation for CSV download
+- Browser landing page for downloading the current pull-history CSV during an export session
+
+### Changed
+
+- Export UX no longer uses a captive portal; the device now shows two QR codes: one to join the network and one to open the browser page
+- ExportScreen instructions now include direct manual fallback steps with the SSID and page URL shown on-device
+- Export screen text now uses the LVGL default font for broader glyph coverage
+- Judge Stand now mirrors the sled host as an authoritative read-only display, including host-selected units, alarm configuration/state, pull metadata, and pull history sync (#15, #25)
+- Judge Stand host selection now requires an explicit Host MCU ID instead of passively accepting any broadcaster (#7)
+
+### Fixed
+
+- Screen jerking caused by synchronous preference writes has been reduced by deferring NVS saves out of the immediate UI path, including the pull Save flow (#4)
+- Distance value and distance progress bar no longer pop back to the previous pull after Save; runtime distance state is now cleared consistently on return to READY (#5)
+- Brightness slider now persists correctly when released, saved brightness is reapplied on reboot, and the Settings screen label now reflects the stored brightness value on first load
+- Pull Save now updates pull history and driver number in RAM first, avoiding immediate blocking persistence in the visible SAVE transition path
+- Pull history persistence is now narrower and lower-overhead, using packed per-row storage instead of rewriting row-by-row field keys during runtime saves
+- Driver number persistence now uses its own narrow write path instead of forcing a broad general-preferences rewrite
+- Judge Stand end-of-run current/max values now come directly from the sled host, fixing one-off mismatches at STOP / PULLEND (#1)
+- Judge Stand speed alarm state now mirrors the sled host instead of drifting locally, and judge-side speed/RPM alarm indicator flicker caused by config refreshes clearing live trip state has been removed (#22)
+- Judge Stand screen jerking has been reduced by avoiding row-by-row history persistence during mirror sync
+- Judge Stand idle screen shimmy / bouncing has been reduced substantially by suppressing redundant LVGL state-container and main-screen redraw work when visible state has not changed
+- Judge Host MCU ID entry now saves the tracked host ID correctly instead of overwriting the local unit ID, and judge units now ignore judge traffic until a Host MCU ID is configured (#7)
+- Judge Stand database / pull history now mirrors from the sled host instead of staying local to the judge unit (#15, #25)
+- Judge Stand now mirrors sled-side tach enable, limit enable, and relay enable states instead of falling back to the judge unit's local settings (#21)
+- Judge Stand main-screen title now shows `M4 Remote Monitor - <version>` while in judge mode instead of reusing the sled class title (#13)
+- Judge Stand horn behavior for staged alarms is now effectively disabled because judge alarm evaluation is suppressed in judge mode; no separate option has been added yet (#24)
+
+### Technical
+
+- Added `data_export.{h,cpp}` outside `ui/` to own export session state, web serving, QR rendering, and teardown
+- `ui/ui_events.cpp` export callbacks are now thin wrappers into `data_export`
+- `main.cpp` now polls `data_export_loop()` from the main loop
+- Preference writes are now batched and flushed from the main loop instead of synchronously during UI interactions
+- Pull-history persistence now stores runtime rows as packed blobs, while readback remains compatible with previously stored history data
+- SAVE-triggered persistence now follows a RAM-first, batch-later flow with controlled flush points for safer moments
+- Export sessions pause ESP-NOW comms during SoftAP use and restore them on teardown
+- Main-screen and pull-state UI updates now short-circuit when the visible state has not changed, reducing unnecessary LVGL churn on the judge display
+
+### Notes
+
+- Export Wi-Fi remains session-scoped and is torn down when the operator taps Done or the session times out
+- Browser auto-open behavior now depends on scanning the explicit page QR or manually entering the shown URL
+- Some screen jerkiness still remains. The worst cases were reduced, but the root cause is still being investigated.
+- Current recommendation: for a production-quality removal of runtime screen flicker/jitter, move high-frequency persistence such as pull history and driver number to I2C FRAM, and keep NVS for low-frequency settings only.
+
+## [0.0.5-alpha] - v0.0.5-alpha
+
+### Added
+
+- Boot splash screen (#27) — drawn directly via TFT (not LVGL) so the display is alive immediately while LVGL and other subsystems initialize. Splash text is customizable; logos deferred for now (more complex under TFT draw than we want to take on yet)
+- Save-confirmation popup when a new calibration number is saved (#3)
+
+### Changed
+
+- Overhauled logging system: all debug and serial prints now categorized as info, warning, error, or debug. Logging verbosity is globally configurable, and debug messages can be disabled on a per-file basis
+- Substantially reduced boot time (#27)
+- Judgemode state buttons now greyed out at 100/255 opacity when disabled (#2)
+- Increased delay after final speed pulse before ending pull state to ~seconds (#6) — feels like an eternity on the bench; may need tuning to match real-world expectations
+
+### Fixed
+
+- Calibration accuracy — do NOT calibrate with the protective film installed; it causes issues
+- Rotation state persistence (#20) — feature was always present; corrupted EEPROM data was the culprit. Resolved by a clean EEPROM erase
+- Screen jerking when using the brightness slider
+- Physical button press now invokes a real button press instead of injecting an XY touch (#23)
+- Rough scrolling (#8)
+- Unnecessary highlighting of clicked cells (#8)
+- Auto cal drive-off (#2)
+
+### Notes
+
+- Work in progress – not ready for release
+- Open question: the green button currently still allows pressing the state buttons — should this be disabled?
+- TODO: ship units with a clean EEPROM erase before returning code (#20)
+
+## [0.0.4-alpha] - v0.0.4-alpha
+
+### Added
+
+- Pull history table with clear routine
+- Pull data now saved to EEPROM (up to 255 pulls; space limitations TBD)
+- Screen rotation toggle in settings
+- TachClient module for TSS pairing and connection management with automatic RPM polling
+
+### Changed
+
+- Improved speed calculator to reduce spikes/noise
+- Driver number now auto-increments on pull save
+- Updated RGB display pin mappings to match new PCB (Rev B) IO definitions
+- TSS pairing now uses multi-broadcast approach for improved reliability
+
+### Fixed
+
+- Linker errors for library global variables
+
+### Notes
+
+- Work in progress – not ready for release
+
 ## [0.0.3-alpha] - 2025-06-13
 
 ### Added

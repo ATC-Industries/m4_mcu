@@ -3,6 +3,7 @@
 #define PULLSTATEMANAGER_H
 
 #include "StateManager.h"
+#include <lvgl/lvgl.h>
 
 class PullStateManager {
 public:
@@ -10,7 +11,7 @@ public:
   static void update();  // Call this every loop iteration
 
   // Button handlers (called from UI)
-  static void handleStagePressed();
+  static void handleStagePressed(lv_event_t *e);
   static void handleCancelPressed();
   static void handleStopPressed();
   static void handleDiscardPressed();
@@ -20,13 +21,15 @@ public:
   // External triggers
   static void triggerEmergencyStop();
   static void detectPullStart(float currentSpeed);  // Can be called periodically to detect transition to PULLING
+  static void updateUIForState(PullState state);
+  static void enterState(PullState newState);
 
 private:
-  static void enterState(PullState newState);
-  static void updateUIForState(PullState state);
+  
   static void triggerRelaysForState(PullState state);
   static void resetMaxValues();
   static void resetCurrentValues();
+  static const char* stateToString(PullState state);
 };
 
 #endif

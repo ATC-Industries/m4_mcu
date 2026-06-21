@@ -6,6 +6,11 @@
 #define COLOR_INDIC_DISABLED lv_color_make(0x80, 0x80, 0x80)
 #define COLOR_INDIC_YELLOW lv_color_make(0xFF, 0xE0, 0x00)
 
+void primeMainScreenValues();
+
 void updateMainScreen();  // Call this periodically to update UI elements based on state
+void updateSettingsScreen();
+bool isAlarmUIRefreshing();
+void updateAlarmIndicators();
 
 #endif  // SCREEN_UPDATER_H

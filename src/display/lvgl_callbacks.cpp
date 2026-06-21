@@ -1,11 +1,17 @@
 #include "display/lvgl_callbacks.h"
 
 #include <TFT_Touch.h>
+#include "esp_heap_caps.h"
 
 #include "Config.h"
 #include "touch/touch.h"
+#include "StateManager.h"
 
-extern TFT_Touch touch;
+#define LOG_TAG "LVGLCallbacks"
+#define LOG_DEBUG_DISABLE true
+#include "Logging.h"
+
+static lv_color_t *buf1 = nullptr;
 
 //========================================================================
 // LVGL Callbacks
@@ -24,110 +30,36 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
   lv_disp_flush_ready(disp);
 }
 
-// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-//   static uint16_t last_x = 0, last_y = 0;
-
-//   if (touch.Pressed()) {
-//     last_x = touch.X();
-//     last_y = touch.Y();
-//     data->point.x = last_x;
-//     data->point.y = last_y;
-//     data->state = LV_INDEV_STATE_PRESSED;
-//     Serial.print("Touch at: ");
-//     Serial.print(last_x);
-//     Serial.print(", ");
-//     Serial.println(last_y);
-//     return;
-//   }
-
-//   data->point.x = last_x;
-//   data->point.y = last_y;
-//   data->state = LV_INDEV_STATE_RELEASED;
-//   Serial.println("Touch released");
-//   return;
-// }
-
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-  static uint16_t last_x = 0, last_y = 0;
+  (void)indev_drv;
+
+  static uint16_t last_x = 0;
+  static uint16_t last_y = 0;
   static bool was_pressed = false;
-  static uint8_t no_touch_counter = 0;
-  const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
 
-  bool currently_pressed = touch.Pressed();
+  uint16_t x = 0;
+  uint16_t y = 0;
 
-  if (currently_pressed) {
-    // Touch detected - reset counter
-    no_touch_counter = 0;
-    last_x = touch.X();
-    last_y = touch.Y();
+  if (readTouchMapped(&x, &y)) {
+    last_x = x;
+    last_y = y;
+
     data->point.x = last_x;
     data->point.y = last_y;
     data->state = LV_INDEV_STATE_PRESSED;
 
     if (!was_pressed) {
-      Serial.print("Touch pressed at: ");
-      Serial.print(last_x);
-      Serial.print(", ");
-      Serial.println(last_y);
+      LOGD("Touch pressed at: %d, %d", last_x, last_y);
     }
+
     was_pressed = true;
   } else {
-    // No touch detected
     data->point.x = last_x;
     data->point.y = last_y;
-
-    if (was_pressed) {
-      no_touch_counter++;
-      if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
-        // Confirmed release
-        data->state = LV_INDEV_STATE_RELEASED;
-        Serial.println("Touch released");
-        was_pressed = false;
-        no_touch_counter = 0;
-      } else {
-        // Still counting - maintain pressed state
-        data->state = LV_INDEV_STATE_PRESSED;
-      }
-    } else {
-      data->state = LV_INDEV_STATE_RELEASED;
-    }
+    data->state = LV_INDEV_STATE_RELEASED;
+    was_pressed = false;
   }
 }
-
-// // Touchpad reading callback for LVGL
-// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-//   static unsigned long lastTouchTime = 0;
-//   static bool lastTouchState = false;
-//   const unsigned long DEBOUNCE_MS = 30;  // Adjust as needed
-
-//   bool currentlyPressed = touch.Pressed();
-//   unsigned long now = millis();
-
-//   // Only process touch changes after debounce period
-//   if (now - lastTouchTime > DEBOUNCE_MS) {
-//     if (currentlyPressed) {
-//       data->state = LV_INDEV_STATE_PR;
-//       data->point.x = touch.X();
-//       data->point.y = touch.Y();
-//       if (!lastTouchState) {
-//         lastTouchTime = now;  // Reset timer on new press
-//       }
-//     } else {
-//       data->state = LV_INDEV_STATE_REL;
-//       if (lastTouchState) {
-//         lastTouchTime = now;  // Reset timer on release
-//       }
-//     }
-//     lastTouchState = currentlyPressed;
-//   } else {
-//     // During debounce period, maintain last state
-//     data->state = lastTouchState ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL;
-//     if (lastTouchState) {
-//       data->point.x = touch.X();
-//       data->point.y = touch.Y();
-//     }
-//   }
-// }
 
 //========================================================================
 // Core System Functions
@@ -145,9 +77,22 @@ void lvgl_task(void *parameter) {
 void init_lvgl() {
   lv_init();
 
-  // Initialize display buffer
-  // lv_disp_draw_buf_init(&draw_buf, buf1, NULL, 800 * 10);
-  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, SCREEN_WIDTH * 40);
+  // Allocate draw buffer in internal DMA capable RAM
+  const uint32_t buf_lines = 40;                       // tweak if you want
+  const uint32_t buf_pixels = SCREEN_WIDTH * buf_lines;
+
+  buf1 = (lv_color_t *) heap_caps_malloc(
+      buf_pixels * sizeof(lv_color_t),
+      MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+
+  if (!buf1) {
+    LOGE("Failed to allocate LVGL draw buffer");
+    while (true) {
+      delay(1000);  // hard fail, nothing good will happen without this
+    }
+  }
+
+  lv_disp_draw_buf_init(&draw_buf, buf1, NULL, buf_pixels);
 
   // Initialize display driver
   lv_disp_drv_init(&disp_drv);
@@ -155,6 +100,12 @@ void init_lvgl() {
   disp_drv.draw_buf = &draw_buf;
   disp_drv.hor_res = SCREEN_WIDTH;
   disp_drv.ver_res = SCREEN_HEIGHT;
+
+  // Enable software rotation
+  disp_drv.sw_rotate = 1;
+  disp_drv.rotated = StateManager::getScreenRotation() ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
+  disp_drv.full_refresh = 1;
+
   lv_disp_drv_register(&disp_drv);
 
   // Initialize input device driver
