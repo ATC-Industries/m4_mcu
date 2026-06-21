@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.0.6-a] - 2026-06-21
+
 ### Added
 
 - On-demand pull-history export over a temporary SoftAP, including CSV snapshot generation from in-memory pull history
