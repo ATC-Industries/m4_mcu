@@ -30,7 +30,7 @@ void PullStateManager::enterState(PullState newState) {
   const char* oldState = PullStateManager::stateToString(StateManager::getPullState());
   const char* newStateStr = PullStateManager::stateToString(newState);
   LOGI("Transitioning from %s to %s", oldState, newStateStr);
-
+  StateManager::noteScreenTransition();
   StateManager::setPullState(newState);
   updateUIForState(newState);
   triggerRelaysForState(newState);
@@ -114,12 +114,10 @@ void PullStateManager::handleDiscardPressed() {
 }
 
 void PullStateManager::handleSavePressed() {
+  StateManager::beginDeferredSavePersistence();
   StateManager::savePullResult();
-  
-  // Increment to next driver
-  StateManager::prefs().driverNumber += 1;
-  StateManager::savePreferences();
-  
+  StateManager::setDriverNumber(StateManager::prefs().driverNumber + 1);
+  StateManager::endDeferredSavePersistence();
   enterState(PullState::READY);
 }
 

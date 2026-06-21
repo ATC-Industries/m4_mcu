@@ -11,8 +11,6 @@
 #define LOG_DEBUG_DISABLE true
 #include "Logging.h"
 
-extern TFT_Touch touch;
-
 static lv_color_t *buf1 = nullptr;
 
 //========================================================================
@@ -31,50 +29,6 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
   lv_disp_flush_ready(disp);
 }
-
-// void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
-//   static uint16_t last_x = 0, last_y = 0;
-//   static bool was_pressed = false;
-//   static uint8_t no_touch_counter = 0;
-//   const uint8_t NO_TOUCH_THRESHOLD = 10;  // Require 10 consecutive no-touch samples
-
-//   bool currently_pressed = touch.Pressed();
-
-//   if (currently_pressed) {
-//     // Touch detected - reset counter
-//     no_touch_counter = 0;
-//     last_x = touch.X();
-//     last_y = touch.Y();
-//     data->point.x = last_x;
-//     data->point.y = last_y;
-//     data->state = LV_INDEV_STATE_PRESSED;
-
-//     if (!was_pressed) {
-//       LOGD("Touch pressed at: %d, %d", last_x, last_y);
-//     }
-//     was_pressed = true;
-//   } else {
-//     // No touch detected
-//     data->point.x = last_x;
-//     data->point.y = last_y;
-
-//     if (was_pressed) {
-//       no_touch_counter++;
-//       if (no_touch_counter >= NO_TOUCH_THRESHOLD) {
-//         // Confirmed release
-//         data->state = LV_INDEV_STATE_RELEASED;
-//         // LOGD("Touch released");
-//         was_pressed = false;
-//         no_touch_counter = 0;
-//       } else {
-//         // Still counting - maintain pressed state
-//         data->state = LV_INDEV_STATE_PRESSED;
-//       }
-//     } else {
-//       data->state = LV_INDEV_STATE_RELEASED;
-//     }
-//   }
-// }
 
 void my_touchpad_read(lv_indev_drv_t *indev_drv, lv_indev_data_t *data) {
   (void)indev_drv;
@@ -149,8 +103,7 @@ void init_lvgl() {
 
   // Enable software rotation
   disp_drv.sw_rotate = 1;
-  bool rotation180 = StateManager::getScreenRotation();
-  disp_drv.rotated = rotation180 ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
+  disp_drv.rotated = StateManager::getScreenRotation() ? LV_DISP_ROT_180 : LV_DISP_ROT_NONE;
   disp_drv.full_refresh = 1;
 
   lv_disp_drv_register(&disp_drv);

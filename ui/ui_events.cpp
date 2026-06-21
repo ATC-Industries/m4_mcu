@@ -248,6 +248,7 @@ void SettingsScreenLoaded(lv_event_t *e) {
   lv_event_code_t code = lv_event_get_code(e);
   LOGD("Settings screen event code: %d", code);
   if (code == LV_EVENT_SCREEN_LOADED) {
+    StateManager::flushPreferencesNowBlocking();
     setup_custom_number_keyboard(ui_Settings1KeyboardSettingsNumberKeyboard);
     setup_custom_hex_keyboard(ui_Settings1KeyboardSettingsHexKeyboard);
 

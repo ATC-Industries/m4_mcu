@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Screen jerking caused by synchronous preference writes has been reduced by deferring NVS saves out of the immediate UI path, including the pull Save flow (#4)
 - Distance value and distance progress bar no longer pop back to the previous pull after Save; runtime distance state is now cleared consistently on return to READY (#5)
 - Brightness slider now persists correctly when released, saved brightness is reapplied on reboot, and the Settings screen label now reflects the stored brightness value on first load
+- Pull Save now updates pull history and driver number in RAM first, avoiding immediate blocking persistence in the visible SAVE transition path
+- Pull history persistence is now narrower and lower-overhead, using packed per-row storage instead of rewriting row-by-row field keys during runtime saves
+- Driver number persistence now uses its own narrow write path instead of forcing a broad general-preferences rewrite
 - Judge Stand end-of-run current/max values now come directly from the sled host, fixing one-off mismatches at STOP / PULLEND (#1)
 - Judge Stand speed alarm state now mirrors the sled host instead of drifting locally, and judge-side speed/RPM alarm indicator flicker caused by config refreshes clearing live trip state has been removed (#22)
 - Judge Stand screen jerking has been reduced by avoiding row-by-row history persistence during mirror sync
@@ -44,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ui/ui_events.cpp` export callbacks are now thin wrappers into `data_export`
 - `main.cpp` now polls `data_export_loop()` from the main loop
 - Preference writes are now batched and flushed from the main loop instead of synchronously during UI interactions
+- Pull-history persistence now stores runtime rows as packed blobs, while readback remains compatible with previously stored history data
+- SAVE-triggered persistence now follows a RAM-first, batch-later flow with controlled flush points for safer moments
 - Export sessions pause ESP-NOW comms during SoftAP use and restore them on teardown
 - Main-screen and pull-state UI updates now short-circuit when the visible state has not changed, reducing unnecessary LVGL churn on the judge display
 
@@ -52,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export Wi-Fi remains session-scoped and is torn down when the operator taps Done or the session times out
 - Browser auto-open behavior now depends on scanning the explicit page QR or manually entering the shown URL
 - Some screen jerkiness still remains. The worst cases were reduced, but the root cause is still being investigated.
+- Current recommendation: for a production-quality removal of runtime screen flicker/jitter, move high-frequency persistence such as pull history and driver number to I2C FRAM, and keep NVS for low-frequency settings only.
 
 ## [0.0.5-alpha] - v0.0.5-alpha
 

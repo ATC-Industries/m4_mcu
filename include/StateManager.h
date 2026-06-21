@@ -128,6 +128,7 @@ public:
   static void setTachEnabled(bool on);
   static void setLimitSwitchesEnabled(bool on);
   static void setRelaysEnabled(bool on);
+  static void setDriverNumber(int number, bool persist = true);
 
 
   static void setDistance(float ft);  // Sets distance in feet
@@ -194,7 +195,11 @@ public:
   static void loadPreferences();
   static void savePreferences();
   static void flushPreferencesNow();
+  static void flushPreferencesNowBlocking();
   static void processPendingSave();
+  static void noteScreenTransition();
+  static void beginDeferredSavePersistence();
+  static void endDeferredSavePersistence();
 
 private:
   static SystemState systemState;

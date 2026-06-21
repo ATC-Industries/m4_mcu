@@ -380,14 +380,4 @@ void data_export_build_screen(lv_obj_t *panel) {
   lv_label_set_text_fmt(ssidLabel, "Network: %s   Page: %s", s_ssid.c_str(), s_apUrl.c_str());
   lv_obj_set_style_text_font(ssidLabel, LV_FONT_DEFAULT, 0);
   lv_obj_set_style_text_color(ssidLabel, lv_color_hex(0x102033), 0);
-
-  // lv_obj_t *urlLabel = lv_label_create(panel);
-  // lv_label_set_text_fmt(urlLabel, "Page: %s", s_apUrl.c_str());
-  // lv_obj_set_style_text_font(urlLabel, LV_FONT_DEFAULT, 0);
-  // lv_obj_set_style_text_color(urlLabel, lv_color_hex(0x102033), 0);
-
-  // lv_obj_t *metaLabel = lv_label_create(panel);
-  // lv_label_set_text_fmt(metaLabel, "Rows: %d", s_snapshotRowCount);
-  // lv_obj_set_style_text_font(metaLabel, LV_FONT_DEFAULT, 0);
-  // lv_obj_set_style_text_color(metaLabel, lv_color_hex(0x4A607A), 0);
 }
