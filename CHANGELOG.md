@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alarm styles are now audibly differentiated in runtime behavior: `TRIP_ONCE` uses a crossover-only beep, `HOLD_AUTORESET` uses a continuous horn only while over threshold, `HOLD_PERSISTENT` can continue sounding while latched, and `AUTO_END_RUN_DQ` keeps a distinct triple-pulse alert
 - `AUTO_END_RUN_DQ` alarms now latch and sound their DQ horn pattern but no longer force a `PULLEND` transition automatically, preventing max-value / end-of-run UI from taking over during a live pull
 - Stage button now says "Press to Stage" below the large "STAGE" text
+- Pull history table body text now explicitly uses `lv_font_montserrat_18` instead of inheriting the global LVGL default font
 
 ### Fixed
 

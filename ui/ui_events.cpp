@@ -780,13 +780,16 @@ void PullHistoryScreenLoaded(lv_event_t * e)
   // Style the table - default light background for data cells
   lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(table, &lv_font_montserrat_18, LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_border_width(table, 1, LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_PRESSED);
   lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_PRESSED);
+  lv_obj_set_style_text_font(table, &lv_font_montserrat_18, LV_PART_ITEMS | LV_STATE_PRESSED);
   lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_PRESSED);
   lv_obj_set_style_bg_color(table, lv_color_hex(0xF5F5F5), LV_PART_ITEMS | LV_STATE_FOCUSED);
   lv_obj_set_style_text_color(table, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_FOCUSED);
+  lv_obj_set_style_text_font(table, &lv_font_montserrat_18, LV_PART_ITEMS | LV_STATE_FOCUSED);
   lv_obj_set_style_border_color(table, lv_color_hex(0xD0D0D0), LV_PART_ITEMS | LV_STATE_FOCUSED);
 
   
