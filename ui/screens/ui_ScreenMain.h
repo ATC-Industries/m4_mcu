@@ -88,6 +88,7 @@ extern lv_obj_t *ui_MainContainerStateREADY;
 extern void ui_event_MainButtonREADYStage( lv_event_t * e);
 extern lv_obj_t *ui_MainButtonREADYStage;
 extern lv_obj_t *ui_MainLabelButtonStage;
+extern lv_obj_t *ui_MainLabelButtonStage2;
 extern lv_obj_t *ui_MainContainerStateSTAGED;
 extern void ui_event_MainButtonSTAGEDCancel( lv_event_t * e);
 extern lv_obj_t *ui_MainButtonSTAGEDCancel;
