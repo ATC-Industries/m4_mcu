@@ -1094,3 +1094,9 @@ void exportScreenLoaded(lv_event_t * e)
 	(void)e;
 	data_export_build_screen(ui_ExportScreenPanelinstructionPanel);
 }
+
+void silenceAlarmButtonPressed(lv_event_t * e)
+{
+	(void)e;
+	AlarmManager::silenceActiveAudibleAlarms();
+}

@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Main-screen Silence Alarm button support: the hidden `silence alarm` control now appears automatically while an audible alarm is active and can mute current alarm horns on release
+- Alarm horn runtime scheduling now runs non-blocking from the main loop, allowing audible alarm patterns without stalling UI, touch, or telemetry updates
+- Top-of-file horn tuning knobs in `AlarmManager.cpp` now centralize per-style horn timings and semantics so alarm sound behavior can be adjusted without digging through runtime logic
+
+### Changed
+
+- Alarm horn runtime now supports per-alarm silence latching, so a silenced alarm stays quiet until that specific alarm resets and is tripped again
+- If multiple alarms are sounding at once, the silence action now mutes all currently active audible alarms together instead of only affecting the current horn pulse
+- Distance alarm visuals on the main screen now follow live enabled/tripped state the same way speed and RPM indicators do
+- Alarm styles are now audibly differentiated in runtime behavior: `TRIP_ONCE` uses a crossover-only beep, `HOLD_AUTORESET` uses a continuous horn only while over threshold, `HOLD_PERSISTENT` can continue sounding while latched, and `AUTO_END_RUN_DQ` keeps a distinct triple-pulse alert
+- `AUTO_END_RUN_DQ` alarms now latch and sound their DQ horn pattern but no longer force a `PULLEND` transition automatically, preventing max-value / end-of-run UI from taking over during a live pull
+
+### Fixed
+
+- `HOLD_AUTORESET` alarms now respect horn silencing correctly instead of resuming their continuous horn immediately while the alarm condition is still active
+- Silencing an alarm now stops the horn immediately and re-hides the silence button until a new audible alarm condition is triggered
+- Alarm runtime reset paths now clear per-alarm horn silence state consistently when alarms disable, reset, mirror-clear, or begin a new run
+- `RPM #2` alarm control wiring from SquareLine now correctly re-enables its own color dropdown after the toggle is turned back on
+- `TRIP_ONCE` horn behavior now matches the alarm help text again, firing only once at threshold crossover instead of acting like a sustained hold alert
+- Mid-pull max-value / `PULLEND` UI takeover caused by alarm-triggered DQ handling has been removed
+
 ---
 
 ## [0.0.6-a] - 2026-06-21

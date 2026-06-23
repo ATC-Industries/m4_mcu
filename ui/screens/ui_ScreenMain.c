@@ -5,6 +5,8 @@
 
 #include "../ui.h"
 
+lv_obj_t *uic_MainLabelsilenceAlarmButtonLabel;
+lv_obj_t *uic_MainButtonsilenceAlarmButton;
 lv_obj_t *uic_DistanceAlarmTriangle2;
 lv_obj_t *uic_DistanceAlarmTriangle1;
 lv_obj_t *uic_MainLabelDistanceTitle;
@@ -63,7 +65,7 @@ lv_obj_t *uic_MainContainerM4UnitIDContainer;
 lv_obj_t *uic_MainButtonSettings;
 lv_obj_t *uic_MainLabelClassName;
 lv_obj_t *uic_ScreenMain;
-lv_obj_t *ui_ScreenMain = NULL;lv_obj_t *ui_MainContainerMainContainer = NULL;lv_obj_t *ui_MainContainerTop = NULL;lv_obj_t *ui_MainContainerHeader = NULL;lv_obj_t *ui_MainContainerClass = NULL;lv_obj_t *ui_MainContainerClassNameLabel = NULL;lv_obj_t *ui_MainLabelClassName = NULL;lv_obj_t *ui_MainContainerSettingsButton = NULL;lv_obj_t *ui_MainButtonSettings = NULL;lv_obj_t *ui_MainContainerM4IDNumberContainer = NULL;lv_obj_t *ui_MainLabelM4IDNumberLabel = NULL;lv_obj_t *ui_MainContainerAlarmPresetContainer = NULL;lv_obj_t *ui_MainLabelAlarmPresetLable = NULL;lv_obj_t *ui_MainContainerDriver = NULL;lv_obj_t *ui_MainButtonButton6 = NULL;lv_obj_t *ui_MainContainerDriverTitleLabel = NULL;lv_obj_t *ui_MainLabelDriverTitle = NULL;lv_obj_t *ui_MainLabelDriverNumber = NULL;lv_obj_t *ui_MainContainerDriverNameLabel = NULL;lv_obj_t *ui_MainLabelDriverName = NULL;lv_obj_t *ui_MainContainerDriverChangeButton = NULL;lv_obj_t *ui_MainButtonDriverChange = NULL;lv_obj_t *ui_MainContainerDistance = NULL;lv_obj_t *ui_MainLabelDistanceValue = NULL;lv_obj_t *ui_MainLabelDistanceUnit = NULL;lv_obj_t *ui_MainContainerMid = NULL;lv_obj_t *ui_MainContainerTach = NULL;lv_obj_t *ui_MainContainerTachTitleLabel = NULL;lv_obj_t *ui_MainContainerTachTitleSpacer = NULL;lv_obj_t *ui_MainLabelTachTitle = NULL;lv_obj_t *ui_MainContainertachTractorConnectedIconContainer = NULL;lv_obj_t *ui_MainImagetachConn = NULL;lv_obj_t *ui_MainImagetachConnNo = NULL;lv_obj_t *ui_MainContainerTachData = NULL;lv_obj_t *ui_MainContainerTachAlarmIndicator = NULL;lv_obj_t *ui_MainPanelMainPanelTachAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM2 = NULL;lv_obj_t *ui_MainPanelTachAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM1 = NULL;lv_obj_t *ui_MainLabelTachValue = NULL;lv_obj_t *ui_MainLabelTachUnit = NULL;lv_obj_t *ui_MainContainerSpeed = NULL;lv_obj_t *ui_MainContainerSpeedTitleLabel = NULL;lv_obj_t *ui_MainLabelSpeedTitle = NULL;lv_obj_t *ui_MainContainerSpeedData = NULL;lv_obj_t *ui_MainContainerSpeedAlarmIndicator = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed1 = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed2 = NULL;lv_obj_t *ui_MainLabelSpeedValue = NULL;lv_obj_t *ui_MainLabelSpeedUnit = NULL;lv_obj_t *ui_MainContainerBottom = NULL;lv_obj_t *ui_MainContainerLimit = NULL;lv_obj_t *ui_MainContainerLimitTitleLabel = NULL;lv_obj_t *ui_MainLabelLimitTitle = NULL;lv_obj_t *ui_MainContainerLimitData = NULL;lv_obj_t *ui_MainContainerLimitIndicators1 = NULL;lv_obj_t *ui_MainLabelLimitIndicator1 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerLimitIndicators2 = NULL;lv_obj_t *ui_MainLabelLimitIndicator2 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerPullStateControls = NULL;lv_obj_t *ui_MainContainerStateREADY = NULL;lv_obj_t *ui_MainButtonREADYStage = NULL;lv_obj_t *ui_MainLabelButtonStage = NULL;lv_obj_t *ui_MainContainerStateSTAGED = NULL;lv_obj_t *ui_MainButtonSTAGEDCancel = NULL;lv_obj_t *ui_MainLabelButtonStaged = NULL;lv_obj_t *ui_MainLabelButtonStagedCancel = NULL;lv_obj_t *ui_MainContainerStatePULLING = NULL;lv_obj_t *ui_MainButtonPULLINGStop = NULL;lv_obj_t *ui_MainLabelButtonStop = NULL;lv_obj_t *ui_MainContainerStatePULLEND = NULL;lv_obj_t *ui_MainButtonPULLENDDiscard = NULL;lv_obj_t *ui_MainLabelButtonStage1 = NULL;lv_obj_t *ui_MainButtonPULLENDSave = NULL;lv_obj_t *ui_MainLabelButtonStaged2 = NULL;lv_obj_t *ui_MainContainerStateEMERGENCYSTOP = NULL;lv_obj_t *ui_MainButtonPULLINGStop1 = NULL;lv_obj_t *ui_MainLabelButtonStop1 = NULL;lv_obj_t *ui_MainContainerRelays = NULL;lv_obj_t *ui_MainContainerRelaysTitleLabel = NULL;lv_obj_t *ui_MainLabelRelaysTitle = NULL;lv_obj_t *ui_MainContainerRelaysData = NULL;lv_obj_t *ui_MainContainerRelayIndicators1 = NULL;lv_obj_t *ui_MainLabelRelayIndicator1 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerRelayIndicators2 = NULL;lv_obj_t *ui_MainLabelRelayIndicator2 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerRelayIndicators3 = NULL;lv_obj_t *ui_MainLabelRelayIndicator3 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon3 = NULL;lv_obj_t *ui_MainContainerRelayIndicators4 = NULL;lv_obj_t *ui_MainLabelRelayIndicator4 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon4 = NULL;lv_obj_t *ui_MainContainerDistanceProgression = NULL;lv_obj_t *ui_MainContainerRaceFlag = NULL;lv_obj_t *ui_MainPanelwhite = NULL;lv_obj_t *ui_MainPanelblack = NULL;lv_obj_t *ui_MainPanelwhite1 = NULL;lv_obj_t *ui_MainPanelblack1 = NULL;lv_obj_t *ui_MainPanelwhite2 = NULL;lv_obj_t *ui_MainPanelblack2 = NULL;lv_obj_t *ui_MainPanelwhite3 = NULL;lv_obj_t *ui_MainPanelblack3 = NULL;lv_obj_t *ui_MainPanelwhite4 = NULL;lv_obj_t *ui_MainPanelblack4 = NULL;lv_obj_t *ui_MainPanelwhite5 = NULL;lv_obj_t *ui_MainPanelblack5 = NULL;lv_obj_t *ui_MainPanelwhite6 = NULL;lv_obj_t *ui_MainPanelblack6 = NULL;lv_obj_t *ui_MainPanelwhite7 = NULL;lv_obj_t *ui_MainPanelblack7 = NULL;lv_obj_t *ui_MainPanelwhite8 = NULL;lv_obj_t *ui_MainPanelblack8 = NULL;lv_obj_t *ui_MainPanelwhite9 = NULL;lv_obj_t *ui_MainPanelblack9 = NULL;lv_obj_t *ui_MainPanelwhite10 = NULL;lv_obj_t *ui_MainPanelblack10 = NULL;lv_obj_t *ui_MainContainerDistanceProgressBar = NULL;lv_obj_t *ui_MainBarDistanceProgress = NULL;lv_obj_t *ui_MainBarDistanceAlarm1 = NULL;lv_obj_t *ui_MainBarDistanceAlarm2 = NULL;lv_obj_t *ui_MainContainerDistanceTitleLabel = NULL;lv_obj_t *ui_MainLabelDistanceTitle = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle1 = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle2 = NULL;
+lv_obj_t *ui_ScreenMain = NULL;lv_obj_t *ui_MainContainerMainContainer = NULL;lv_obj_t *ui_MainContainerTop = NULL;lv_obj_t *ui_MainContainerHeader = NULL;lv_obj_t *ui_MainContainerClass = NULL;lv_obj_t *ui_MainContainerClassNameLabel = NULL;lv_obj_t *ui_MainLabelClassName = NULL;lv_obj_t *ui_MainContainerSettingsButton = NULL;lv_obj_t *ui_MainButtonSettings = NULL;lv_obj_t *ui_MainContainerM4IDNumberContainer = NULL;lv_obj_t *ui_MainLabelM4IDNumberLabel = NULL;lv_obj_t *ui_MainContainerAlarmPresetContainer = NULL;lv_obj_t *ui_MainLabelAlarmPresetLable = NULL;lv_obj_t *ui_MainContainerDriver = NULL;lv_obj_t *ui_MainButtonButton6 = NULL;lv_obj_t *ui_MainContainerDriverTitleLabel = NULL;lv_obj_t *ui_MainLabelDriverTitle = NULL;lv_obj_t *ui_MainLabelDriverNumber = NULL;lv_obj_t *ui_MainContainerDriverNameLabel = NULL;lv_obj_t *ui_MainLabelDriverName = NULL;lv_obj_t *ui_MainContainerDriverChangeButton = NULL;lv_obj_t *ui_MainButtonDriverChange = NULL;lv_obj_t *ui_MainContainerDistance = NULL;lv_obj_t *ui_MainLabelDistanceValue = NULL;lv_obj_t *ui_MainLabelDistanceUnit = NULL;lv_obj_t *ui_MainContainerMid = NULL;lv_obj_t *ui_MainContainerTach = NULL;lv_obj_t *ui_MainContainerTachTitleLabel = NULL;lv_obj_t *ui_MainContainerTachTitleSpacer = NULL;lv_obj_t *ui_MainLabelTachTitle = NULL;lv_obj_t *ui_MainContainertachTractorConnectedIconContainer = NULL;lv_obj_t *ui_MainImagetachConn = NULL;lv_obj_t *ui_MainImagetachConnNo = NULL;lv_obj_t *ui_MainContainerTachData = NULL;lv_obj_t *ui_MainContainerTachAlarmIndicator = NULL;lv_obj_t *ui_MainPanelMainPanelTachAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM2 = NULL;lv_obj_t *ui_MainPanelTachAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberRPM1 = NULL;lv_obj_t *ui_MainLabelTachValue = NULL;lv_obj_t *ui_MainLabelTachUnit = NULL;lv_obj_t *ui_MainContainerSpeed = NULL;lv_obj_t *ui_MainContainerSpeedTitleLabel = NULL;lv_obj_t *ui_MainLabelSpeedTitle = NULL;lv_obj_t *ui_MainContainerSpeedData = NULL;lv_obj_t *ui_MainContainerSpeedAlarmIndicator = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon1 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed1 = NULL;lv_obj_t *ui_MainPanelSpeedAlarmIndicatorIcon2 = NULL;lv_obj_t *ui_MainLabelInidNumberSpeed2 = NULL;lv_obj_t *ui_MainLabelSpeedValue = NULL;lv_obj_t *ui_MainLabelSpeedUnit = NULL;lv_obj_t *ui_MainContainerBottom = NULL;lv_obj_t *ui_MainContainerLimit = NULL;lv_obj_t *ui_MainContainerLimitTitleLabel = NULL;lv_obj_t *ui_MainLabelLimitTitle = NULL;lv_obj_t *ui_MainContainerLimitData = NULL;lv_obj_t *ui_MainContainerLimitIndicators1 = NULL;lv_obj_t *ui_MainLabelLimitIndicator1 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerLimitIndicators2 = NULL;lv_obj_t *ui_MainLabelLimitIndicator2 = NULL;lv_obj_t *ui_MainPanelLimitIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerPullStateControls = NULL;lv_obj_t *ui_MainContainerStateREADY = NULL;lv_obj_t *ui_MainButtonREADYStage = NULL;lv_obj_t *ui_MainLabelButtonStage = NULL;lv_obj_t *ui_MainContainerStateSTAGED = NULL;lv_obj_t *ui_MainButtonSTAGEDCancel = NULL;lv_obj_t *ui_MainLabelButtonStaged = NULL;lv_obj_t *ui_MainLabelButtonStagedCancel = NULL;lv_obj_t *ui_MainContainerStatePULLING = NULL;lv_obj_t *ui_MainButtonPULLINGStop = NULL;lv_obj_t *ui_MainLabelButtonStop = NULL;lv_obj_t *ui_MainContainerStatePULLEND = NULL;lv_obj_t *ui_MainButtonPULLENDDiscard = NULL;lv_obj_t *ui_MainLabelButtonStage1 = NULL;lv_obj_t *ui_MainButtonPULLENDSave = NULL;lv_obj_t *ui_MainLabelButtonStaged2 = NULL;lv_obj_t *ui_MainContainerStateEMERGENCYSTOP = NULL;lv_obj_t *ui_MainButtonPULLINGStop1 = NULL;lv_obj_t *ui_MainLabelButtonStop1 = NULL;lv_obj_t *ui_MainContainerRelays = NULL;lv_obj_t *ui_MainContainerRelaysTitleLabel = NULL;lv_obj_t *ui_MainLabelRelaysTitle = NULL;lv_obj_t *ui_MainContainerRelaysData = NULL;lv_obj_t *ui_MainContainerRelayIndicators1 = NULL;lv_obj_t *ui_MainLabelRelayIndicator1 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon1 = NULL;lv_obj_t *ui_MainContainerRelayIndicators2 = NULL;lv_obj_t *ui_MainLabelRelayIndicator2 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon2 = NULL;lv_obj_t *ui_MainContainerRelayIndicators3 = NULL;lv_obj_t *ui_MainLabelRelayIndicator3 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon3 = NULL;lv_obj_t *ui_MainContainerRelayIndicators4 = NULL;lv_obj_t *ui_MainLabelRelayIndicator4 = NULL;lv_obj_t *ui_MainPanelRelayIndicatorIcon4 = NULL;lv_obj_t *ui_MainContainerDistanceProgression = NULL;lv_obj_t *ui_MainContainerRaceFlag = NULL;lv_obj_t *ui_MainPanelwhite = NULL;lv_obj_t *ui_MainPanelblack = NULL;lv_obj_t *ui_MainPanelwhite1 = NULL;lv_obj_t *ui_MainPanelblack1 = NULL;lv_obj_t *ui_MainPanelwhite2 = NULL;lv_obj_t *ui_MainPanelblack2 = NULL;lv_obj_t *ui_MainPanelwhite3 = NULL;lv_obj_t *ui_MainPanelblack3 = NULL;lv_obj_t *ui_MainPanelwhite4 = NULL;lv_obj_t *ui_MainPanelblack4 = NULL;lv_obj_t *ui_MainPanelwhite5 = NULL;lv_obj_t *ui_MainPanelblack5 = NULL;lv_obj_t *ui_MainPanelwhite6 = NULL;lv_obj_t *ui_MainPanelblack6 = NULL;lv_obj_t *ui_MainPanelwhite7 = NULL;lv_obj_t *ui_MainPanelblack7 = NULL;lv_obj_t *ui_MainPanelwhite8 = NULL;lv_obj_t *ui_MainPanelblack8 = NULL;lv_obj_t *ui_MainPanelwhite9 = NULL;lv_obj_t *ui_MainPanelblack9 = NULL;lv_obj_t *ui_MainPanelwhite10 = NULL;lv_obj_t *ui_MainPanelblack10 = NULL;lv_obj_t *ui_MainContainerDistanceProgressBar = NULL;lv_obj_t *ui_MainBarDistanceProgress = NULL;lv_obj_t *ui_MainBarDistanceAlarm1 = NULL;lv_obj_t *ui_MainBarDistanceAlarm2 = NULL;lv_obj_t *ui_MainContainerDistanceTitleLabel = NULL;lv_obj_t *ui_MainLabelDistanceTitle = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle1 = NULL;lv_obj_t *ui_MainLabelDistanceAlarmTriangle2 = NULL;lv_obj_t *ui_MainButtonsilenceAlarmButton = NULL;lv_obj_t *ui_MainLabelsilenceAlarmButtonLabel = NULL;
 // event funtions
 void ui_event_ScreenMain( lv_event_t * e) {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -166,6 +168,14 @@ void ui_event_MainContainerStateEMERGENCYSTOP( lv_event_t * e) {
 
 if ( event_code == LV_EVENT_CLICKED) {
       EMERGENCYSTOPResetBtnPressed( e );
+}
+}
+
+void ui_event_MainButtonsilenceAlarmButton( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_RELEASED) {
+      silenceAlarmButtonPressed( e );
 }
 }
 
@@ -1732,6 +1742,31 @@ lv_obj_set_style_pad_right(ui_MainLabelDistanceAlarmTriangle2, 1, LV_PART_MAIN| 
 lv_obj_set_style_pad_top(ui_MainLabelDistanceAlarmTriangle2, -1, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_bottom(ui_MainLabelDistanceAlarmTriangle2, -3, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_MainButtonsilenceAlarmButton = lv_btn_create(ui_ScreenMain);
+lv_obj_set_width( ui_MainButtonsilenceAlarmButton, 401);
+lv_obj_set_height( ui_MainButtonsilenceAlarmButton, 100);
+lv_obj_set_x( ui_MainButtonsilenceAlarmButton, 27 );
+lv_obj_set_y( ui_MainButtonsilenceAlarmButton, -190 );
+lv_obj_set_align( ui_MainButtonsilenceAlarmButton, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_MainButtonsilenceAlarmButton, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_FLOATING | LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_clear_flag( ui_MainButtonsilenceAlarmButton, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+ui_object_set_themeable_style_property(ui_MainButtonsilenceAlarmButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_COLOR, _ui_theme_color_Red);
+ui_object_set_themeable_style_property(ui_MainButtonsilenceAlarmButton, LV_PART_MAIN| LV_STATE_DEFAULT, LV_STYLE_BG_OPA, _ui_theme_alpha_Red);
+lv_obj_set_style_border_color(ui_MainButtonsilenceAlarmButton, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_border_opa(ui_MainButtonsilenceAlarmButton, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_MainButtonsilenceAlarmButton, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_MainButtonsilenceAlarmButton, lv_color_hex(0x346DE1), LV_PART_MAIN | LV_STATE_DISABLED );
+lv_obj_set_style_bg_opa(ui_MainButtonsilenceAlarmButton, 100, LV_PART_MAIN| LV_STATE_DISABLED);
+
+ui_MainLabelsilenceAlarmButtonLabel = lv_label_create(ui_MainButtonsilenceAlarmButton);
+lv_obj_set_width( ui_MainLabelsilenceAlarmButtonLabel, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_MainLabelsilenceAlarmButtonLabel, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_MainLabelsilenceAlarmButtonLabel, 0 );
+lv_obj_set_y( ui_MainLabelsilenceAlarmButtonLabel, 7 );
+lv_obj_set_align( ui_MainLabelsilenceAlarmButtonLabel, LV_ALIGN_BOTTOM_MID );
+lv_label_set_text(ui_MainLabelsilenceAlarmButtonLabel,"SILENCE");
+lv_obj_set_style_text_font(ui_MainLabelsilenceAlarmButtonLabel, &ui_font_BIO_EXTRABOLD_19, LV_PART_MAIN| LV_STATE_DEFAULT);
+
 lv_obj_add_event_cb(ui_MainButtonSettings, ui_event_MainButtonSettings, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainContainerM4IDNumberContainer, ui_event_MainContainerM4IDNumberContainer, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainContainerAlarmPresetContainer, ui_event_MainContainerAlarmPresetContainer, LV_EVENT_ALL, NULL);
@@ -1744,6 +1779,7 @@ lv_obj_add_event_cb(ui_MainButtonPULLINGStop, ui_event_MainButtonPULLINGStop, LV
 lv_obj_add_event_cb(ui_MainButtonPULLENDDiscard, ui_event_MainButtonPULLENDDiscard, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainButtonPULLENDSave, ui_event_MainButtonPULLENDSave, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_MainContainerStateEMERGENCYSTOP, ui_event_MainContainerStateEMERGENCYSTOP, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_MainButtonsilenceAlarmButton, ui_event_MainButtonsilenceAlarmButton, LV_EVENT_ALL, NULL);
 lv_obj_add_event_cb(ui_ScreenMain, ui_event_ScreenMain, LV_EVENT_ALL, NULL);
 uic_ScreenMain = ui_ScreenMain;
 uic_MainLabelClassName = ui_MainLabelClassName;
@@ -1803,6 +1839,8 @@ uic_MainContainerDistanceTitleLabel = ui_MainContainerDistanceTitleLabel;
 uic_MainLabelDistanceTitle = ui_MainLabelDistanceTitle;
 uic_DistanceAlarmTriangle1 = ui_MainLabelDistanceAlarmTriangle1;
 uic_DistanceAlarmTriangle2 = ui_MainLabelDistanceAlarmTriangle2;
+uic_MainButtonsilenceAlarmButton = ui_MainButtonsilenceAlarmButton;
+uic_MainLabelsilenceAlarmButtonLabel = ui_MainLabelsilenceAlarmButtonLabel;
 
 }
 
@@ -1999,5 +2037,9 @@ uic_DistanceAlarmTriangle1= NULL;
 ui_MainLabelDistanceAlarmTriangle1= NULL;
 uic_DistanceAlarmTriangle2= NULL;
 ui_MainLabelDistanceAlarmTriangle2= NULL;
+uic_MainButtonsilenceAlarmButton= NULL;
+ui_MainButtonsilenceAlarmButton= NULL;
+uic_MainLabelsilenceAlarmButtonLabel= NULL;
+ui_MainLabelsilenceAlarmButtonLabel= NULL;
 
 }

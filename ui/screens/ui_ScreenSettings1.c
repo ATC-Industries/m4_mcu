@@ -201,9 +201,6 @@ void ui_event_Settings1SliderBrightnessSlider( lv_event_t * e) {
 if ( event_code == LV_EVENT_VALUE_CHANGED) {
       SettingsSliderBrightnessChange( e );
 }
-if ( event_code == LV_EVENT_RELEASED) {
-      SettingsSliderBrightnessChange( e );
-}
 }
 
 void ui_event_Settings1TextareaTrackLengthText( lv_event_t * e) {
@@ -718,7 +715,7 @@ if ( event_code == LV_EVENT_VALUE_CHANGED &&  !lv_obj_has_state(target,LV_STATE_
 if ( event_code == LV_EVENT_VALUE_CHANGED &&  lv_obj_has_state(target,LV_STATE_CHECKED)  ) {
       _ui_state_modify( ui_Settings1DropdownAlarmRPMDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
       _ui_state_modify( ui_Settings1TextareaAlarmRPMValueTextArea2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
-      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown1, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
+      _ui_state_modify( ui_Settings1DropdownAlarmRPMColorDropdown2, LV_STATE_DISABLED, _UI_MODIFY_STATE_REMOVE);
 }
 }
 

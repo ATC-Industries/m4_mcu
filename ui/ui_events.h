@@ -19,6 +19,7 @@ void PULLINGStopBtnPressed(lv_event_t * e);
 void PULLENDDiscardBtnPressed(lv_event_t * e);
 void PULLENDSaveBtnPressed(lv_event_t * e);
 void EMERGENCYSTOPResetBtnPressed(lv_event_t * e);
+void silenceAlarmButtonPressed(lv_event_t * e);
 void SettingsScreenLoaded(lv_event_t * e);
 void CreateDeviceTable(lv_event_t * e);
 void Settings1Screen_OnLoad(lv_event_t * e);

@@ -156,6 +156,9 @@ extern lv_obj_t *ui_MainContainerDistanceTitleLabel;
 extern lv_obj_t *ui_MainLabelDistanceTitle;
 extern lv_obj_t *ui_MainLabelDistanceAlarmTriangle1;
 extern lv_obj_t *ui_MainLabelDistanceAlarmTriangle2;
+extern void ui_event_MainButtonsilenceAlarmButton( lv_event_t * e);
+extern lv_obj_t *ui_MainButtonsilenceAlarmButton;
+extern lv_obj_t *ui_MainLabelsilenceAlarmButtonLabel;
 // CUSTOM VARIABLES
 extern lv_obj_t *uic_ScreenMain;
 extern lv_obj_t *uic_MainLabelClassName;
@@ -215,6 +218,8 @@ extern lv_obj_t *uic_MainContainerDistanceTitleLabel;
 extern lv_obj_t *uic_MainLabelDistanceTitle;
 extern lv_obj_t *uic_DistanceAlarmTriangle1;
 extern lv_obj_t *uic_DistanceAlarmTriangle2;
+extern lv_obj_t *uic_MainButtonsilenceAlarmButton;
+extern lv_obj_t *uic_MainLabelsilenceAlarmButtonLabel;
 
 #ifdef __cplusplus
 } /*extern "C"*/

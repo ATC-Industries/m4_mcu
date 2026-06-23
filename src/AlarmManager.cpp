@@ -1,5 +1,7 @@
 #include "AlarmManager.h"
 #include "../ui/ui.h"
+#include "PullStateManager.h"
+#include "peripherals/PeripheralsInit.h"
 
 #define LOG_TAG "AlarmManager"
 #include "Logging.h"
@@ -17,6 +19,119 @@ Preferences AlarmManager::prefs_;
 AlarmPreset AlarmManager::presets_[kPresetCount];
 uint8_t     AlarmManager::activePreset_ = 0;
 uint32_t    AlarmManager::buzzerSilencedUntilMs_ = 0;
+
+namespace {
+// Horn tuning knobs
+//
+// These constants define the audible "language" of the alarm system. Keep
+// them near the top of the file so changing horn feel does not require digging
+// through the runtime logic below.
+//
+// Terms:
+// - pulses: how many times the horn turns on for this pattern
+// - onMs:   how long each horn-on segment lasts
+// - offMs:  silence gap between repeated pulses/patterns
+//
+// Notes on semantics:
+// - TRIP_ONCE is a crossover-only alert: one beep when the value crosses.
+// - HOLD_AUTORESET is a continuous horn while the value remains over the trip
+//   point. The horn stops as soon as the value drops below, and starts again on
+//   the next crossing.
+// - HOLD_PERSISTENT re-queues the same pattern while the alarm remains latched,
+//   which makes it keep sounding until the run is reset.
+// - AUTO_END_RUN_DQ keeps its distinct triple pulse signature.
+struct HornPattern {
+  uint8_t pulses = 0;
+  uint16_t onMs = 0;
+  uint16_t offMs = 0;
+};
+
+constexpr uint8_t  kHornPatternTripOncePulses       = 1;
+constexpr uint16_t kHornPatternTripOnceOnMs         = 180;
+constexpr uint16_t kHornPatternTripOnceOffMs        = 0;
+
+constexpr uint8_t  kHornPatternHoldAutoResetPulses  = 0;
+constexpr uint16_t kHornPatternHoldAutoResetOnMs    = 0;
+constexpr uint16_t kHornPatternHoldAutoResetOffMs   = 0;
+
+constexpr uint8_t  kHornPatternHoldPersistentPulses = 0;
+constexpr uint16_t kHornPatternHoldPersistentOnMs   = 0;
+constexpr uint16_t kHornPatternHoldPersistentOffMs  = 0;
+
+constexpr uint8_t  kHornPatternDqPulses             = 3;
+constexpr uint16_t kHornPatternDqOnMs               = 120;
+constexpr uint16_t kHornPatternDqOffMs              = 80;
+
+constexpr uint8_t kHornPatternQueueSize = 8;
+HornPattern s_hornQueue[kHornPatternQueueSize];
+uint8_t s_hornQueueHead = 0;
+uint8_t s_hornQueueTail = 0;
+uint8_t s_hornQueueCount = 0;
+
+HornPattern s_activeHornPattern;
+uint8_t s_remainingPulses = 0;
+bool s_hornIsOn = false;
+uint32_t s_hornPhaseUntilMs = 0;
+bool s_continuousHornRequested = false;
+bool s_continuousHornActive = false;
+
+void resetHornScheduler() {
+  g_horn.off();
+  s_hornQueueHead = 0;
+  s_hornQueueTail = 0;
+  s_hornQueueCount = 0;
+  s_activeHornPattern = {};
+  s_remainingPulses = 0;
+  s_hornIsOn = false;
+  s_hornPhaseUntilMs = 0;
+  s_continuousHornRequested = false;
+  s_continuousHornActive = false;
+}
+
+bool dequeueHornPattern(HornPattern& out) {
+  if (s_hornQueueCount == 0) {
+    return false;
+  }
+
+  out = s_hornQueue[s_hornQueueHead];
+  s_hornQueueHead = static_cast<uint8_t>((s_hornQueueHead + 1) % kHornPatternQueueSize);
+  --s_hornQueueCount;
+  return true;
+}
+
+bool hornPatternMatches(const HornPattern& pattern, uint8_t pulses, uint16_t onMs, uint16_t offMs) {
+  return pattern.pulses == pulses && pattern.onMs == onMs && pattern.offMs == offMs;
+}
+
+void clearAlarmHornSilence(AlarmConfig& alarm) {
+  alarm.silencedUntilMs = 0;
+  alarm.hornSilenced = false;
+}
+
+HornPattern hornPatternForStyle(AlarmStyle style) {
+  switch (style) {
+    case AlarmStyle::TRIP_ONCE:
+      return HornPattern{kHornPatternTripOncePulses,
+                         kHornPatternTripOnceOnMs,
+                         kHornPatternTripOnceOffMs};
+    case AlarmStyle::HOLD_AUTORESET:
+      return HornPattern{kHornPatternHoldAutoResetPulses,
+                         kHornPatternHoldAutoResetOnMs,
+                         kHornPatternHoldAutoResetOffMs};
+    case AlarmStyle::HOLD_PERSISTENT:
+      return HornPattern{kHornPatternHoldPersistentPulses,
+                         kHornPatternHoldPersistentOnMs,
+                         kHornPatternHoldPersistentOffMs};
+    case AlarmStyle::AUTO_END_RUN_DQ:
+      return HornPattern{kHornPatternDqPulses,
+                         kHornPatternDqOnMs,
+                         kHornPatternDqOffMs};
+    case AlarmStyle::SILENT:
+    default:
+      return HornPattern{};
+  }
+}
+}  // namespace
 
 // ----------------------------
 // Lifecycle
@@ -90,7 +205,7 @@ void AlarmManager::loadPrefs() {
         A.tripped = false;
         A.firedOnce = false;
         A.trippedAtMs = 0;
-        A.silencedUntilMs = 0;
+        clearAlarmHornSilence(A);
       }
     }
   }
@@ -217,6 +332,7 @@ void AlarmManager::applyMirrorTripMask(uint8_t activePreset, uint8_t tripMask) {
       if (!tripped) {
         alarm.firedOnce = false;
         alarm.trippedAtMs = 0;
+        clearAlarmHornSilence(alarm);
       }
     }
   }
@@ -244,6 +360,7 @@ void AlarmManager::setStyle(uint8_t preset, AlarmChannel ch, AlarmSlot sl, Alarm
   // Reset runtime flags on style change
   AlarmConfig& A = presets_[preset].alarms[(int)ch][(int)sl];
   A.tripped = false; A.firedOnce = false; A.trippedAtMs = 0;
+  clearAlarmHornSilence(A);
   savePrefs();
 }
 
@@ -258,6 +375,7 @@ void AlarmManager::setColor(uint8_t preset, AlarmChannel ch, AlarmSlot sl, Alarm
 // ----------------------------
 void AlarmManager::evaluateTick() {
   if (StateManager::getJudgeMode()) {
+    s_continuousHornRequested = false;
     return;
   }
 
@@ -265,10 +383,12 @@ void AlarmManager::evaluateTick() {
   
   // Only evaluate during STAGED and PULLING
   if (pullState != PullState::STAGED && pullState != PullState::PULLING) {
+    s_continuousHornRequested = false;
     return;
   }
   
   uint32_t now = millis();
+  const bool globalHornSilenced = now < buzzerSilencedUntilMs_;
   
   // Get current values (in base units)
   float distFt = StateManager::state().distanceInFeet;
@@ -283,6 +403,7 @@ void AlarmManager::evaluateTick() {
   }
   
   AlarmPreset& P = presets_[activePreset_];
+  bool holdAutoResetActive = false;
   
   // Evaluate all alarms
   for (int c = 0; c < kChannels; ++c) {
@@ -301,6 +422,9 @@ void AlarmManager::evaluateTick() {
       
       if (!A.enabled) {
         A.tripped = false;
+        A.firedOnce = false;
+        A.trippedAtMs = 0;
+        clearAlarmHornSilence(A);
         continue;
       }
       
@@ -312,6 +436,11 @@ void AlarmManager::evaluateTick() {
         case AlarmStyle::SILENT:
           // No horn, but set tripped state for UI
           A.tripped = shouldTrip;
+          if (!shouldTrip) {
+            A.firedOnce = false;
+            A.trippedAtMs = 0;
+            clearAlarmHornSilence(A);
+          }
           break;
           
         case AlarmStyle::TRIP_ONCE:
@@ -319,11 +448,15 @@ void AlarmManager::evaluateTick() {
             A.tripped = true;
             A.firedOnce = true;
             A.trippedAtMs = now;
+            clearAlarmHornSilence(A);
             LOGI("TRIP_ONCE fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                  (int)ch, s, currentValue, A.tripPoint);
             triggerHorn(A);
           } else if (!shouldTrip) {
             A.tripped = false;
+            A.firedOnce = false;
+            A.trippedAtMs = 0;
+            clearAlarmHornSilence(A);
           }
           break;
           
@@ -331,11 +464,14 @@ void AlarmManager::evaluateTick() {
           if (shouldTrip) {
             if (!A.tripped) {
               A.trippedAtMs = now;
+              clearAlarmHornSilence(A);
               LOGI("HOLD_AUTORESET fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                    (int)ch, s, currentValue, A.tripPoint);
-              triggerHorn(A);
             }
             A.tripped = true;
+            if (!globalHornSilenced && !isAlarmHornSilenced(A, now)) {
+              holdAutoResetActive = true;
+            }
           } else {
             // Auto-reset when value drops below trip point
             if (A.tripped) {
@@ -343,15 +479,20 @@ void AlarmManager::evaluateTick() {
             }
             A.tripped = false;
             A.firedOnce = false;
+            A.trippedAtMs = 0;
+            clearAlarmHornSilence(A);
           }
           break;
           
         case AlarmStyle::HOLD_PERSISTENT:
-          if (shouldTrip && !A.tripped) {
-            A.tripped = true;
-            A.trippedAtMs = now;
-            LOGI("HOLD_PERSISTENT fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
-                 (int)ch, s, currentValue, A.tripPoint);
+          if (shouldTrip) {
+            if (!A.tripped) {
+              A.tripped = true;
+              A.trippedAtMs = now;
+              clearAlarmHornSilence(A);
+              LOGI("HOLD_PERSISTENT fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
+                   (int)ch, s, currentValue, A.tripPoint);
+            }
             triggerHorn(A);
           }
           // Never auto-reset - stays tripped until manual reset
@@ -361,16 +502,78 @@ void AlarmManager::evaluateTick() {
           if (shouldTrip && !A.tripped) {
             A.tripped = true;
             A.trippedAtMs = now;
+            clearAlarmHornSilence(A);
             LOGI("AUTO_END_RUN_DQ fired: ch=%d slot=%d value=%.2f tripPoint=%.2f", 
                  (int)ch, s, currentValue, A.tripPoint);
             triggerHorn(A);
-            // TODO: Call StateManager to end the pull and mark as DQ
-            // StateManager::endPullDQ();
+            LOGW("AUTO_END_RUN_DQ trip is latched, but automatic PULLEND transition is disabled");
           }
           break;
       }
     }
   }
+
+  s_continuousHornRequested = holdAutoResetActive;
+}
+
+void AlarmManager::tick() {
+  const uint32_t now = millis();
+
+  if (s_continuousHornRequested) {
+    if (!s_continuousHornActive) {
+      g_horn.on();
+      s_continuousHornActive = true;
+    }
+    s_hornIsOn = false;
+    s_remainingPulses = 0;
+    s_hornPhaseUntilMs = 0;
+    return;
+  }
+
+  if (s_continuousHornActive) {
+    g_horn.off();
+    s_continuousHornActive = false;
+  }
+
+  if (s_remainingPulses == 0) {
+    HornPattern nextPattern;
+    if (!dequeueHornPattern(nextPattern)) {
+      if (s_hornIsOn) {
+        g_horn.off();
+        s_hornIsOn = false;
+      }
+      return;
+    }
+
+    s_activeHornPattern = nextPattern;
+    s_remainingPulses = nextPattern.pulses;
+    s_hornIsOn = true;
+    g_horn.on();
+    s_hornPhaseUntilMs = now + nextPattern.onMs;
+    return;
+  }
+
+  if (now < s_hornPhaseUntilMs) {
+    return;
+  }
+
+  if (s_hornIsOn) {
+    g_horn.off();
+    s_hornIsOn = false;
+    --s_remainingPulses;
+
+    if (s_remainingPulses == 0) {
+      s_hornPhaseUntilMs = 0;
+      return;
+    }
+
+    s_hornPhaseUntilMs = now + s_activeHornPattern.offMs;
+    return;
+  }
+
+  s_hornIsOn = true;
+  g_horn.on();
+  s_hornPhaseUntilMs = now + s_activeHornPattern.onMs;
 }
 
 void AlarmManager::resetForStateEntry() {
@@ -382,10 +585,11 @@ void AlarmManager::resetForStateEntry() {
       A.tripped = false;
       A.firedOnce = false;
       A.trippedAtMs = 0;
-      A.silencedUntilMs = 0;
+      clearAlarmHornSilence(A);
     }
   }
   buzzerSilencedUntilMs_ = 0;
+  resetHornScheduler();
 }
 
 // ----------------------------
@@ -393,6 +597,41 @@ void AlarmManager::resetForStateEntry() {
 // ----------------------------
 void AlarmManager::silenceForMs(uint32_t ms) {
   buzzerSilencedUntilMs_ = millis() + ms;
+}
+
+bool AlarmManager::silenceActiveAudibleAlarms() {
+  AlarmPreset& preset = presets_[activePreset_];
+  bool silencedAny = false;
+
+  for (int c = 0; c < kChannels; ++c) {
+    for (int s = 0; s < kSlots; ++s) {
+      AlarmConfig& alarm = preset.alarms[c][s];
+      if (!alarm.enabled || !alarm.tripped || alarm.style == AlarmStyle::SILENT) {
+        continue;
+      }
+
+      alarm.hornSilenced = true;
+      alarm.silencedUntilMs = UINT32_MAX;
+      silencedAny = true;
+    }
+  }
+
+  if (!silencedAny) {
+    return false;
+  }
+
+  s_continuousHornRequested = false;
+  resetHornScheduler();
+  LOGI("Silenced active alarm horns until their next reset/trip cycle");
+  return true;
+}
+
+bool AlarmManager::hasActiveAudibleAlarm() {
+  return s_continuousHornRequested ||
+         s_continuousHornActive ||
+         s_hornIsOn ||
+         s_remainingPulses > 0 ||
+         s_hornQueueCount > 0;
 }
 
 // ----------------------------
@@ -595,7 +834,7 @@ void AlarmManager::triggerHorn(const AlarmConfig& A) {
   }
   
   // Check per-alarm silence
-  if (now < A.silencedUntilMs) {
+  if (isAlarmHornSilenced(A, now)) {
     LOGD("Horn silenced for this alarm until %lu ms", A.silencedUntilMs);
     return;
   }
@@ -619,7 +858,42 @@ void AlarmManager::triggerHorn(const AlarmConfig& A) {
   
   LOGI("HORN TRIGGERED: TripPoint=%.2f Style=%s Color=%s Enabled=%d", 
        A.tripPoint, styleName, colorName, A.enabled);
-  
-  // TODO: Trigger actual horn/buzzer hardware
-  // Example: digitalWrite(BUZZER_PIN, HIGH);
+
+  const HornPattern pattern = hornPatternForStyle(A.style);
+  if (pattern.pulses == 0) {
+    return;
+  }
+
+  enqueueHornPattern(pattern.pulses, pattern.onMs, pattern.offMs);
+}
+
+bool AlarmManager::isAlarmHornSilenced(const AlarmConfig& A, uint32_t now) {
+  return A.hornSilenced || now < A.silencedUntilMs;
+}
+
+void AlarmManager::enqueueHornPattern(uint8_t pulses, uint16_t onMs, uint16_t offMs) {
+  if (pulses == 0) {
+    return;
+  }
+
+  if (s_hornQueueCount >= kHornPatternQueueSize) {
+    LOGW("Horn pattern queue full, dropping pattern pulses=%u on=%u off=%u",
+         pulses, onMs, offMs);
+    return;
+  }
+
+  if (s_remainingPulses > 0 && hornPatternMatches(s_activeHornPattern, pulses, onMs, offMs)) {
+    return;
+  }
+
+  if (s_hornQueueCount > 0) {
+    const uint8_t lastIndex = static_cast<uint8_t>((s_hornQueueTail + kHornPatternQueueSize - 1) % kHornPatternQueueSize);
+    if (hornPatternMatches(s_hornQueue[lastIndex], pulses, onMs, offMs)) {
+      return;
+    }
+  }
+
+  s_hornQueue[s_hornQueueTail] = HornPattern{pulses, onMs, offMs};
+  s_hornQueueTail = static_cast<uint8_t>((s_hornQueueTail + 1) % kHornPatternQueueSize);
+  ++s_hornQueueCount;
 }

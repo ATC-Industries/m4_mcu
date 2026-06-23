@@ -55,6 +55,7 @@ struct AlarmConfig {
   bool        firedOnce = false;
   uint32_t    trippedAtMs = 0;
   uint32_t    silencedUntilMs = 0;
+  bool        hornSilenced = false;
 };
 
 struct AlarmPreset {
@@ -89,10 +90,13 @@ class AlarmManager {
 
   // Evaluation
   static void evaluateTick(); // call during STAGED and PULLING
+  static void tick(); // advances non-blocking horn patterns
   static void resetForStateEntry(); // call on STAGED entry, etc.
 
   // Horn and silence
   static void silenceForMs(uint32_t ms);
+  static bool silenceActiveAudibleAlarms();
+  static bool hasActiveAudibleAlarm();
 
   // UI glue
   static void handleAlarmChange(AlarmChannel ch, AlarmSlot sl, AlarmField field, lv_event_t* e);
@@ -116,6 +120,8 @@ class AlarmManager {
   static uint8_t activePreset_;
   static uint32_t buzzerSilencedUntilMs_;
   static void triggerHorn(const AlarmConfig& A);
+  static void enqueueHornPattern(uint8_t pulses, uint16_t onMs, uint16_t offMs);
+  static bool isAlarmHornSilenced(const AlarmConfig& A, uint32_t now);
 
 };
 

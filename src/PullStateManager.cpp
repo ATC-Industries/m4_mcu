@@ -125,6 +125,23 @@ void PullStateManager::handleResetPressed() { enterState(PullState::READY); }
 
 void PullStateManager::triggerEmergencyStop() { enterState(PullState::EMERGENCYSTOP); }
 
+void PullStateManager::triggerAlarmDqStop() {
+  PullState current = StateManager::getPullState();
+  if (current == PullState::PULLEND) {
+    LOGI("Alarm DQ ignored: already in PULLEND");
+    return;
+  }
+
+  if (current != PullState::STAGED && current != PullState::PULLING) {
+    LOGW("Alarm DQ ignored: invalid state %d", static_cast<int>(current));
+    return;
+  }
+
+  LOGI("Alarm-triggered DQ stop");
+  s_belowSinceMs = 0;
+  enterState(PullState::PULLEND);
+}
+
 void PullStateManager::detectPullStart(float currentSpeed) {
   static unsigned long lastStageCheckMs = 0;
   unsigned long now = millis();

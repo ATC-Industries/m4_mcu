@@ -31,6 +31,7 @@ static bool lastDisplayedTssConnected = false;
 static bool lastDisplayedTachVisible = false;
 static bool lastDisplayedLimitVisible = false;
 static bool lastDisplayedRelayVisible = false;
+static bool lastDisplayedSilenceAlarmVisible = false;
 static bool alarmUiRefreshing = false;
 
 static const lv_color_t kPresetColors[] = {
@@ -55,6 +56,7 @@ void primeMainScreenValues() {
   lastDisplayedTachVisible = false;
   lastDisplayedLimitVisible = false;
   lastDisplayedRelayVisible = false;
+  lastDisplayedSilenceAlarmVisible = false;
 }
 
 // visibility helper
@@ -120,6 +122,30 @@ static void applyDistanceAlarmColorToLabel(lv_obj_t* label, AlarmColor color) {
   } else {
     // for red/green background, use white text for contrast
     lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
+}
+
+static inline void set_bar_visible(lv_obj_t* bar, bool visible);
+
+static void setDistanceAlarmTripState(lv_obj_t* bar, lv_obj_t* label, AlarmColor color,
+                                      bool enabled, bool tripped) {
+  if (bar) {
+    set_bar_visible(bar, enabled);
+    if (enabled) {
+      applyDistanceAlarmColor(bar, color);
+      lv_obj_set_style_border_opa(bar, tripped ? 255 : 96, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+    }
+  }
+
+  if (label) {
+    if (enabled) {
+      lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+      applyDistanceAlarmColorToLabel(label, color);
+      lv_obj_set_style_bg_opa(label, tripped ? LV_OPA_COVER : 96, LV_PART_MAIN | LV_STATE_DEFAULT);
+      lv_obj_set_style_text_opa(label, tripped ? LV_OPA_COVER : 180, LV_PART_MAIN | LV_STATE_DEFAULT);
+    } else {
+      lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+    }
   }
 }
 
@@ -421,6 +447,12 @@ void updateMainScreen() {
   }
 
   updateAlarmIndicators();
+
+  const bool silenceAlarmVisible = AlarmManager::hasActiveAudibleAlarm();
+  if (uic_MainButtonsilenceAlarmButton && silenceAlarmVisible != lastDisplayedSilenceAlarmVisible) {
+    set_visible(uic_MainButtonsilenceAlarmButton, silenceAlarmVisible);
+    lastDisplayedSilenceAlarmVisible = silenceAlarmVisible;
+  }
 
   //
   // Limit Switch Indicators
@@ -736,6 +768,8 @@ void updateAlarmIndicators() {
   auto speedA2 = AlarmManager::getConfigActive(AlarmChannel::SPEED, AlarmSlot::A2);
   auto rpmA1 = AlarmManager::getConfigActive(AlarmChannel::RPM, AlarmSlot::A1);
   auto rpmA2 = AlarmManager::getConfigActive(AlarmChannel::RPM, AlarmSlot::A2);
+  auto distA1 = AlarmManager::getConfigActive(AlarmChannel::DISTANCE, AlarmSlot::A1);
+  auto distA2 = AlarmManager::getConfigActive(AlarmChannel::DISTANCE, AlarmSlot::A2);
 
   int fullOpacity = 255;
   int faintOpacity = 30;
@@ -779,4 +813,9 @@ void updateAlarmIndicators() {
   } else {
     set_visible(uic_MainPanelSpeedAlarmIndicatorIcon2, false);  // HIDDEN when disabled
   }
+
+  setDistanceAlarmTripState(ui_MainBarDistanceAlarm1, ui_MainLabelDistanceAlarmTriangle1,
+                            distA1.color, distA1.enabled, distA1.tripped);
+  setDistanceAlarmTripState(ui_MainBarDistanceAlarm2, ui_MainLabelDistanceAlarmTriangle2,
+                            distA2.color, distA2.enabled, distA2.tripped);
 }
